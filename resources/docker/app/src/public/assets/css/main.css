@@ -1,0 +1,34 @@
+:root {
+    --primary-color: #302AE6;
+    --secondary-color: #536390;
+    --font-color: #424242;
+    --bg-color: #fff;
+    --heading-color: #292922;
+    color-scheme: light dark; /* both supported */
+}
+
+:root[data-theme="dark"] {
+    --primary-color: #9A97F3;
+    --secondary-color: #818cab;
+    --font-color: #e1e1ff;
+    --bg-color: #161625;
+    --heading-color: #818cab;
+    color-scheme: light dark; /* both supported */
+}
+
+body {
+    display:flex; 
+    flex-direction:column; 
+    justify-content:center;
+    min-height:100vh;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    overflow-x: auto;
+}
+
+body::after {
+    content: "";
+    display: block;
+    clear: both;
+}

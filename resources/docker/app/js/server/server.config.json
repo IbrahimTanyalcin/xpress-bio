@@ -1,0 +1,31 @@
+{
+    "public": "src/public",
+    "static": "src/public/assets",
+    "index": "static.html",
+    "port": "whateva",
+    "memcached": {
+        "conf": {
+            "logEvents": true
+        },
+        "routes": {
+            "/ranges\\/([A-Z0-9.\\-_]+)/i": [
+                {
+                    "key": "GETLimit",
+                    "global": true,
+                    "timeout": 60,
+                    "limit": "1000",
+                    "method": "get"
+                }
+            ],
+            "/refresh": [
+                {
+                    "key": "REFRESHLimit",
+                    "global": true,
+                    "timeout": 60,
+                    "limit": "1",
+                    "method": "get"
+                }
+            ]
+        }
+    }
+}

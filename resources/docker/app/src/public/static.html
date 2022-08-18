@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="color-scheme" content="dark light">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/igv.js"></script>
+</head>
+<body>
+    <div id="igv-div"></div>
+</body>
+<script>
+    !function(){
+        /* igv.createBrowser(
+            document.getElementById('igv-div'),
+            {
+                reference: {
+                    "name": "gB-C84",
+                    "fastaURL": "/static/bam/GCF_003668045.3_CriGri-PICRH-1.0_genomicsta_Transgene_P317R_IRES_gI_ec.fa",
+                    "indexURL": "/static/bam/GCF_003668045.3_CriGri-PICRH-1.0_genomicsta_Transgene_P317R_IRES_gI_ec.fa.fai",
+                    tracks: [
+                        {
+                            type: "alignment",
+                            format: "bam",
+                            name: "eCMV-gB-C84_frags",
+                            url: "/static/bam/eCMV-gB-C84_frags.bam",
+                            indexURL: "/static/bam/eCMV-gB-C84_frags.bam.bai",
+                            sort: {
+                                direction: "ASC"
+                            }
+                        }
+                    ]
+                }
+            }
+        ).then((browser) => {
+            console.log("igv running");
+        }); */
+
+        /* igv.createBrowser(
+            document.getElementById('igv-div'),
+            {
+                reference: {
+                    "id": "hg38",
+                    "name": "Human (GRCh38/hg38)",
+                    "fastaURL": "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
+                    "indexURL": "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai",
+                    "cytobandURL": "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/cytoBandIdeo.txt",
+                    "tracks": [
+                        {
+                            "name": "Refseq Genes",
+                            "url": "https://s3.amazonaws.com/igv.org.genomes/hg38/refGene.txt.gz",
+                            "order": 1000000,
+                            "indexed": false
+                        }
+                    ]
+                }
+            }
+        ).then((browser) => {
+            console.log("igv running");
+        });  */
+
+        igv.createBrowser(
+            document.getElementById('igv-div'),
+            {
+                reference: {
+                    "name": "GCF_003668045.3_CriGri-PICRH-1.0_genomic",
+                    "fastaURL": "/static/fa/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta",
+                    "indexURL": "/static/fai/GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta.fai",
+                    tracks: [
+                        {
+                            type: "alignment",
+                            format: "bam",
+                            name: "GCF_DHFR-gB-C35_S19_L001_merged",
+                            url: "/static/bam/GCF_DHFR-gB-C35_S19_L001_merged.bam",
+                            indexURL: "/static/bai/GCF_DHFR-gB-C35_S19_L001_merged.bam.bai",
+                            sort: {
+                                direction: "ASC"
+                            }
+                        }
+                    ]
+                }
+            }
+        ).then((browser) => {
+            console.log("igv running");
+        });
+    }();
+</script>
+</html>

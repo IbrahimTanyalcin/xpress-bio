@@ -1,0 +1,31 @@
+{
+  "name": "docker-for-dna-nexus-igv",
+  "version": "0.0.0",
+  "description": "a simple docker container for running igv on dna-nexus",
+  "main": "main.js",
+  "scripts": {
+    "test": "cross-env-shell node ./main.js",
+    "start": "cross-env-shell nodemon ./main.js"
+  },
+  "keywords": [
+    "docker",
+    "minimal",
+    "interactive",
+    "protein",
+    "sequence",
+    "visualization",
+    "visualisation",
+    "genetics",
+    "bioinformatics",
+    "dataviz"
+  ],
+  "author": "Ibrahim Tanyalcin",
+  "license": "MIT",
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "express": "^4.18.1",
+    "memcached": "^2.2.2",
+    "nodemon": "^2.0.19",
+    "rafx": "^0.0.20"
+  }
+}
