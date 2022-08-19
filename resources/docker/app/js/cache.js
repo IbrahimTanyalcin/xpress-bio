@@ -24,7 +24,7 @@ exports.Cache = function (info){
 		traps = {
 			get (key) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.get(key, function(err, data) {
 						err ? rej(err) : res(data);
 					});
@@ -32,7 +32,7 @@ exports.Cache = function (info){
 			},
 			set (key, val, lifetime) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.set(key, val, lifetime || 60, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -40,7 +40,7 @@ exports.Cache = function (info){
 			},
 			append (key, val) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.append(key, val, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -48,7 +48,7 @@ exports.Cache = function (info){
 			},
 			prepend (key, val) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.prepend(key, val, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -56,7 +56,7 @@ exports.Cache = function (info){
 			},
 			incr (key, val) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.incr(key, val, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -64,7 +64,7 @@ exports.Cache = function (info){
 			},
 			decr (key, val) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.incr(key, val, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -72,7 +72,7 @@ exports.Cache = function (info){
 			},
 			del (key) {
 				const memcached = this;
-				return new Promise(function(res){
+				return new Promise(function(res, rej){
 					memcached.del(key, function(err) {
 						err ? rej(err) : res(true);
 					});
@@ -96,8 +96,13 @@ exports.Cache = function (info){
 		};
 	return new Proxy(memcached, {
 		get (target, prop, receiver) {
-			return traps?.[prop].bind(memcached) 
-				?? target[prop].bind(memcached);
+			/* if(prop === "end"){
+				log("end is detected!");
+				target.end();
+				return;
+			} */
+			return traps?.[prop]?.bind(memcached) 
+				?? target?.[prop]?.bind(memcached);
 		}
 	});
 }

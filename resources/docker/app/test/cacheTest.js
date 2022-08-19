@@ -8,6 +8,17 @@
         cache = require("../js/cache.js").Cache(info);
     log(util.types.isProxy(cache)); //check whether the obj is Proxy
     log(JSON.stringify(info,null,"\t"));
-    cache.set("abc", 10, 1000).then((data) => {log("data is: ", data)}).catch(err => log(err));
-    cache.get("abc").then((data) => log("retreived: ", data)).catch(err => log(err));
+    /* cache.set("abc", 10, 1000).then((data) => {log("data is: ", data)}).catch(err => log(err));
+    cache.get("abc").then((data) => log("retreived: ", data)).catch(err => log(err)); */
+
+    cache.set("abcdefgh", 16, 1000).then((data) => {log("data is: ", data)})
+    .then(function(){
+        return cache
+            .get("abcdefgh")
+            .then((data) => log("retreived: ", data));
+    })
+    .then(function(){
+        cache.end();
+    })
+    .catch(err => log(err));
 })();
