@@ -4,32 +4,10 @@ const
 	{catcher, log} = require("./helpers.js");
 exports.getPort = async function(info){
 	let port;
-	if (+info.isContainer <= 0) {
-		port = +(info?.serverConf?.port ?? NaN);
-		log(
-			"checking serverConf for port info.",
-			isNaN(port) ? "using default port 3000" : `using port ${port}`,
-		);
-		return port !== port ? 3000 : port;
-	} 
-	port = +(
-				(
-					await capture('ss -tulwn | tail -n 1 | sed -r \'s/\s+/ /g\' | cut -d" " -f5 | cut -d":" -f2')
-					.catch(catcher)
-				) 
-				?? 
-				NaN
+	port = +(info?.serverPort ?? info?.serverConf?.port ?? NaN);
+	log(
+		"checking serverConf for port info.",
+		isNaN(port) ? "using default port 3000" : `using port ${port}`,
 	);
-	if(isNaN(port)){
-		catcher(
-			new Error(
-				[
-					"Container mode was detected.",
-					"However, either no listening sockets were detected",
-					"or 'ss' command was parsed incorrectly."
-				].join("\n")
-			)
-		);
-	}
-	return port;
+	return port !== port ? 3000 : port;
 };

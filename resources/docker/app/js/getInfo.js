@@ -36,7 +36,10 @@ exports.getInfo = async function(ENV, ARGS){
 				E = extended regex
 			why 'docker|lxc' ?
 				https://stackoverflow.com/questions/20010199/how-to-determine-if-a-process-runs-inside-lxc-docker*/
-			serverConf: ARGS.conf ? JSON.parse(atob(ARGS.conf)) : require("./server/server.config.json")
+			serverConf: ARGS.conf ? JSON.parse(atob(ARGS.conf)) : require("./server/server.config.json"),
+			serverPort: ARGS.port,
+			PID: process.pid,
+			PPID: process.ppid
 		};
 		require.main._ipvCache = {getInfo: result};
 	} catch (err) {

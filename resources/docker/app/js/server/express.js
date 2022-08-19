@@ -30,19 +30,14 @@ async function render (info) {
             ? "127.0.0.1"
             : "0.0.0.0";
         getPort(info)
-        .then(port =>
+        .then(port => {
             app.listen(
                 port,
                 host
-            )
-        ).catch(catcher);
-        
-        /* app.listen(
-            await (getPort(serverConf, info)),
-            host
-        ); */
+            );
+            log("listening on host:", `${host}:${port}`);
+        }).catch(catcher);
 
-        log("listening on host:", host);
 
         /* setTimeout(function(){
             log('EXITING!');
