@@ -14,7 +14,9 @@
                     "global": true,
                     "timeout": 60,
                     "limit": "1000",
-                    "method": "get"
+                    "method": "get",
+                    "isRegExp": true,
+                    "RegExpFlags": "i"
                 }
             ],
             "/refresh": [

@@ -21,6 +21,7 @@ async function render (info) {
             JSON.stringify(files,null,"\t")
         );
         
+        //add memcache handlers
         require("./routes/base")(app, files);
         require("./routes/ranges")(app, files);
         require("./routes/static")(app, files, express);
