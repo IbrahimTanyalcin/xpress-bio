@@ -1,7 +1,5 @@
-const serverConf = require("../server.config.json");
-
-module.exports = function(app, files){
+module.exports = function(express, app, info, files){
     app.get('/', function (req, res) {
-        res.sendFile(files[serverConf.index]);
+        res.sendFile(files[info.serverConf.index]);
     });
 }

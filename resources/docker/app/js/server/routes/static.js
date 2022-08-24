@@ -1,9 +1,8 @@
-const path = require('path'),
-    serverConf = require("../server.config.json");
+const path = require('path');
 
-module.exports = function(app, files, express){
+module.exports = function(express, app, info, files){
     
-    const _static = express.static(serverConf.static, {
+    const _static = express.static(info.serverConf.static, {
         dotfiles: 'ignore',
         extensions: ['htm', 'html'],
         index: false,

@@ -22,6 +22,7 @@ exports.getInfo = async function(ENV, ARGS){
 		}
 		result = {
 			version: ENV.npm_package_version,
+			environment: ENV.NODE_ENV,
 			rootFolder: rootFolder,
 			nodeBinaries: path.resolve(rootFolder, "node_modules/.bin/"),
 			dockerBinaries: path.resolve(rootFolder, "bin"),

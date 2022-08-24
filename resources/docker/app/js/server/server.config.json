@@ -3,31 +3,61 @@
     "static": "src/public/assets",
     "index": "static.html",
     "port": "whateva",
+    "routes": "js/server/routes",
     "memcached": {
         "conf": {
             "logEvents": true
         },
-        "routes": {
-            "/ranges\\/([A-Z0-9.\\-_]+)/i": [
-                {
-                    "key": "GETLimit",
-                    "global": true,
-                    "timeout": 60,
-                    "limit": "1000",
-                    "method": "get",
-                    "isRegExp": true,
-                    "RegExpFlags": "i"
+        "mounts": {
+            "/": {
+                "isRegExp": false,
+                "routes": {
+                    "/ranges\\/([A-Z0-9.\\-_]+)/i": {
+                        "isRegExp": true,
+                        "RegExpFlags": "i",
+                        "limits": [
+                            {
+                                "key": "GETLimit",
+                                "global": true,
+                                "timeout": 60,
+                                "limit": "1000",
+                                "method": "get",
+                                "message": "You surpassed GETLimit",
+                                "step": 5
+                            }
+                        ]
+                    },
+                    "/refresh": {
+                        "isRegExp": false,
+                        "limits": [
+                            {
+                                "key": "REFRESHLimit",
+                                "global": true,
+                                "timeout": 60,
+                                "limit": "1",
+                                "method": "get",
+                                "message": "You surpassed REFRESHLimit"
+                            }
+                        ]
+                    },
+                    "/" : {
+                        "isRegExp": false,
+                        "limits": [
+                            {
+                                "key": "BASElimit",
+                                "global": false,
+                                "timeout": 60,
+                                "limit": 3,
+                                "method": "GET",
+                                "message": "Visit a little later!"
+                            }
+                        ]
+                    }
                 }
-            ],
-            "/refresh": [
-                {
-                    "key": "REFRESHLimit",
-                    "global": true,
-                    "timeout": 60,
-                    "limit": "1",
-                    "method": "get"
-                }
-            ]
+            }
         }
+    },
+    "server-sent": {
+        
     }
 }

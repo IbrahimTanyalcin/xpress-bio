@@ -55,7 +55,7 @@ const { render } = require("./js/server/express.js");
 			
 			if(info.nodaemon){
 				const {render} = require("./js/server/express.js");
-				return render(info);
+				return render(info); //returns {routeFiles, files, host, port}
 			} else {
 				const daemon = require("./js/daemon.js");
 				daemon()

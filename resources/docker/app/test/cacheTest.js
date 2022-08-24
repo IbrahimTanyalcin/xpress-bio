@@ -1,3 +1,5 @@
+const { createHash } = require("crypto");
+
 (async function(){
     const 
         util = require("util"),
@@ -11,11 +13,18 @@
     /* cache.set("abc", 10, 1000).then((data) => {log("data is: ", data)}).catch(err => log(err));
     cache.get("abc").then((data) => log("retreived: ", data)).catch(err => log(err)); */
 
-    cache.set("abcdefgh", 16, 1000).then((data) => {log("data is: ", data)})
+
+    cache.get("someinextistent").then(val => log("val is", val ?? "undefined my friend"));
+    cache.set("abcdefgh", 17, 1000).then((data) => {log("data is: ", data)})
     .then(function(){
-        return cache
+        return setTimeout(function(){
+            cache
             .get("abcdefgh")
-            .then((data) => log("retreived: ", data));
+            .then((data) => {
+                log("retreived: ", data);
+                cache.end();
+            });
+        },5000);
     })
     .then(function(){
         cache.end();
