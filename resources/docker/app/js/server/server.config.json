@@ -12,7 +12,7 @@
             "/": {
                 "isRegExp": false,
                 "routes": {
-                    "/ranges\\/([A-Z0-9.\\-_]+)/i": {
+                    "/ranges\\/([A-Z0-9.\\-_]+)": {
                         "isRegExp": true,
                         "RegExpFlags": "i",
                         "limits": [
@@ -21,7 +21,7 @@
                                 "global": true,
                                 "timeout": 60,
                                 "limit": "1000",
-                                "method": "get",
+                                "method": "GET",
                                 "message": "You surpassed GETLimit",
                                 "step": 5
                             }
@@ -57,7 +57,85 @@
             }
         }
     },
+    "csrf-client-side": {
+        "mounts": {
+            "/": {
+                "routes": {
+                    ".*": {
+                        "isRegExp": true,
+                        "RegExpFlags": "i",
+                        "min-pass-count": 2,
+                        "message": "Your headers do not match.",
+                        "method": "GET|post",
+                        "headers": [
+                            {
+                                "header": "origin",
+                                "value": "http:\\/\\/127\\.0\\.0\\.1|https?:\\/\\/[^.]*\\.dnanexus\\.cloud|http:\\/\\/localhost|undefined",
+                                "isRegExp": true,
+                                "RegExpFlags": "i"
+                            },
+                            {
+                                "header": "referer",
+                                "value": [
+                                    "^http://127.0.0.1",
+                                    "^http://localhost",
+                                    "^undefined"
+                                ],
+                                "isRegExp": false
+                            },
+                            {
+                                "header": "referer",
+                                "value": "https?:\\/\\/[^.]*\\.dnanexus\\.cloud",
+                                "isRegExp": true,
+                                "RegExpFlags": "i"
+                            }
+                        ]
+                    },
+                    "/ranges/*": {
+                        "isRegExp": false,
+                        "min-pass-count": 0,
+                        "message": "I want a special header!!.",
+                        "method": "post|GET",
+                        "headers": [
+                            {
+                                "header": "referer",
+                                "value": "^doesNotHaveToMatch"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
     "server-sent": {
-        
+        "mounts": {
+            "/": {
+                "routes": {
+                    ".*": {
+                        "isRegExp": true,
+                        "RegExpFlags": "i",
+                        "method": "GET",
+                        "server-sent-key": "event1",
+                        "retry": 5000
+                    }
+                }
+            }
+        }
+    },
+    "session": {
+        "env-session-secret": "XPRESS_SECRET",
+        "env-memcached-secret": "MEMSESS_SECRET",
+        "session": {
+            "resave": false,
+            "proxy": "true",
+            "saveUninitialized": false,
+            "name": "whateva",
+            "cookie": {
+                "maxAge": 86400000 
+            }
+        },
+        "memcached":{
+            "ttl": 86400
+        }
     }
 }
