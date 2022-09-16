@@ -11,7 +11,7 @@ main() {
     echo ${input_two[@]};
     echo "--------------";
     docker load < ./express-test.tar
-    (docker run --rm --name web-test -p 443:3000 express-test:trial-one) | tee "$teeOutput" &
+    (docker run --rm --name web-test -p 443:3000 express-test:trial-five) | tee "$teeOutput" &
     iter
     fixedAssets
     set -e -x

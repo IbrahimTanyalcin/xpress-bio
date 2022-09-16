@@ -5,8 +5,17 @@
 const 
 	{exec, spawn} = require('child_process'),
 	{log} = require('./helpers.js'),
-	capture = function (str){
-		log("Capturing:",str);
+	capture = function (str, {logger = true, pipe = true} = {}){
+		switch (((typeof logger === "function") << 1) + !!logger) {
+			case 3:
+			case 2:
+				logger(str);
+				break;
+			case 1:
+				log("Capturing:",str)
+				break;
+			default:
+		}
 		return new Promise((res, rej) => {
 			//default shell is '/bin/sh'
 			const childProcess = exec(str, (err, stdout, stderr) => {
@@ -24,7 +33,7 @@ const
 				}
 				rej(new Error("unknown reason for rejection"));
 			});
-			childProcess.stdout.pipe(process.stdout);
+			pipe && childProcess.stdout.pipe(process.stdout);
 		});
 	};
 

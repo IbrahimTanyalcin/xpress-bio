@@ -2,7 +2,7 @@ const   fs = require('fs'),
         fsPromises = require('fs/promises'),
         { PassThrough : pass} = require('stream');
 
-module.exports = function(express, app, info, files){
+module.exports = function({express, app, info, files, serverSent}){
     app.get(/ranges\/([A-Z0-9.\-_]+)/i, function(req, res) {
         /* console.log(req.query);
         console.log(process.env.NODE_ENV); */
@@ -54,7 +54,7 @@ module.exports = function(express, app, info, files){
 
         })
         .catch(function(err){
-            res.send(err.mess);
+            res.send(err.message); //originally it was 'err.mess', typo?
         });
         //res.sendFile(fileName);
 

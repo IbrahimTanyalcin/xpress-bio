@@ -23,7 +23,7 @@ exports.getInfo = async function(ENV, ARGS){
 		result = {
 			version: ENV.npm_package_version,
 			environment: ENV.NODE_ENV,
-			rootFolder: rootFolder,
+			rootFolder: rootFolder, //do not think it has ../ in it, it does not
 			nodeBinaries: path.resolve(rootFolder, "node_modules/.bin/"),
 			dockerBinaries: path.resolve(rootFolder, "bin"),
 			ipvPath: path.resolve(rootFolder, "node_modules/ibowankenobi-i-pv/i-pv/script/", "SNPtoAA.pl"),

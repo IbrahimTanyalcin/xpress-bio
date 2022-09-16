@@ -47,7 +47,7 @@
                                 "key": "BASElimit",
                                 "global": false,
                                 "timeout": 60,
-                                "limit": 3,
+                                "limit": 3000,
                                 "method": "GET",
                                 "message": "Visit a little later!"
                             }
@@ -108,14 +108,16 @@
         }
     },
     "server-sent": {
+        "conf": {
+            "logEvents": true
+        },
         "mounts": {
             "/": {
                 "routes": {
-                    ".*": {
-                        "isRegExp": true,
-                        "RegExpFlags": "i",
-                        "method": "GET",
-                        "server-sent-key": "event1",
+                    "/estream/*": {
+                        "isRegExp": false,
+                        "method": "get",
+                        "name": "streamOne",
                         "retry": 5000
                     }
                 }
@@ -127,7 +129,6 @@
         "env-memcached-secret": "MEMSESS_SECRET",
         "session": {
             "resave": false,
-            "proxy": "true",
             "saveUninitialized": false,
             "name": "whateva",
             "cookie": {
@@ -135,7 +136,8 @@
             }
         },
         "memcached":{
-            "ttl": 86400
+            "ttl": 86400,
+            "prefix": "memsess_"
         }
     }
 }

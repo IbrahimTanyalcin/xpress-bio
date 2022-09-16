@@ -4,7 +4,7 @@ const
     {findDir} = require("../../findDir.js"),
     {log} = require("../../helpers.js");
 
-module.exports = async function (express, app, info, files) {
+module.exports = async function ({express, app, info, files, serverSent}) {
     const routeFiles = await Promise.resolve(
         info.serverConf?.routes
         ? getFiles(
@@ -25,6 +25,6 @@ module.exports = async function (express, app, info, files) {
         )
     );
     log("loading routes:", JSON.stringify(routeFiles));
-    routeFiles.forEach(routeFile => require("./" + routeFile)(express, app, info, files));
+    routeFiles.forEach(routeFile => require("./" + routeFile)({express, app, info, files, serverSent}));
     return routeFiles;
 }

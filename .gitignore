@@ -103,3 +103,6 @@ typings/
 
 # next.js build output
 .next
+
+#ignore dna-nexus specific folder
+/resources/home/

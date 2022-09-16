@@ -14,6 +14,7 @@ COPY ./app/package*.json ./
 RUN npm install
 COPY ./app ./
 RUN /bin/bash ./bin/memcached.sh \
+&& /bin/bash ./bin/bc.sh \
 && /bin/bash ./bin/setLogname.sh \
 && /bin/bash ./bin/createUserAndGroup.sh \
 && /bin/bash ./bin/cleanUp.sh
@@ -23,6 +24,7 @@ EXPOSE 3000
 #USER IPV:IPV
 #ENTRYPOINT ["npm", "start"]
 ENTRYPOINT ["/bin/bash", "./bin/start.sh"]
-#First -- is for omitting npm parameters,
-#Second -- is for nodemon
-CMD ["--", "-e", "js,mjs,json,txt,bam" ,"--", "--no-daemon"]
+#--npm for npm args
+#--nodemon for nodemon args
+#-- for node args
+CMD ["--nodemon", "-e", "js,mjs,json,txt" ,"--", "--no-daemon"]

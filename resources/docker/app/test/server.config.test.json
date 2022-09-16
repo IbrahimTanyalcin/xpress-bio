@@ -1,6 +1,0 @@
-{
-    "public": "src/public",
-    "static": "src/public/assets",
-    "index": "static.html",
-    "port": "4000"
-}

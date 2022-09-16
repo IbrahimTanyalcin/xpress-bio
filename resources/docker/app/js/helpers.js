@@ -63,6 +63,40 @@ Object.defineProperties(
 			value:(base64) => {
 				return Buffer.from(base64, "base64").toString();
 			}
+		},
+		serverSend: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: ({directive = "data", payload, stringify = [null, "\t"]}) => {
+				switch (
+						((payload instanceof Object) << 1) 
+						+ ((directive === "data") << 0)
+				) {
+					case 3:
+						return JSON.stringify(payload, ...stringify)
+							.trimEnd().split("\n").map(d => "data: " + d).join("\n") + "\n\n";
+					case 2:
+						return directive + ": " + JSON.stringify(payload, ...stringify)
+							.trimEnd().replace(/\s+/g," ") + "\n";
+					case 1:
+						return String(payload)
+							.trimEnd().split("\n").map(d => "data: " + d).join("\n") + "\n\n";
+					case 0: 
+						return directive + ": " + String(payload).trimEnd().replace(/\s+/g," ") + "\n";
+					default:
+						throw new Error("There was a problem with parsing the payload");
+				}
+			}
+		},
+		sanitizeFilename: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const illegalChars = /[\x00-\x1f\\/<>:"`|?*%]/gi;
+				return fileName => fileName.replace(illegalChars,"");
+			})()
 		}
 	}
 );

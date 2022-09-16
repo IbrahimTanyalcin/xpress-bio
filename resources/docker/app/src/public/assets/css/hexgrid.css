@@ -1,0 +1,102 @@
+.grid-main[data-grid-type=hexagon] {
+    display: flex;
+    position: relative;
+    --s: 120;
+    /* size  */
+    --m: 4;
+    /* margin */
+    --f: calc((var(--s) * 1.732 + 4 * var(--m) - 1) * 1px);
+    --scale: calc(4 * var(--m) / var(--s) + 1);
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='25'] {
+    max-width: 25%;
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='40'] {
+    max-width: 40%;
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='50'] {
+    max-width: 50%;
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='60'] {
+    max-width: 60%;
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='75'] {
+    max-width: 75%;
+}
+
+.grid-main[data-grid-type=hexagon][data-grid-width-\%='100'] {
+    max-width: 100%;
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container {
+    font-size: 0;
+    /* disable white space between inline block element */
+    position: relative;
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div {
+    position: relative;
+    width: calc(var(--s) * 1px);
+    margin: calc(var(--m) * 1px);
+    height: calc(var(--s) * 1.1547 * 1px);
+    display: inline-block;
+    font-size: initial;
+    clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+    margin-bottom: calc((var(--m) - var(--s) * 0.2885) * 1px);
+    background: var(--bg-color);
+    transition: all 0.4s ease-in-out;
+    color: var(--font-color);
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div:nth-child(odd) {
+    background:var(--bg-color-3);
+    color: var(--page-color);
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div:hover,
+.grid-main[data-grid-type=hexagon] .grid-main-container div:nth-child(odd):hover {
+    background: var(--bg-color-2);
+    transform: scale(var(--scale), var(--scale));
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div:nth-child(even):hover {
+    color: var(--page-color);
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div > * {
+    --font-size: 1.2rem;
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    top: 50%;
+    left: 50%;
+    font-size: var(--font-size);
+    white-space: nowrap;
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div > *:first-child {
+    transform: translate(-50%, calc(-50% - var(--font-size)));
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div > *:last-child {
+    transform: translate(-50%, calc(-50% + var(--font-size)));
+}
+
+.grid-main[data-grid-type=hexagon] .grid-main-container::before {
+    content: "";
+    width: calc((var(--s) / 2 + var(--m)) * 1px);
+    float: left;
+    height: 120%;
+    shape-outside: repeating-linear-gradient(#0000 0 calc(var(--f) - 3px), #000 0 var(--f));
+}
+
+@media screen and (max-width: 800px) {
+    .grid-main[data-grid-type=hexagon][data-grid-width-\%] {
+        max-width: 100%;
+    }
+}

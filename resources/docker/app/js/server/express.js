@@ -24,10 +24,12 @@ async function render (info) {
         JSON.stringify(files,null,"\t")
     );
 
-    await require("./utils/loadSession.js")(express, app, info, files);
-    await require("./utils/loadMemcachedRoutes.js")(express, app, info, files);
-    await require("./utils/loadCSRFClientSideRoutes.js")(express, app, info, files);
-    const routeFiles = await require("./utils/loadUserRoutes.js")(express, app, info, files);
+    
+    await require("./utils/loadSession.js")({express, app, info, files});
+    const serverSent = await require("./utils/loadServerSent.js")({express, app, info, files});
+    const memcache = await require("./utils/loadMemcachedRoutes.js")({express, app, info, files, serverSent});
+    await require("./utils/loadCSRFClientSideRoutes.js")({express, app, info, files, serverSent, memcache});
+    const routeFiles = await require("./utils/loadUserRoutes.js")({express, app, info, files, serverSent, memcache});
     
     const host = +info.isContainer <= 0 ? "127.0.0.1" : "0.0.0.0";
     const port = await getPort(info);  

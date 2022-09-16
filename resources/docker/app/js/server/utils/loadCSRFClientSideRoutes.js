@@ -1,6 +1,6 @@
 const
     {log} = require("../../helpers.js");
-module.exports = async function (express, app, info, files) {
+module.exports = async function ({express, app, info, files, serverSent}) {
     const undef = void(0);
     Object.entries(info?.serverConf?.["csrf-client-side"]?.mounts ?? {}).forEach(([mount, oMount]) => {
         if(oMount?.isRegExp){
@@ -102,7 +102,7 @@ module.exports = async function (express, app, info, files) {
                 routeRouter[method](route, function(req, res, next){
                     let passCount = 0; 
                     oTest.forEach(({headerName, headerTest}) => {
-                        console.log("passing", headerName, headerTest, String(req.get(headerName)));
+                        //console.log("passing", headerName, headerTest, String(req.get(headerName)));
                         passCount += headerTest(String(req.get(headerName)));
                     });
                     if(passCount < minPassCount) {

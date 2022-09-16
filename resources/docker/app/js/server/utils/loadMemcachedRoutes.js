@@ -1,4 +1,4 @@
-module.exports = async function (express, app, info, files) {
+module.exports = async function ({express, app, info, files, serverSent}) {
     const undef = void(0);
     if(info?.serverConf?.memcached) {
         var {md5} = require("../../md5.js"),
@@ -31,10 +31,10 @@ module.exports = async function (express, app, info, files) {
                         cache
                         .get(key)
                         .then(keyVal => {
-                            console.log("BEING CALLED", route, keyVal);
+                            //console.log("BEING CALLED", route, keyVal);
                             let flow = Promise.resolve(keyVal);
                             if (keyVal === undef){
-                                keyVal = 0;
+                                keyVal = 1;
                                 flow = flow.then(oldVal => cache.set(key, keyVal, timeout));
                             }
                             res.header({

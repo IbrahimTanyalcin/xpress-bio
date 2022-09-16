@@ -3,11 +3,11 @@ const
     genHexStr = require("../../genHexStr"),
     session = require("express-session"),
     MemcachedStore = require("connect-memcached")(session);
-module.exports = async function (express, app, info, files) {
+module.exports = async function ({express, app, info, files}) {
     const undef = void(0),
+          //proxy is undefined below on purpose, set it from express
           defSessConf = {
             resave: false,
-            proxy: "true",
             saveUninitialized: false,
             cookie: {
                 "maxAge": 86400000 
