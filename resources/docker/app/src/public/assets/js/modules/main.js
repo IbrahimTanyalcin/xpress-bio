@@ -26,7 +26,8 @@
         shortenStringMiddle,
         bytesToHuman,
         parseFilename,
-        createIGVObject
+        createIGVObject,
+        genHexStr
     ){
         if(!_storage.checkLocalStorage()){
             
@@ -39,7 +40,9 @@
                 zoomPanel._rafx && zoomPanel._rafx.break();
                 return zoomPanel._rafx = rafx.async()
                     .then(function(){
-                        carousel.style.transform = "translate(-50%,0%) scale(0.4,0.4)";
+                        /* FOR COMPATIBILITY TO TRIGGER REPAINT
+                        carousel.style.transform = "translate(-50%,0%) scale(0.4,0.4)"; 
+                        */
                     })
                     .animate(function(v,o){
                         if(o.i % 5){return}
@@ -75,7 +78,9 @@
             carousel = panelWrapper.firstElementChild,
             side = document.getElementById("side"),
             headerTemplate = panelMetrics.querySelector("#pwd-header"),
-            selectedPanel = panels[0];
+            selectedPanel = panels[0],
+            firstHexGrid = document.querySelector(".grid-main-container");
+        const dlMap = new Map(); //download Map
         
         rafx.async().then(function(){
             setTimeout(function(){notify("Just a sec..")},0);
@@ -116,7 +121,31 @@
                 }
                 zoomPanel();
             },false);
-            uploadButton.addEventListener("click",fNYI,false);
+            uploadButton.addEventListener("click",function(e){
+                const rgxNexus = /^https:\/\/dl\.dnanex\.us\//gi;
+                Swal.fire({
+                    input: 'url',
+                    inputLabel: 'DNAnexus URL',
+                    inputPlaceholder: 'Enter the URL'
+                })
+                .then(url => {
+                    if (!url.isConfirmed) {
+                        return;
+                    }
+                    if (!rgxNexus.test(url.value)){
+                        return Swal.fire("Submitted link must be a DNAnexus link");
+                    }
+                    const parsed = parseFilename(url.value);
+                    if (dlMap.has(parsed.base + parsed.ext)){
+                        return Swal.fire("Duplicate filename already in progress");
+                    }
+                    return fetch('/dl/nexus', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({payload: url.value})
+                      });
+                });
+            },false);
             themeButton.addEventListener("change", function(e){
                 htmlEl.setAttribute("data-theme", this.checked ? "dark" : "light");
                 if (!this._styleTagDark) {
@@ -152,7 +181,7 @@
                             this._disabled = false;
                         });
                     }
-                    return igv.createBrowser(selectedPanel, oIGV)
+                    return igv.createBrowser(selectedPanel.firstElementChild, oIGV)
                     .then(browser => {
                         igv.browser = browser;
                         console.log("igv rendered");
@@ -173,8 +202,8 @@
                 gridFields.availableDiskSpace = oPayload.available;
                 gridFields.usedDiskSpace = oPayload.used;
                 gridFields.numberOfUsers = oPayload.size;
-                gridFields.uptimeInMinutes = oPayload.upTime;
-                gridFields.cpuUsage = oPayload.cpu;
+                gridFields.uptimeInMinutes = (oPayload.upTime / 60 / 1000 | 0) + "mins" ;
+                gridFields.cpuUsage = oPayload.cpu + "%";
             });
             evtSource.addEventListener("bam-file-list", function(e){
                 const oPayload = JSON.parse(e.data);
@@ -184,6 +213,7 @@
                     el.textContent = shortenStringMiddle(d, {length: 20});
                     el.value = d;
                     el.setAttribute("value", d);
+                    el.setAttribute("title", d);
                     return el;
                 }));
             });
@@ -195,6 +225,7 @@
                     el.textContent = shortenStringMiddle(fName, {length: 20});
                     el.value = fName;
                     el.setAttribute("value", fName);
+                    el.setAttribute("title", fName);
                     if(!i){
                         dropdown2.setAttribute("data-value", fName);
                         el.setAttribute("selected","");
@@ -222,6 +253,53 @@
             evtSource.addEventListener("file-not-found", function(e){
                 Swal.fire(e.data);
             });
+            evtSource.addEventListener("worker-bad-host", function(e){
+                Swal.fire(e.data);
+            });
+            evtSource.addEventListener("worker-pool-full", function(e){
+                Swal.fire(e.data);
+            });
+            evtSource.addEventListener("worker-bad-filename", function(e){
+                Swal.fire(e.data);
+            });
+            evtSource.addEventListener("worker-bad-link", function(e){
+                Swal.fire(e.data);
+            });
+            evtSource.addEventListener("worker-bad-extension", function(e){
+                Swal.fire(e.data);
+            });
+            evtSource.addEventListener("worker-dl-start", function(e){
+                const filename = e.data,
+                      hexDiv = document.createElement("div"),
+                      icon = document.createElement("span"),
+                      content = document.createElement("span");
+                hexDiv.appendChild(icon);
+                hexDiv.appendChild(content);
+                hexDiv.setAttribute("title", filename);
+                icon.innerHTML = `<i class="fa fa-cloud-download"></i>`;
+                content.textContent = shortenStringMiddle(filename, {length: 20});
+                dlMap.set(filename, hexDiv);
+                firstHexGrid.appendChild(hexDiv);
+            });
+            evtSource.addEventListener("worker-dl-end", function(e){
+                const filename = e.data,
+                      hexDiv = dlMap.get(filename);
+                if (hexDiv) {
+                    dlMap.delete(filename);
+                    hexDiv.parentNode?.removeChild(hexDiv);
+                }
+            });
+            evtSource.addEventListener("worker-dl-progress", function(e){
+                const {filename, percentage} = JSON.parse(e.data),
+                      hexDiv = dlMap.get(filename);
+                if(!hexDiv){return}
+                hexDiv.style.background = `linear-gradient(to right, #22ff55aa 0%, #22ff55aa ${percentage}, transparent ${percentage})`;
+            });
+            /* 
+            RESOLVED IN FAVOR OF X-Accel-Buffering: no, which cancels Nginx's 8kb buffer
+            evtSource.addEventListener("buffer-force-flush", function(e){
+                console.log("RECEIVED PIPE BUFFER");
+            }); */
         })
         .then(function(){
             setTimeout(function(){notify("Ready",false)},0);

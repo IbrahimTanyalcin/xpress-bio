@@ -5,7 +5,7 @@
 const 
 	{exec, spawn} = require('child_process'),
 	{log} = require('./helpers.js'),
-	capture = function (str, {logger = true, pipe = true} = {}){
+	capture = function (str, {logger = true, pipe = true, ondata = false} = {}){
 		switch (((typeof logger === "function") << 1) + !!logger) {
 			case 3:
 			case 2:
@@ -33,6 +33,9 @@ const
 				}
 				rej(new Error("unknown reason for rejection"));
 			});
+			if(ondata) {
+				childProcess.stdout.on("data", ondata);
+			}
 			pipe && childProcess.stdout.pipe(process.stdout);
 		});
 	};

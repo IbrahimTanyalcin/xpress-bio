@@ -5,16 +5,38 @@ const { render } = require("./js/server/express.js");
 		ARGV = process.argv.slice(2),
 		{execute} = require("./js/execute.js"),
 		{osExecute} = require("./js/osExecute.js"),
-		{select, signalReceiver, catcher, log} = require("./js/helpers.js"),
+		{select, signalReceiver, catcher, log, once} = require("./js/helpers.js"),
 		{getInfo} = require("./js/getInfo.js"),
-		info = await getInfo(process.env, ARGV);
+		info = await getInfo(process.env, ARGV),
+		registerWorker = require("./js/registerWorker.js")(info),
+		terminateWorkers = require("./js/terminateWorkers.js");
 	
-	select(process)
+	/* select(process)
 	.on("exit", (code) => {
 		console.log(`Exiting with code: ${code}`);
 	})
 	.on("SIGINT", signalReceiver)
-	.on("SIGTERM", signalReceiver);
+	.on("SIGTERM", signalReceiver)
+	.on("worker", registerWorker); */
+
+	[`exit`, `SIGQUIT`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach(function(evt){
+		process.on(evt, this);
+	}, once(
+		function(code_signal_error){
+			terminateWorkers(info.workers);
+			if(isNaN(+code_signal_error)) {
+				if (code_signal_error instanceof Error) {
+					console.log(`Exiting with error: ${code_signal_error}`);
+				} else {
+					console.log(`Exiting with signal: ${code_signal_error}`);
+				}
+				process.exit(1);
+			} else {
+				console.log(`Exiting with code: ${code_signal_error}`);
+			}
+		}
+	));
+	process.on("worker", registerWorker);
 	
 	if(info instanceof Error){
 		console.log("Unable to parse parameters.");

@@ -41,6 +41,14 @@ module.exports = function({express, app, info, files, serverSent}){
                     .then(str => str.split(/\s+/g).filter(d => d)),
                 Promise.resolve(serverSent.size("streamOne")),
             ]).then(arr => {
+
+                /* capture(
+                    "df -h | sort -h -k 2 | tr -s ' '",
+                    {logger: false, pipe: false}
+                )
+                .then(str => console.log(str)); */
+
+
                 let cpu, upTime, used, available, size;
                 ({0: cpu, 1: upTime, 2: used, 3: available, 4: size} = arr.flat());
                 return {cpu, upTime, used, available, size};
@@ -50,6 +58,8 @@ module.exports = function({express, app, info, files, serverSent}){
    (async () => {
         for await (const payload of runForever()){
             serverSent.msgAll("streamOne",{payload});
+            /* .msgAll("streamOne",{directive:"event", payload: "buffer-force-flush"})
+            .msgAll("streamOne",{payload: "a".repeat(1024 * 8)}); */
         }
     })();
     //console.log("I can proceed!");

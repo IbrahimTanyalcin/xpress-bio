@@ -97,6 +97,69 @@ Object.defineProperties(
 				const illegalChars = /[\x00-\x1f\\/<>:"`|?*%]/gi;
 				return fileName => fileName.replace(illegalChars,"");
 			})()
+		},
+		nTimes: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value:(f, {times = 1, thisArg = "", args = []} = {}) => {
+				times = Math.max(0, times);
+				let counter = 0;
+				return function (...aargs) {
+					let that = thisArg ?? this;
+					if(counter++ < times) {
+						f.apply(that, [...args,...aargs]);
+					}
+				}
+			}
+		},
+		once: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value:(f, {thisArg = "", args = []} = {}) => {
+				let counter = 0;
+				return function (...aargs) {
+					let that = thisArg ?? this;
+					if(!counter++) {
+						f.apply(that, [...args,...aargs]);
+					}
+				}
+			}
+		},
+		until: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value:(() => {
+				async function* until (f, interval, breaker){
+					let cond = false;
+					while(!breaker.value && !cond){
+						yield cond = await nPromise(f, interval);
+					}
+				}
+				function nPromise(f, interval) {
+					return new Promise(res => {
+						setTimeout(()=> res(f()), interval)
+					})
+				}
+				return (f, {thisArg = "", args = [], interval = 0} = {}) => {
+					const that = thisArg ?? this,
+						  breaker = {value: false},
+						  _f = function(){
+							return f.call(that, ...args);
+						  },
+						  _until = (async () => {
+							let lastVal;
+							for await (lastVal of until(_f, interval, breaker)){}
+							return lastVal;
+						  })();
+					_until.break = function(){
+						breaker.value = true;
+					};
+					return _until;
+				}
+			})()
 		}
 	}
 );

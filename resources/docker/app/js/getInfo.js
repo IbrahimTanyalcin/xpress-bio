@@ -40,7 +40,8 @@ exports.getInfo = async function(ENV, ARGS){
 			serverConf: ARGS.conf ? JSON.parse(atob(ARGS.conf)) : require("./server/server.config.json"),
 			serverPort: ARGS.port,
 			PID: process.pid,
-			PPID: process.ppid
+			PPID: process.ppid,
+			workers: new Set()
 		};
 		require.main._ipvCache = {getInfo: result};
 	} catch (err) {

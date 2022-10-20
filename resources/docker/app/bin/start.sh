@@ -8,7 +8,19 @@ then
                 > starting memcached.
                 > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EOL
-    service memcached start
+    scriptFolder="$( dirname ${BASH_SOURCE[0]} )";
+    scriptName="$( basename ${BASH_SOURCE[0]} )";
+    source "${scriptFolder}/repTillEx0.sh";
+    service memcached start;
+    repTillEx0 "pidof" "memcached" "--reflect" "0.25" "20";
+    if [[ "$?" -ne 0 ]]
+    then
+        echo -e "Memcached failed to start.\
+                Perhaps you need to run with 'sudo':\n \
+                \"sudo /bin/bash ${scriptFolder}/${scriptName}\"" \
+                | awk '{$1=$1};1';
+        exit 1;
+    fi
 fi
 
 #set -- --npm -foo bar -baz qux -- --env "somevar=somevalstart" --nodemon -pqrs qwyu --ENV "someOtherEnv=someOtherVal" -- anotherArg -- foo barr --baz qux;

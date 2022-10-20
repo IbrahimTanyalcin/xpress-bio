@@ -59,7 +59,8 @@ module.exports = async function ({express, app, info, files}) {
                             .set({
                                 'Content-Type': 'text/event-stream',
                                 'Connection': 'keep-alive',
-                                'Cache-Control': 'no-cache'
+                                'Cache-Control': 'no-cache',
+                                'X-Accel-Buffering': 'no'
                             }),
                             timeout: req.session.cookie.maxAge
                             ? setTimeout(function(){

@@ -54,6 +54,25 @@
                         ]
                     }
                 }
+            },
+            "/dl": {
+                "routes": {
+                    "/nexus" : {
+                        "isRegExp": true,
+                        "RegExpFlags": "i",
+                        "limits": [
+                            {
+                                "key": "POSTLimit",
+                                "global": false,
+                                "timeout": 60,
+                                "limit": "100",
+                                "method": "POST",
+                                "message": "You exceeded the amount of URL download requests",
+                                "step": 1
+                            }
+                        ]
+                    }
+                }
             }
         }
     },
@@ -70,7 +89,7 @@
                         "headers": [
                             {
                                 "header": "origin",
-                                "value": "http:\\/\\/127\\.0\\.0\\.1|https?:\\/\\/[^.]*\\.dnanexus\\.cloud|http:\\/\\/localhost|undefined",
+                                "value": "http:\\/\\/127\\.0\\.0\\.1|https?:\\/\\/[^.]*\\.dnanexus\\.cloud|https?:\\/\\/[^.]*\\.dnanexus\\.com|http:\\/\\/localhost|undefined",
                                 "isRegExp": true,
                                 "RegExpFlags": "i"
                             },
@@ -85,7 +104,10 @@
                             },
                             {
                                 "header": "referer",
-                                "value": "https?:\\/\\/[^.]*\\.dnanexus\\.cloud",
+                                "value": [
+                                    "https?:\\/\\/[^.]*\\.dnanexus\\.cloud",
+                                    "https?:\\/\\/[^.]*\\.dnanexus\\.com"
+                                ],
                                 "isRegExp": true,
                                 "RegExpFlags": "i"
                             }
