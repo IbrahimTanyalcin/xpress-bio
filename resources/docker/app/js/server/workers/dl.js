@@ -90,23 +90,34 @@ const {workerData, parentPort} = require("node:worker_threads"),
             port.postMessage({type: "worker-bad-extension", payload: `You can only download ${extArr} files`, sessid});
             return decr();
         }
-        const filepath = path.resolve(extMap[extName], filename);
+        const filepath = path.resolve(extMap[extName], filename),
+              fileIsCompressed = isCompressed(extName);
         port.postMessage({type: "worker-dl-start", payload: filename});
         await capture(
-            //`curl -fL --progress-bar ${payload} 2>&1 > ${filepath}`, 
-            `/bin/bash ${path.resolve(workerData.dockerBinaries,"downloadX.sh")} `
+            `/bin/bash ${path.resolve(workerData.bin,"downloadX.sh")} `
             + `${payload} ${filepath} `
-            + isCompressed(extName) ? "1 '.bai' '.bam' '.fa' '.fasta' '.fai'" : "0",
+            + (fileIsCompressed ? "--rm 1 '.bai' '.bam' '.fa' '.fasta' '.fai'" : "0"),
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}
         )
-        .then(val => port.postMessage({
-            type: "worker-dl-success", 
-            payload: filename, 
-            updateFa: [".fa", ".fasta"].includes(extName),
-            updateBam: [".bam"].includes(extName)
-        }))
+        .then(val => {
+            if (!fileIsCompressed){
+                return port.postMessage({
+                    type: "worker-dl-success", 
+                    payload: filename, 
+                    updateFa: [".fa", ".fasta"].includes(extName),
+                    updateBam: [".bam"].includes(extName)
+                }); //postMessage returns undefined
+            }
+            console.log("VAL IS: ", path.basename(val));
+            return relocFilesBasedOnExt({
+                targetDirs: val, //single path string or array of path strings
+                transform: (fName,i,a) => path.extname(fName),
+                destinationDirs: Object.assign({}, extArr.filter(d => !isCompressed(d)).map(d => ({[d]: extMap[d]}))),
+                validate: (transformed) => /^H[A-F0-9]{32}$/gi.test(transformed),
+            }); //returns undefined on clean exit or throws error on error
+        })
         .catch(err => {
             port.postMessage({type: "worker-dl-fail", payload: filename});
             unlink(filepath);

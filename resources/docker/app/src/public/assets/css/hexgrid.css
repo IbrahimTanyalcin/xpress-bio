@@ -95,6 +95,12 @@
     shape-outside: repeating-linear-gradient(#0000 0 calc(var(--f) - 3px), #000 0 var(--f));
 }
 
+.grid-main[data-grid-type=hexagon]::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
 @media screen and (max-width: 800px) {
     .grid-main[data-grid-type=hexagon][data-grid-width-\%] {
         max-width: 100%;
