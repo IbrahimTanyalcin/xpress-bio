@@ -1,4 +1,5 @@
-const {getFiles} = require("./getFiles.js"),
+const path = require('path'),
+      {getFiles} = require("./getFiles.js"),
       {getStats} = require("./getStats.js");
 
 exports.refreshFasta = function({info, serverSent}){

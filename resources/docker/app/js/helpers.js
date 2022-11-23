@@ -160,6 +160,14 @@ Object.defineProperties(
 					return _until;
 				}
 			})()
+		},
+		rmIndent: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function rmIndent(strs,...exps){
+				return strs.map(function(str,i){return str.replace(this,"")}, /^\s+/gim).reduce((ac,d,i) => ac += d + (exps[i] ?? ''),"")
+			}
 		}
 	}
 );

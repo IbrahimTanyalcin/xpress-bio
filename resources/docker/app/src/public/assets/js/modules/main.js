@@ -27,7 +27,8 @@
         bytesToHuman,
         parseFilename,
         createIGVObject,
-        genHexStr
+        genHexStr,
+        rmFile
     ){
         if(!_storage.checkLocalStorage()){
             
@@ -246,12 +247,10 @@
                     }
                     switch (master) {
                         case dropdown:  //bam
-                            //rmFile("bam", master.value);
-                            Swal.fire(`Gonna remove bam - ${master.value}`);
+                            rmFile("bam", master.value);
                             break;
                         case dropdown2: //fasta
-                            //rmFile("fa", master.value);
-                            Swal.fire(`Gonna remove fa - ${master.value}`);
+                            rmFile("fa", master.value);
                             break;
                     }
                 }, false);

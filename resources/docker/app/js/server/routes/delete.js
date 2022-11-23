@@ -2,7 +2,7 @@ module.exports = async function({express, app, info, files, serverSent}){
     const path = require('path'),
         {constants} = require('fs'),
         {unlink, rm : remove, access} = require("fs/promises"),
-        {sanitizeFilename} = require("../../helpers.js"),
+        {sanitizeFilename, rmIndent} = require("../../helpers.js"),
         {getFiles} = require("../../getFiles.js"),
         dirRoot = path.resolve(info.rootFolder, info.serverConf.static),
         extMap = {
@@ -57,11 +57,12 @@ module.exports = async function({express, app, info, files, serverSent}){
                 }
                 res.status(200).end();
             })
-            .catch(() => next({
+            .catch((err) => {/* console.log(err); */ return next({
                 fileType,
                 fileName: fName,
-                message: "File does not exist or cannot be removed."
-            }));
+                message: rmIndent`${fileType || fName ? fileType + ":" + fName + " ": "File "}
+                    does not exist or cannot be removed.`
+            })});
         };
         /* ,
         initFastaFiles = await getFiles(extMap[".fa"], {relativeTo: "/"})
