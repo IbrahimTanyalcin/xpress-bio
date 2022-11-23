@@ -30,31 +30,21 @@
 		<!--<meta name="twitter:image" content=""/>-->
 		<meta name="theme-color" content="#a9a9a9"/>
 		<!--fontawesome-->
-		<link rel="stylesheet" type="text/css" href="static/css/fontawesome.css">
+		<!--<link rel="stylesheet" type="text/css" href="static/css/fontawesome.css">-->
 		<!--prismjs-->
-		<link rel="stylesheet" type="text/css" href="static/css/prism.css"/>
+		<!--<link rel="stylesheet" type="text/css" href="static/css/prism.css"/>-->
 	    <!--animatecss-->
-		<link rel="stylesheet" type="text/css" href="static/css/animate.css">
+		<!-- <link rel="stylesheet" type="text/css" href="static/css/animate.css"> -->
 		<!--pagelayout-->
-		<link rel="stylesheet" type="text/css" href="static/css/main.css">
+		<!-- <link rel="stylesheet" type="text/css" href="static/css/main.css"> -->
 		<!--hexgrid-->
-		<link rel="stylesheet" type="text/css" href="static/css/hexgrid.css">
+		<!-- <link rel="stylesheet" type="text/css" href="static/css/hexgrid.css"> -->
 		<!--theme-changer-->
-		<link rel="stylesheet" type="text/css" href="static/css/switch.css">
-		<!--PrismJS 1.17.1-->
-		<script src="static/js/prism.js" data-manual></script>
-		<!--rafx 0.0.20-->
-		<script src="static/js/rafx.js"></script>
+		<!-- <link rel="stylesheet" type="text/css" href="static/css/switch.css"> -->
+		<!-- borderless theme for sweetalert -->
+		<!-- <link rel="inactive-stylesheet" type="text/css" href="static/css/sweetalert-dark.css"> -->
 		<!--taskq 2.3.7-->
 		<script src="static/js/taskq.js" data-backsteps="3" data-step-limit="50"></script>
-		<!-- igv.js -->
-		<script src="/static/js/igv.js"></script>
-		<!--localStorage-->
-		<script src="static/js/modules/localStorage.js" async></script>
-		<!-- sweetalert -->
-		<script src="/static/js/sweetalert2@11.4.7.js"></script>
-		<!-- borderless theme for sweetalert -->
-		<link rel="inactive-stylesheet" type="text/css" href="static/css/sweetalert-dark.css">
 	</head>
 	<body>
 		<div id="panel-metrics">
@@ -62,6 +52,7 @@
 				<span data-title style="white-space: pre;">REFERENCE FILE</span>
 				<br>
 				<span id="pwd-header" data-content>Placeholder File Size</span>
+				<span class="delete-icon" data-for="pwd-select-template-2"><i class="fa fa-trash-o"></i></span>
 				<div class="custom-dropdown">
 					<select
 					onclick="this.setAttribute('data-value', this.value)"
@@ -106,6 +97,10 @@
 			</div>
 			<span class="flex-spacer" style="flex-grow: 5;"></span>
 		</div>
+		<div name="help-container">
+			help
+			<i class="fa fa-life-saver"></i>
+		</div>
 		<div name="theme-switch-container">
 			<i class="fa fa-sun-o"></i>
 			<input type="checkbox" data-button-type="switch" id="theme-switch" />
@@ -124,8 +119,9 @@
 				<div>
 					<div class="button-container">
 						<a class="button_a" id="pwd-expand" href="javascript:void(0);" rel="nofollow noopener">analyze <i class="fa fa-expand"></i></a>
-						<a class="button_a" id="pwd-clear" href="javascript:void(0);" rel="nofollow noopener">refresh <i class="fa fa-refresh"></i></a>
+						<!--<a class="button_a" id="pwd-clear" href="javascript:void(0);" rel="nofollow noopener">refresh <i class="fa fa-refresh"></i></a>-->
 						<a class="button_a" id="pwd-upload" href="javascript:void(0);" rel="nofollow noopener">upload <i class="fa fa-upload"></i></a>
+						<span class="delete-icon" data-for="pwd-select-template"><i class="fa fa-trash-o"></i></span>
 					</div>
 					<div class="button-container">
 						<div class="custom-dropdown">
@@ -172,7 +168,20 @@
 		<script src="static/js/modules/pre.js" async></script>
 		<script src="static/js/modules/pro.js" async></script>
 		<script src="static/js/modules/main.js" async></script>
+		<script src="static/js/modules/post-main-igv-resize.js" async></script>
+		<script src="static/js/modules/post-main-css-load.js" async></script>
+		<script src="static/js/modules/post-main-script-load.js" async></script>
 		<script src="static/js/modules/hexgrid.js" async></script>
 		<script src="static/js/gsk-logo.js" async></script>
+		<!--PrismJS 1.17.1-->
+		<!--<script src="static/js/prism.js" data-manual></script>-->
+		<!--rafx 0.0.20-->
+		<script src="static/js/rafx.js" async></script>
+		<!-- igv.js -->
+		<!--<script src="/static/js/igv.js"></script>-->
+		<!--localStorage-->
+		<script src="static/js/modules/localStorage.js" async></script>
+		<!-- sweetalert -->
+		<script src="/static/js/sweetalert2@11.4.7.js" async></script>
 	</body>
 </html>

@@ -22,6 +22,7 @@
   "author": "Ibrahim Tanyalcin",
   "license": "MIT",
   "dependencies": {
+    "compression": "^1.7.4",
     "connect-memcached": "^2.0.0",
     "cross-env": "^7.0.3",
     "express": "^4.18.1",

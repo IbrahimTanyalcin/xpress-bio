@@ -106,3 +106,10 @@ typings/
 
 #ignore dna-nexus specific folder
 /resources/home/
+
+#ignore fasta, fai, bam, bai files
+/resources/docker/app/src/public/assets/fa
+/resources/docker/app/src/public/assets/fai
+/resources/docker/app/src/public/assets/bam
+/resources/docker/app/src/public/assets/bai
+/resources/docker/app/src/public/assets/gz

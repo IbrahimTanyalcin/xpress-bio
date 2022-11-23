@@ -1,4 +1,5 @@
 const path = require('path'),
+      compression = require("compression"),
       {sanitizeFilename} = require("../../helpers.js");
 
 module.exports = function({express, app, info, files, serverSent}){
@@ -26,7 +27,7 @@ module.exports = function({express, app, info, files, serverSent}){
         }
     }); */
 
-    app.use('/static', _static, function(req, res, next) {
+    app.use('/static', compression(), _static, function(req, res, next) {
       const fileName = sanitizeFilename(decodeURI(req.path.split("/").filter(d => d).slice(-1)[0])),
             extension = path.extname(fileName).slice(1);
       switch (fileName && extension) {

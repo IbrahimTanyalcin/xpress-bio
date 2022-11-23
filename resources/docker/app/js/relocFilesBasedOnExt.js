@@ -1,9 +1,9 @@
 const fs = require('fs/promises'),
       idt = d => d, //identity
       path = require('path'),
-      {getStats} = require("../../../DNA-Nexus/test-express-node-js/resources/docker/app/js/getStats.js"),
-      {getFiles} = require("../../../DNA-Nexus/test-express-node-js/resources/docker/app/js/getFiles.js"),
-      {log} = require("../../../DNA-Nexus/test-express-node-js/resources/docker/app/js/helpers.js");
+      {getStats} = require("./getStats.js"),
+      {getFiles} = require("./getFiles.js"),
+      {log} = require("./helpers.js");
 
 /**
  * @example

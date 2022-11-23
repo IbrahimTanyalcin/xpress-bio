@@ -480,7 +480,87 @@
                 + postfix
             }
         })();
-        
+        var loadCSSAsync = function(src, attrs = {}){
+            const link = document.createElement("link"),
+                  registeredEvents = new Map;
+            let loadsOnEvent = false;
+            link.setAttribute("rel", "stylesheet");
+            link.setAttribute("type", "text/css");
+            link.setAttribute("media", "invalid");
+            Object.entries(attrs).forEach(([k,v],i) => {
+              if (k.indexOf("load-on-")) {
+                return link.setAttribute(k, v);
+              }
+              loadsOnEvent = true;
+              let eventName = k.slice(8);
+              const listener = function(e){
+                e && e?.stopPropagation();
+                console.log(`dynamic css loading started: ${src}`);
+                [...registeredEvents].forEach(([v,[e,l]]) => v.removeEventListener(e, l));
+                link.setAttribute("href", src);
+                (document.head || document.getElementsByTagName("head")[0])
+                .appendChild(link);
+                setTimeout(() => link.removeAttribute("media"), 17);
+              };
+              registeredEvents.set(v, [eventName,listener]);
+              v.addEventListener(eventName, listener);
+            });
+            if (loadsOnEvent) {
+                return Promise.resolve(src);
+            }
+            link.setAttribute("href", src);
+            (document.head || document.getElementsByTagName("head")[0])
+            .appendChild(link);
+            return new Promise((res,rej) =>
+                setTimeout(() => (link.removeAttribute("media"), res(src)), 17)
+            );
+        };
+        var loadCSSAsyncMulti = function (srcObj) {
+            const promises = [];
+            Object.entries(srcObj).forEach(([src, attrs]) => 
+                promises.push(loadCSSAsync(src, attrs ?? {}))
+            );
+            return Promise.all(promises);
+        }
+        var loadScriptAsync = function(src, attrs = {}){
+            const script = document.createElement("script"),
+                  registeredEvents = new Map;
+            let loadsOnEvent = false;
+            script.setAttribute("type", "text/javascript");
+            script.async = true;
+            return new Promise((res,rej) => {
+                script.onload = () => res(src);
+                script.onerror = () => rej(src);
+                Object.entries(attrs).forEach(([k,v],i) => {
+                    if (k.indexOf("load-on-")) {
+                        return script.setAttribute(k, v);
+                    }
+                    loadsOnEvent = true;
+                    let eventName = k.slice(8);
+                    const listener = function(e){
+                        e && e?.stopPropagation();
+                        console.log(`dynamic script loading started: ${src}`);
+                        [...registeredEvents].forEach(([v,[e,l]]) => v.removeEventListener(e, l));
+                        script.src = src;
+                        (document.head || document.getElementsByTagName("head")[0])
+                        .appendChild(script);
+                    };
+                    registeredEvents.set(v, [eventName,listener]);
+                    v.addEventListener(eventName, listener);
+                });
+                if (loadsOnEvent) {return};
+                script.src = src;
+                (document.head || document.getElementsByTagName("head")[0])
+                .appendChild(script);
+            });
+        };
+        var loadScriptAsyncMulti = function (srcObj) {
+            const promises = [];
+            Object.entries(srcObj).forEach(([src, attrs]) => 
+                promises.push(loadScriptAsync(src, attrs ?? {}))
+            );
+            return Promise.all(promises);
+        };
         var reusableSelf = {
             "spaceAround": spaceAround,
             "nrDotNr": nrDotNr,
@@ -506,6 +586,7 @@
              .export(draf,"draf")
              .export(body,"body")
              .export(getNearestField,"getNearestField")
+             .export(interpolators, "interpolators")
              .export(interpolators.cubicSlowInSlowOut,"cubic")
              .export(animNumText,"animNumText")
              .export(spaceAround,"spaceAround")
@@ -520,7 +601,15 @@
              .export(shortenStringMiddle, "shortenStringMiddle")
              .export(bytesToHuman, "bytesToHuman")
              .export(parseFilename, "parseFilename")
-             .export(genHexStr, "genHexStr");
+             .export(genHexStr, "genHexStr")
+             .export(loadCSSAsync, "loadCSSAsync")
+             .export(loadCSSAsyncMulti, "loadCSSAsyncMulti")
+             .export(loadScriptAsync, "loadScriptAsync")
+             .export(loadScriptAsyncMulti, "loadScriptAsyncMulti");
+        taskq._exportPersist = taskq._exportPersist || {
+            loadCSSAsync: loadCSSAsync,
+            loadScriptAsync: loadScriptAsync
+        };
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////

@@ -1,4 +1,5 @@
-const {workerData, parentPort} = require("node:worker_threads"),
+const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
+      {workerData, parentPort} = require("node:worker_threads"),
       {log, until} = require("../../helpers.js"),
       {capture} = require("../../capture.js"),
       path = require("path");
@@ -24,7 +25,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
     ############################ */
     const rgxNexus = /^https:\/\/dl\.dnanex\.us\//i,
           rgxPrcnt = /[0-9]+\.[0-9]+%/gi,
-          {unlink} = require("fs/promises"),
+          {unlink, rm : remove} = require("fs/promises"),
           dirRoot = path.resolve(workerData.rootFolder, workerData.staticFolder),
           extMap = {
             ".bai": path.resolve(dirRoot, "bai"), 
@@ -36,10 +37,11 @@ const {workerData, parentPort} = require("node:worker_threads"),
             ".gz": path.resolve(dirRoot, "gz"),
             ".z": path.resolve(dirRoot, "gz"),
             ".tgz": path.resolve(dirRoot, "gz"),
-            ".taz": path.resolve(dirRoot, "gz")
+            ".taz": path.resolve(dirRoot, "gz"),
+            ".lz4": path.resolve(dirRoot, "gz")
           },
           extArr = Object.keys(extMap),
-          isCompressed = ((...exts) => ext => !!~exts.indexOf(ext))(".tar", ".gz", ".z", ".tgz", ".taz"),
+          isCompressed = ((...exts) => ext => !!~exts.indexOf(ext))(".tar", ".gz", ".z", ".tgz", ".taz", ".lz4"),
           rgxHttpStats = /^\s*HTTP[^\s]*\s+(?<status>[0-5]{3})\s+(?<statusText>[A-Z]+)\s*$/gim,
           rgxHttpFilename = /^content-disposition\s*:\s*attachment\s*;\s*filename\s*=\s*"(?<filename>[^"]+)"\s*$/gim;
     let dlPool = 0,
@@ -110,13 +112,26 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     updateBam: [".bam"].includes(extName)
                 }); //postMessage returns undefined
             }
-            console.log("VAL IS: ", path.basename(val));
+            //downloadX returns entire stdout history separated with \r
+            //last line of downloadX is the random hex folder
+            const lastLine = val.split("\r").pop();
             return relocFilesBasedOnExt({
-                targetDirs: val, //single path string or array of path strings
-                transform: (fName,i,a) => path.extname(fName),
-                destinationDirs: Object.assign({}, extArr.filter(d => !isCompressed(d)).map(d => ({[d]: extMap[d]}))),
-                validate: (transformed) => /^H[A-F0-9]{32}$/gi.test(transformed),
-            }); //returns undefined on clean exit or throws error on error
+                targetDirs: lastLine,
+                transform: (dir,i,dirs) => path.basename(dir),
+                destinationDirs: Object.assign({}, ...extArr.filter(d => !isCompressed(d)).map(d => ({[d]: extMap[d]}))),
+                validate: ({transformed, dir}, i, dirs) => /^H[A-F0-9]{32}$/i.test(transformed),
+                callback: (arrOfObj) => {
+                    arrOfObj.forEach(({errors, erredFiles, nFiles, files, dir, transformed, extVisited}, i, a) => {
+                        port.postMessage({
+                            type: "worker-dl-success", 
+                            payload: nFiles, 
+                            updateFa: extVisited.some(function(d){return this.includes(d);},[".fa", ".fasta"]),
+                            updateBam: extVisited.some(function(d){return this.includes(d);},[".bam"])
+                        });
+                        remove(dir, {recursive: true});
+                    });
+                }
+            });
         })
         .catch(err => {
             port.postMessage({type: "worker-dl-fail", payload: filename});

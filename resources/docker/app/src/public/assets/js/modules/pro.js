@@ -2,7 +2,8 @@
     function pro(
         flatten,
         appendChildren,
-        parseFilename
+        parseFilename,
+        interpolators
     ) {
         var carousel = document.querySelector("#panel-wrapper .carousel"),
             dropdown = document.getElementById("pwd-select-template"),
@@ -55,11 +56,18 @@
                 return new Error("IGV object error");
             }
         };
+        const rmFile = async function(fileType, fileName, cb = interpolators.identityRaw){
+            const res = await fetch(`/del/${fileType}/${fileName}`, {
+                method: 'DELETE'
+            });
+            return cb(res);
+        }
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////
         taskq.export(gridFields, "gridFields")
-             .export(createIGVObject, "createIGVObject");
+             .export(createIGVObject, "createIGVObject")
+             .export(rmFile, "rmFile");
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////

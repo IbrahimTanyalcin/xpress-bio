@@ -1,0 +1,11 @@
+.delete-icon {
+    font-size: 2rem;
+    color: var(--warning-color);
+    margin: 1rem;
+    transition: all 0.5s ease;
+    cursor: pointer;
+}
+
+.delete-icon:hover {
+    color: var(--error-color);
+}

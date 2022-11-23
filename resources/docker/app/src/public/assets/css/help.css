@@ -1,0 +1,13 @@
+[name=help-container] {
+	--size: 100px;
+	position: absolute;
+	top: 12px;
+	right: calc(var(--size) * 1.8);
+	display: flex;
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+	font-size: 2rem;
+	color: var(--font-color);
+	cursor: pointer;
+}

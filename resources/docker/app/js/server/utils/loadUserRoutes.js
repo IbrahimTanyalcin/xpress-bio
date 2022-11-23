@@ -25,6 +25,6 @@ module.exports = async function ({express, app, info, files, serverSent}) {
         )
     );
     log("loading routes:", JSON.stringify(routeFiles));
-    routeFiles.forEach(routeFile => require("./" + routeFile)({express, app, info, files, serverSent}));
-    return routeFiles;
+    return Promise.all(routeFiles.map(routeFile => require("./" + routeFile)({express, app, info, files, serverSent})))
+    .then(() => routeFiles);
 }

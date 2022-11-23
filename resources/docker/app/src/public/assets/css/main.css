@@ -17,6 +17,7 @@
     --warning-color:#9F6000;
     --error-color: #D8000C;
     --size: 100px;
+    --layout-shift: 4rem;
     color-scheme: light dark; /* both supported */
 }
 
@@ -150,6 +151,7 @@ body::after {
 }
 .inp input {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   border: 0;
   font-family: inherit;
@@ -325,6 +327,8 @@ body::after {
     display: flex;
     flex-flow: row nowrap;
     transition: all 1s ease;
+    position: relative;
+    top: var(--layout-shift);
 }
 #panel-wrapper .carousel {
     display: flex;
@@ -365,6 +369,8 @@ body::after {
     flex-flow: row wrap;
     align-items: center;
     justify-content: center;
+    position: relative;
+    top: var(--layout-shift);
 }
 #panel-metrics>* {
     flex-grow: 0;
