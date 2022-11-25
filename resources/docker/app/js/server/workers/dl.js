@@ -1,6 +1,6 @@
 const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
       {workerData, parentPort} = require("node:worker_threads"),
-      {log, until} = require("../../helpers.js"),
+      {log, until, rmIndent} = require("../../helpers.js"),
       {capture} = require("../../capture.js"),
       path = require("path");
 
@@ -134,8 +134,18 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
             });
         })
         .catch(err => {
+            //console.log(err);
             port.postMessage({type: "worker-dl-fail", payload: filename});
-            unlink(filepath);
+            unlink(filepath).catch(err => port.postMessage({
+                type: "worker-file-delete-fail",
+                sessid,
+                payload: {
+                    fileType: "",
+                    fileName: filename,
+                    message: rmIndent`There was an error downloading ${filename}. 
+                        The file can either not be removed or does not exist.`
+                }
+            }));
         });
         port.postMessage({type: "worker-dl-end", payload: filename});
         decr();

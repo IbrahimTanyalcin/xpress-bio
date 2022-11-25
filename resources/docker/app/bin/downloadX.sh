@@ -95,6 +95,7 @@ then
         fi
     }
 
+    #not all versions of tar can guess the compression algorithm by inspecting the first few bytes
     case ".${extInner,,}.${extOuter,,}" in
         #consider -I --use-compress-program option for lz4
         .tar.gz|.tar.z|.gz.tar|!(*.gz|*.lz4).tar!(.gz|.lz4)|*.tgz|*.taz)

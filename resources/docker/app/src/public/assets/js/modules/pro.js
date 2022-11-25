@@ -61,13 +61,17 @@
                 method: 'DELETE'
             });
             return cb(res);
-        }
+        };
+        const rmBrowser = async function(browser = igv?.browser){
+            return igv?.removeBrowser(browser);
+        };
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////
         taskq.export(gridFields, "gridFields")
              .export(createIGVObject, "createIGVObject")
-             .export(rmFile, "rmFile");
+             .export(rmFile, "rmFile")
+             .export(rmBrowser, "rmBrowser");
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////

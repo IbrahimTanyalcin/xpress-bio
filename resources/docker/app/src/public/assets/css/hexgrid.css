@@ -51,6 +51,7 @@
     background: var(--bg-color);
     transition: all 0.4s ease-in-out;
     color: var(--font-color);
+    cursor: pointer;
 }
 
 .grid-main[data-grid-type=hexagon] .grid-main-container div:nth-child(odd) {
@@ -122,3 +123,8 @@
       background-position: calc(var(--s) * 1px);
     }
   }
+
+.grid-main[data-grid-type=hexagon] .grid-main-container div a {
+    color: inherit;
+    text-decoration: inherit;
+}

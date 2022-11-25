@@ -6,12 +6,12 @@ currIter=0
 
 main() {
     set -e -x -o pipefail
-    echo "--------------";
-    echo ${input_one[@]};
-    echo ${input_two[@]};
-    echo "--------------";
+    ####################################################################
+    #for future reference, one can access dxapp.json variables like so:
+    #echo "${input_name[@]}";
+    ####################################################################
     docker load < ./express-test.tar
-    (docker run --rm --name web-test -p 443:3000 express-test:trial-five) | tee "$teeOutput" &
+    (docker run --rm --name web-test -p 443:3000 express-test:trial-seven) | tee "$teeOutput" &
     iter
     fixedAssets
     set -e -x
@@ -61,10 +61,10 @@ EOL
 
 fixedAssets() {
     #these are fixed reference files
-    docker cp ./GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta web-test:app/src/public/assets/fa/;
-    docker cp ./GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta.fai web-test:app/src/public/assets/fai/;
+    ####docker cp ./GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta web-test:app/src/public/assets/fa/;
+    ####docker cp ./GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta.fai web-test:app/src/public/assets/fai/;
     #these are fixed assets that are optional
     #they will be switched with inputs from the user
-    docker cp ./GCF_DHFR-gB-C35_S19_L001_merged.bam web-test:app/src/public/assets/bam/;
-    docker cp ./GCF_DHFR-gB-C35_S19_L001_merged.bam.bai web-test:app/src/public/assets/bai/;
+    ####docker cp ./GCF_DHFR-gB-C35_S19_L001_merged.bam web-test:app/src/public/assets/bam/;
+    ####docker cp ./GCF_DHFR-gB-C35_S19_L001_merged.bam.bai web-test:app/src/public/assets/bai/;
 }

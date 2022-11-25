@@ -75,6 +75,11 @@ module.exports = function({express, app, info, files, serverSent}){
                         .msgAll("streamOne",{directive: "event", payload: type})
                         .msgAll("streamOne",{payload: {filename: payload, percentage}})
                     break;
+                case "worker-file-delete-fail":
+                    serverSent
+                        .msg("streamOne", sessid, {directive: "event", payload: "file-delete-fail"})
+                        .msg("streamOne", sessid, {payload});
+                    break;
             }
         });
     });

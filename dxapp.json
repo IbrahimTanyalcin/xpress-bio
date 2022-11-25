@@ -3,13 +3,14 @@
     "title": "Example of an HTTPS Express applet",
     "summary": "httpsapp-express-js",
     "dxapi": "1.0.0",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "inputSpec": [
       {
         "name": "bam_files",
         "label": "Bam files",
         "help": "A set of bam files.",
-        "class": "array:file"
+        "class": "array:file",
+        "optional": true
       }
     ],
     "outputSpec": [],

@@ -3,7 +3,7 @@ FROM node:16
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
 for IGV to visualize .bam files"
-LABEL version="0.0.0"
+LABEL version="0.0.3"
 LABEL website="https://dnanexus.gsk.com"
 LABEL repository="https://dev.azure.com/DevOps-Vx/dna-nexus-igv"
 
@@ -15,6 +15,7 @@ RUN npm install
 COPY ./app ./
 RUN /bin/bash ./bin/memcached.sh \
 && /bin/bash ./bin/bc.sh \
+&& /bin/bash ./bin/misc-dependencies.sh \
 && /bin/bash ./bin/setLogname.sh \
 && /bin/bash ./bin/createUserAndGroup.sh \
 && /bin/bash ./bin/cleanUp.sh

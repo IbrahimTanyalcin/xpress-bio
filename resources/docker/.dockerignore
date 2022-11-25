@@ -1,2 +1,7 @@
-node_modules
-npm-debug.log
+**/node_modules
+**/npm-debug.log
+**/src/public/assets/bai/*
+**/src/public/assets/bam/*
+**/src/public/assets/fa/*
+**/src/public/assets/fai/*
+**/src/public/assets/gz/*

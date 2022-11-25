@@ -28,7 +28,8 @@
         parseFilename,
         createIGVObject,
         genHexStr,
-        rmFile
+        rmFile,
+        rmBrowser
     ){
         if(!_storage.checkLocalStorage()){
             
@@ -318,8 +319,18 @@
             evtSource.addEventListener("connection-surplus", function(e){
                 Swal.fire(e.data);
             });
-            evtSource.addEventListener("file-not-found", function(e){
-                Swal.fire(e.data);
+            evtSource.addEventListener("file-not-found", async function(e){
+                const result = await Swal.fire({
+                    icon: "warning",
+                    title: "404",
+                    text: `${e.data}`,
+                    showCancelButton:true,
+                    cancelButtonText: "remove IGV"
+                });
+                if(!result.isDismissed){
+                    return;
+                }
+                rmBrowser().then(() => igv && (igv.browser = void(0)));
             });
             evtSource.addEventListener("worker-bad-host", function(e){
                 Swal.fire(e.data);
