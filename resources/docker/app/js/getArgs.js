@@ -52,6 +52,17 @@ exports.getArgs = function(ARGV){ //process.env.slice(2)
 			return lastIndex === undefined
 				? lastIndex
 				: ARGV[lastIndex + 1];
+		}()),
+		fields:(function(){
+			let lastIndex = undefined;
+			ARGV.forEach(function(arg,i){
+				if(this.test(arg)){
+					lastIndex = i;
+				}
+			},/^(?:-{1,2})?fields?\s*$|^-{1,2}f\s*$/gi);
+			return lastIndex === undefined
+				? lastIndex
+				: ARGV[lastIndex + 1];
 		}())
 	};
 }

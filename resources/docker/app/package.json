@@ -1,6 +1,6 @@
 {
   "name": "docker-for-dna-nexus-igv",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "a simple docker container for running igv on dna-nexus",
   "main": "main.js",
   "scripts": {

@@ -168,6 +168,26 @@ Object.defineProperties(
 			value: function rmIndent(strs,...exps){
 				return strs.map(function(str,i){return str.replace(this,"")}, /^\s+/gim).reduce((ac,d,i) => ac += d + (exps[i] ?? ''),"")
 			}
+		},
+		oMerge: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function (target, ...sources) {
+				return sources.reduce((ac,d) => merge2(ac,d), target);
+				function merge2(a,b){
+					const m = JSON.parse(JSON.stringify(a));
+					if (typeof (b ?? 0) !== "object"){return m};
+					(new Set(Object.keys(m).concat(Object.keys(b)))).forEach(k => {
+						if (m[k] instanceof Object && b[k] instanceof Object) {
+						   m[k] = merge2(m[k], b[k]);
+						} else {
+						   m[k] = b[k] ?? m[k] 
+						}
+					})
+					return m;
+				}
+			}
 		}
 	}
 );

@@ -3,8 +3,7 @@ const
 	{findDir} = require("./findDir.js"),
 	path = require("path"),
 	{getArgs} = require("./getArgs.js"),
-	{capture} = require("./capture.js"),
-	{atob} = require("./helpers.js");
+	{capture} = require("./capture.js"); 
 exports.getInfo = async function(ENV, ARGS){
 	let cache = require?.main?._ipvCache?.getInfo;
 	if(cache){
@@ -37,7 +36,7 @@ exports.getInfo = async function(ENV, ARGS){
 				E = extended regex
 			why 'docker|lxc' ?
 				https://stackoverflow.com/questions/20010199/how-to-determine-if-a-process-runs-inside-lxc-docker*/
-			serverConf: ARGS.conf ? JSON.parse(atob(ARGS.conf)) : require("./server/server.config.json"),
+			serverConf: await require("./parseConf.js")(ARGS),
 			serverPort: ARGS.port,
 			PID: process.pid,
 			PPID: process.ppid,

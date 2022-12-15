@@ -24,7 +24,7 @@ module.exports = async function({express, app, info, files, serverSent}){
                   {refreshBam} = require('../../refreshBam.js');
             let fName = path.basename(sanitizeFilename(req.params.fName)),
                 fileName = path.resolve(dir, fName);
-            if (files[fName]) {
+            if (files[fName] || ~(info.serverConf?.["x-options"]?.["+rm"]?.indexOf(fName) ?? -1)) {
                 next({
                     fileType,
                     fileName: fName,
