@@ -1,5 +1,29 @@
 # XPRESS-BIO: lightweight + versatile Bioinformatics framework
 
+- [XPRESS-BIO: lightweight + versatile Bioinformatics framework](#xpress-bio-lightweight--versatile-bioinformatics-framework)
+  - [Motivation](#motivation)
+  - [Naming Convention](#naming-convention)
+  - [Quickstart](#quickstart)
+  - [App structure](#app-structure)
+  - [CLI arguments](#cli-arguments)
+  - [Node arguments](#node-arguments)
+  - [Environment Variables](#environment-variables)
+  - [Configuration](#configuration)
+  - [Advanced JSON Configuration](#advanced-json-configuration)
+  - [Running from the container](#running-from-the-container)
+  - [Route features](#route-features)
+  - [Spawning workers](#spawning-workers)
+  - [Security](#security)
+  - [App `xpress-bio:igv-bam-NNN` showcase](#app-xpress-bioigv-bam-nnn-showcase)
+    - [Building the image](#building-the-image)
+      - [Running the image](#running-the-image)
+    - [Running standalone](#running-standalone)
+    - [Accessing DNA-Nexus](#accessing-dna-nexus)
+    - [Usage](#usage)
+    - [Creating Starter Packs](#creating-starter-packs)
+  - [Custom 'Hello World' App](#custom-hello-world-app)
+
+
 ## Motivation
 
 The aim of this package is to cut development time of webapps that can be deployed directly or via docker using express.js. It provides:
@@ -770,7 +794,7 @@ Once the download is finished, the dropdown menu on the left, and the inside the
 
 To remove *.bam* or *.fa* files, click on the trash bin icons next to the dropdowns. Do not forget that removing files also remove for other users of your app!
 
-In certain cases, it might be desirable to disable deletion of certain files. In fact, the docker container achieves this by passing explicit filenames at runtime (you can also pass a regular expression string, which later will be parsed by your routing logic), using the `XPRESS_BIO_FIELDS` environment variable:
+In certain cases, it might be desirable to disable deletion of certain files. In fact, the docker container achieves this by [passing explicit filenames at runtime](../../src/docker-web-app.sh) (you can also pass a regular expression string, which later will be parsed by your routing logic), using the `XPRESS_BIO_FIELDS` environment variable:
 
 ```shell
 (docker run --rm --name "${appName}" -e XPRESS_BIO_FIELDS="$( (cat <<EOF
@@ -853,9 +877,4 @@ module.exports = function({express, app, info, files, serverSent}){
 
 - If you change `server.config.json` and set `index` field to `hello-world.html`, then you could do: `res.sendFile(files[info.serverConf.index])` instead of `res.sendFile(files["hello-world.html"])`
 - Keep in mind that `express, app, info, files, serverSent` objects are always passed to your routes fully initialized before your routes are executed. Check the `Route features` section to learn more about these objects.
-
-## TODO
-- UI Framework integrations
-- Examples of 'Hello World' Apps
-- Convert `files` into a `proxy` where a file with `path/to/file.ext` would be stored as `"path/to/file.ext"` instead of `"file.ext"` inside an array and given the string `o/file.ext`, the proxy would return the best matching one.
 
