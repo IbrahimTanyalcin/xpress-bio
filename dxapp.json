@@ -1,7 +1,16 @@
 {
-    "name": "test-express-node-js",
-    "title": "Example of an HTTPS Express applet",
-    "summary": "httpsapp-express-js",
+    "name": "xpress-bio",
+    "title": "XPRESS-BIO: lightweight + versatile Bioinformatics framework instance",
+    "summary": "Visualizes alignments using IGV.js",
+    "details": {
+      "contactEmail": "8837895+IbrahimTanyalcin@users.noreply.github.com"
+    },
+    "categories": [
+      "Read Mapping",
+      "Reports",
+      "RNA-Seq",
+      "Annotation"
+    ],
     "dxapi": "1.0.0",
     "version": "0.0.4",
     "inputSpec": [
