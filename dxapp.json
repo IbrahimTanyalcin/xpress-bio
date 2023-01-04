@@ -1,5 +1,5 @@
 {
-    "name": "xpress-bio",
+    "name": "xpress-bio:igv-bam",
     "title": "XPRESS-BIO: lightweight + versatile Bioinformatics framework instance",
     "summary": "Visualizes alignments using IGV.js",
     "details": {
