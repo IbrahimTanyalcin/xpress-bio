@@ -1,0 +1,81 @@
+table.responsive-table-type-1 {
+    table-layout: fixed;
+    max-width: var(--total-width);
+    width: var(--total-width);
+}
+
+table.responsive-table-type-1 thead {
+    position: sticky;
+    top: 0;
+}
+
+table.responsive-table-type-1 tr:hover {
+    box-shadow: 0px 0px 4px 4px var(--border-color);
+}
+
+table.responsive-table-type-1 thead th:nth-child(odd) {
+    background: var(--bg-color-3);
+}
+
+table.responsive-table-type-1 thead th:nth-child(even) {
+    background: var(--border-color);
+}
+
+table.responsive-table-type-1 tbody tr:nth-child(odd) td:nth-child(odd) {
+    background: var(--bg-color-3);
+}
+
+table.responsive-table-type-1 tbody tr:nth-child(even) td:nth-child(odd) {
+    background: var(--bg-color-1);
+}
+
+table.responsive-table-type-1 tbody tr:nth-child(odd) td:nth-child(even){
+    background: var(--border-color);
+}
+
+table.responsive-table-type-1 tbody tr:nth-child(even) td:nth-child(even){
+    background: var(--bg-color-2);
+}
+
+table.responsive-table-type-1 td,
+table.responsive-table-type-1 th {
+    /* max-width: var(--cell-width);
+    width: var(--cell-width); */
+    word-break: unset;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+}
+
+table.responsive-table-type-1.responsive td,
+table.responsive-table-type-1.responsive th {
+    /* max-width: var(--total-width);
+    width: var(--total-width); */
+    height: 5rem;
+    align-items: center;
+    gap: 2rem;
+}
+
+table.responsive-table-type-1.responsive td::before,
+table.responsive-table-type-1.responsive th::before {
+    white-space: initial;
+    word-break: break-all;
+}
+
+td .hoverable, th .hoverable {
+    width: 100%;
+    padding: 0.25rem;
+    text-align: right;
+    transition: background 1s ease;
+}
+
+.responsive-table-type-1.responsive .hoverable{
+    text-align: center;
+    width: 2.75rem;
+    border-radius: 4px;
+}
+
+td .hoverable:hover, th .hoverable:hover {
+    background: var(--primary-color);
+}
