@@ -3,7 +3,7 @@ FROM node:16
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
 for IGV to visualize .bam files"
-LABEL version="0.0.4"
+LABEL version="0.0.6"
 LABEL website="https://dnanexus.gsk.com"
 LABEL repository="https://dev.azure.com/DevOps-Vx/dna-nexus-igv"
 

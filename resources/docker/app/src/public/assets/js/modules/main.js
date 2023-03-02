@@ -71,6 +71,7 @@
             //clearButton = document.getElementById("pwd-clear"),
             expandButton = document.getElementById("pwd-expand"),
             uploadButton = document.getElementById("pwd-upload"),
+            toolsButton = document.getElementById("pwd-tools"),
             actionButton = document.getElementById("pwd-action"),
             themeButton = document.getElementById("theme-switch"),
             dropdown = document.getElementById("pwd-select-template"),
@@ -412,9 +413,11 @@
         ////////////////////////////////
         taskq.export(panelWrapper, "panelWrapper")
              .export(themeButton, "themeButton")
-             .export(helpButton, "helpButton");
+             .export(helpButton, "helpButton")
+             .export(toolsButton, "toolsButton");
         taskq._exportPersist.helpButton = helpButton;
         taskq._exportPersist.expandButton = expandButton;
+        taskq._exportPersist.toolsButton = toolsButton;
         taskq._exportPersist.side = side;
         ////////////////////////////////
         ////////////EXPORTS/////////////
