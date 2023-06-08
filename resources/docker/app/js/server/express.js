@@ -6,7 +6,8 @@ const
     {findDir} = require("../findDir.js"),
     {log, catcher} = require("../helpers.js"),
     {getPort} = require("../getPort.js"),
-    {execute} = require("../execute.js");
+    {execute} = require("../execute.js"),
+    {createFolders} = require("../createFolders");
 
 async function render (info) {
     //__dirname is local to the module, in this case: app/js/server
@@ -33,6 +34,29 @@ async function render (info) {
     
     const host = +info.isContainer <= 0 ? "127.0.0.1" : "0.0.0.0";
     const port = await getPort(info);  
+
+    /*CREATE bam,bai folders etc.
+    */
+    const createdFolders = await createFolders(
+        info.serverConf.static, 
+        ["bam", "bai", "fa", "fai", "gz"], 
+        {
+            base: info.rootFolder, 
+            dryRun: false, 
+            log: true
+        }
+    ).then(arrOfFolders => {
+        log(
+            "Folder check::OK:",
+            JSON.stringify(arrOfFolders,null,"\t")
+        );
+    }).catch(err => {
+        log(
+            "Folder check::FAIL:",
+            err
+        );
+        process.exit(1);
+    });
     
     app.listen(port,host);
     log("listening on host:", `${host}:${port}`);
@@ -45,7 +69,7 @@ async function render (info) {
         process.exit(0);
     }, 3000);  */   
 
-    return {routeFiles, files, host, port};
+    return {routeFiles, files, host, port, createdFolders};
 
         
 }
