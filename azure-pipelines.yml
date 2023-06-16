@@ -1,3 +1,5 @@
+variables:
+  PACKAGE_ROOT: $(System.DefaultWorkingDirectory)/resources/docker/app
 steps:
 - task: NodeTool@0
   inputs:
@@ -8,8 +10,9 @@ steps:
     npm install
     npm run test-server-azure
   displayName: 'npm install and output coverage'
+  workingDirectory: $(PACKAGE_ROOT)
 
 - task: PublishCodeCoverageResults@1
   inputs:
     codeCoverageTool: Cobertura
-    summaryFileLocation: $(System.DefaultWorkingDirectory)/js/server/test/coverage/cobertura-coverage.xml
+    summaryFileLocation: $(PACKAGE_ROOT)/js/server/test/coverage/cobertura-coverage.xml
