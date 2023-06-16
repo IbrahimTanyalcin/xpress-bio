@@ -1,5 +1,7 @@
 variables:
   PACKAGE_ROOT: $(System.DefaultWorkingDirectory)/resources/docker/app
+pool:
+  vmImage: "ubuntu-latest"
 steps:
 - task: NodeTool@0
   inputs:
