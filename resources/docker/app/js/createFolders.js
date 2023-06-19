@@ -8,13 +8,34 @@ const {access, mkdir} = require("fs/promises"),
 
 /**
 @description create folders if not exist
-@param {string} parent absolute or relative
+@param {string|string[]} parent absolute or relative
 path to the directiory under which the folders
 will be created.
-@param {string|string[]} folderNames an array of
+@param {string|string[]|Array.<string[]>} folderNames an array of
 folder names
 @param {object=} options an object of optional
 parameters
+@example
+const {createFolders} = require("path/to/createFolders.js");
+@example 
+createFolders("someFolderRelToPWD", ["bam","bai"], {mod: 0o744})
+.then(result => console.log(result))
+.catch(err => console.log(err));
+@example
+createFolders(
+	["xyz", "test2"], 
+	[["","newFolder"], ["whateva"]], 
+	{
+		base: "/home", 
+		dryRun: false, 
+		log: true
+	}
+).then(x => console.log(x))
+outputs:
+[
+  '/home/xyz/test2/newFolder',
+  '/home/xyz/test2/whateva'
+]
 */	
 async function createFolders(parent, folderNames, opts = {
 	base: "./",
@@ -78,28 +99,3 @@ async function createFolders(parent, folderNames, opts = {
 
 exports.createFolders = createFolders;
 
-/*
-Usage:
-createFolders("someFolderRelToPWD", ["bam","bai"], {mod: 0o744})
-.then(result => console.log(result))
-.catch(err => console.log(err));
-
-createFolders(
-	["xyz", "test2"], 
-	[["","newFolder"], ["whateva"]], 
-	{
-		base: "/home", 
-		dryRun: false, 
-		log: true
-	}
-).then(x => console.log(x))
-outputs:
-[
-  '/home/xyz/test2/newFolder',
-  '/home/xyz/test2/whateva'
-]
-*/
-/*
-Usage within module:
-const {createFolders} = require("path/to/createFolders.js");
-*/
