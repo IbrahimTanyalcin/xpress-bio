@@ -2,7 +2,7 @@ const
     {constants} = require('fs'),
     {resolve, join} = require('path'),
     {unlink, rm : remove, access} = require("fs/promises");
-describe('init', () => {
+describe(`testing folder creation`, () => {
     const 
         {createFolders} = require("../../createFolders"),
         /*
