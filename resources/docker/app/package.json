@@ -4,8 +4,8 @@
   "description": "a simple docker container for running igv on dna-nexus",
   "main": "main.js",
   "scripts": {
-    "test-server": "jest --config ./js/server/test/jest.config.js",
-    "test-server-azure": "jest --config ./js/server/test/jest.config.js --coverageReporters=cobertura",
+    "test-server": "jest --runInBand --config ./js/server/test/jest.config.js",
+    "test-server-azure": "jest --runInBand --config ./js/server/test/jest.config.js --coverageReporters=cobertura",
     "start": "cross-env-shell nodemon ./main.js"
   },
   "keywords": [

@@ -1,2 +1,1 @@
-console.log("No setup before suits are required");
-void(0);
+global.simulClient = require("./simulClient.js");
