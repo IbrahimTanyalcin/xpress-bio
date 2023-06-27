@@ -94,7 +94,13 @@ describe(`testing cold server start`, () => {
             });
         }).then(response => {
             expect(response.statusCode).toBe(200);
-            expect(~response.headers?.["content-type"]?.indexOf("text/event-stream")).toBeTruthy();
+            expect(
+                response.headers
+                ?.["content-type"]
+                ?.toString()
+                ?.toLowerCase()
+                ?.includes("text/event-stream")
+            ).toBeTruthy();
         })
     })
 
@@ -106,7 +112,13 @@ describe(`testing cold server start`, () => {
             });
         }).then(async (response) => {
             expect(response.statusCode).toBe(200);
-            expect(~response.headers?.["content-type"]?.indexOf("text/event-stream")).toBeTruthy();
+            expect(
+                response.headers
+                ?.["content-type"]
+                ?.toString()
+                ?.toLowerCase()
+                ?.includes("text/event-stream")
+            ).toBeTruthy();
             const evtHaystack = await new Promise(res => {
                 let rawData = '',
                     matchers = [
