@@ -7,13 +7,16 @@ steps:
   inputs:
     versionSpec: '16.x'
   displayName: 'Install Node.js'
-- script: |
-    sudo apt-get -y update
-    sudo apt-get -y install memcached
-    sudo apt-get -y install libmemcached-tools
-    sudo apt-get -y install bc
-    sudo apt-get -y install liblz4-tool
-    sudo apt-get -y install bsdmainutils
+- script: >
+    sudo /bin/bash -c "
+    set -e -x -o pipefail;
+    apt-get -y update
+    && apt-get -y install memcached
+    && apt-get -y install libmemcached-tools
+    && apt-get -y install bc
+    && apt-get -y install liblz4-tool
+    && apt-get -y install bsdmainutils
+    ;"
   displayName: 'install ubuntu libs'
 - script: |
     npm install
