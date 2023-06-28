@@ -6,7 +6,8 @@
     "routes": "js/server/routes",
     "memcached": {
         "conf": {
-            "logEvents": true
+            "logEvents": true,
+            "poolSize": 50
         },
         "mounts": {
             "/": {

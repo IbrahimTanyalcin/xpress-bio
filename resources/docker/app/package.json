@@ -4,8 +4,8 @@
   "description": "a simple docker container for running igv on dna-nexus",
   "main": "main.js",
   "scripts": {
-    "test-server": "jest --config ./js/server/test/jest.config.js",
-    "test-server-azure": "jest --config ./js/server/test/jest.config.js --coverageReporters=cobertura",
+    "test-server": "jest --runInBand --config ./js/server/test/jest.config.js",
+    "test-server-azure": "jest --runInBand --config ./js/server/test/jest.config.js --coverageReporters=cobertura",
     "start": "cross-env-shell nodemon ./main.js"
   },
   "keywords": [
@@ -30,7 +30,8 @@
     "express-session": "^1.17.3",
     "memcached": "^2.2.2",
     "nodemon": "^2.0.19",
-    "rafx": "^0.0.20"
+    "rafx": "^0.0.20",
+    "tree-kill": "^1.2.2"
   },
   "devDependencies": {
     "jest": "^29.5.0"
