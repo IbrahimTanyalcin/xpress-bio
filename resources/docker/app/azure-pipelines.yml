@@ -7,7 +7,17 @@ steps:
   inputs:
     versionSpec: '16.x'
   displayName: 'Install Node.js'
-
+- script: >
+    sudo /bin/bash -c "
+    set -e -x -o pipefail;
+    apt-get -y update
+    && apt-get -y install memcached
+    && apt-get -y install libmemcached-tools
+    && apt-get -y install bc
+    && apt-get -y install liblz4-tool
+    && apt-get -y install bsdmainutils
+    ;"
+  displayName: 'install ubuntu libs'
 - script: |
     npm install
     npm run test-server-azure
