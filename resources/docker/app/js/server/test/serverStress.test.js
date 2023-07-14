@@ -1,5 +1,3 @@
-const simulClient = require('./simulClient.js');
-
 const
     {capture} = require('../../capture.js'),
     {until} = require("../../helpers.js"),
