@@ -32,6 +32,7 @@ module.exports = function({express, app, info, files, serverSent}){
                 case "worker-bad-filename":
                 case "worker-bad-link":
                 case "worker-bad-extension":
+                case "worker-connection-timedout":
                     serverSent
                         .msg("streamOne", sessid, {directive: "event", payload: type})
                         .msg("streamOne", sessid, {payload});
