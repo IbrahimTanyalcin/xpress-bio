@@ -106,10 +106,11 @@ describe(`testing download from URIs`, () => {
                 "data:\\s*\\}"
             ].join(""),"i")
         );
-        setTimeout(() => {
+        const validateTimeout = setTimeout(() => {
             evtsMatchedAndOrdered.break();
             console.log(rawData.value);
         }, serverDetails.timeout - 5000);
         expect(await evtsMatchedAndOrdered).toBe(true);
+        clearTimeout(validateTimeout);
     }, serverDetails.timeout);
 });
