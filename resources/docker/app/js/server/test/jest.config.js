@@ -5,7 +5,7 @@ module.exports = {
 		
     },
     testMatch: [
-      "**/server/test/serverDwnld.test.js"
+      "**/server/test/*.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],
