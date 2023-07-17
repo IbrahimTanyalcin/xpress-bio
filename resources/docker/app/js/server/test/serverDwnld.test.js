@@ -74,7 +74,7 @@ describe(`testing download from URIs`, () => {
     }, serverDetails.timeout);
 
     test(`allowed URIs emit ordered events`, async () => {
-        expect.assertions(1);
+        expect.assertions(2);
         const
             rawData = {value: ''},
             cliResponse = await simulClient(serverDetails);
@@ -93,24 +93,42 @@ describe(`testing download from URIs`, () => {
             there is normally 'worker-dl-progress' event fired
             multiple times here, but github does not send
             'content-length' headers
-            Also, if the 'example.fas' file is downloaded, server
-            should send all clients a 'fa-file-stats' event right
-            after 'worker-dl-end' event
             */
             new RegExp([
                 "event:\\s*worker-dl-end\\n",
                 "data:\\s*[A-Z0-9\\-]+?\\.tar\\.gz\\n\\n",
+            ].join(""),"i")
+        ),
+        /* 
+        Also, if the 'example.fas' file is downloaded, server
+        should send all clients a 'fa-file-stats' event right
+        after 'worker-dl-success' event 
+        */
+        evtFaFileStats = validateSSE(
+            /* 
+            remove the first fa-file-stats event 
+            on client connect 
+            */
+            () => ({
+                value: rawData.value.slice(
+                    rawData.value.indexOf("fa-file-stats") + 14
+                )
+            }),
+            /event:\s*worker-dl-success/mi,
+            new RegExp([
                 "event:\\s*fa-file-stats\\n",
                 "data:\\s*\\{\\n",
                 "data:\\s*\"example\\.fas\":\\s*[0-9]+\\n",
                 "data:\\s*\\}"
             ].join(""),"i")
-        );
-        const validateTimeout = setTimeout(() => {
+        ),
+        validateTimeout = setTimeout(() => {
             evtsMatchedAndOrdered.break();
+            evtFaFileStats.break();
             console.log(rawData.value);
-        }, serverDetails.timeout - 5000);
+        }, serverDetails.timeout);
         expect(await evtsMatchedAndOrdered).toBe(true);
+        expect(await evtFaFileStats).toBe(true);
         clearTimeout(validateTimeout);
     }, serverDetails.timeout);
 });

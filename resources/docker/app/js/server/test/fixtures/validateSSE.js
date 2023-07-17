@@ -23,8 +23,12 @@ const returnsTrue = await validateSSE(
 const validateSSE = (rawData, ...rgxs) => until(function(rgxs){
     return rgxs.reduce((ac,d) => {
         if (!ac.value){return ac}
+        let _rawData = rawData;
+        if (typeof rawData === "function"){
+            _rawData = rawData();
+        }
         const 
-            match = rawData.value.match(d),
+            match = _rawData.value.match(d),
             index = match?.index;
         if (ac.index < index) {
             ac.index = index;
