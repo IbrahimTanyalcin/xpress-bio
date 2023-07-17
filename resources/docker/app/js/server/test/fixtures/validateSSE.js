@@ -3,14 +3,22 @@ const
     {until} = require("../../../helpers.js");
 
 /**
-@description requests an URI to be downloaded
+@description makes sure server-sent-events(SSE) fire properly
 @param {Object} rawData an object that has a value property
 @param {string} rawData.value output of a stream object at the time
 @param {...RegExp} rgxs array of regexps to test both match and order
 @returns {boolean} true or false depending on match and order
 @example
-const dlResponse = await reqDwnld(uriDetails);
-console.log(dlResponse.statusCode) //hopefully 200
+const returnsTrue = await validateSSE(
+    {
+        value:`
+            abc
+            def
+        `
+    },
+    /^[^\S\r\n]*abc/mi,
+    /^[^\S\r\n]*def/mi
+);
 */
 const validateSSE = (rawData, ...rgxs) => until(function(rgxs){
     return rgxs.reduce((ac,d) => {
