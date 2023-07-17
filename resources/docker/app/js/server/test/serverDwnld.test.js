@@ -85,7 +85,7 @@ describe(`testing download from URIs`, () => {
             cliResponse,
             postData: JSON.stringify({payload: "https://gist.github.com/IbrahimTanyalcin/ecf5f91d86a07e31a038283148b4a52e/archive/35deaee01bcfd2c58c24df709f6d6b2a0edc0247.tar.gz"})
         });
-        const evtsMatchedAndOrdered = await validateSSE(
+        const evtsMatchedAndOrdered = validateSSE(
             rawData,
             /event:\s*worker-dl-start/mi,
             /event:\s*worker-dl-success/mi,
@@ -106,7 +106,10 @@ describe(`testing download from URIs`, () => {
                 "data:\\s*\\}"
             ].join(""),"i")
         );
-        console.log(rawData.value);
-        expect(evtsMatchedAndOrdered).toBe(true);
+        setTimeout(() => {
+            evtsMatchedAndOrdered.break();
+            console.log(rawData.value);
+        }, serverDetails.timeout - 5000);
+        expect(await evtsMatchedAndOrdered).toBe(true);
     }, serverDetails.timeout);
 });
