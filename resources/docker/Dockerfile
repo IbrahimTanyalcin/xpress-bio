@@ -11,7 +11,7 @@ WORKDIR /app
 RUN ["/bin/bash", "-c", "apt-get -y update"]
 
 COPY ./app/package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 COPY ./app ./
 RUN /bin/bash ./bin/memcached.sh \
 && /bin/bash ./bin/bc.sh \
