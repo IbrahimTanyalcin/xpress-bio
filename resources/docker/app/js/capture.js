@@ -5,7 +5,17 @@
 const 
 	{exec, spawn} = require('child_process'),
 	{log} = require('./helpers.js'),
-	capture = function (str, {logger = true, pipe = true, ondata = false, onstart = false, ...rest} = {}){
+	capture = function (
+		str, 
+		{
+			logger = true, 
+			pipe = true, 
+			ondata = false, 
+			onstart = false, 
+			onerror = void(0),
+			...rest
+		} = {}
+	){
 		switch (((typeof logger === "function") << 1) + !!logger) {
 			case 3:
 			case 2:
@@ -19,11 +29,15 @@ const
 		return new Promise((res, rej) => {
 			//default shell is '/bin/sh'
 			const childProcess = exec(str, rest, (err, stdout, stderr) => {
+				//Looks like callback is not passed a this value
+				///blob/v16.20.1/lib/child_process.js#L282-L410C30
 				if (err) {
+					onerror?.({err, res, rej});
 					rej(`error: ${err.message}`);
 					return;
 				}
 				if (stderr && err?.code) {
+					onerror?.({err, stderr, res, rej});
 					rej(`error: stderr: ${stderr}; error: ${err.message}`);
 					return;
 				}

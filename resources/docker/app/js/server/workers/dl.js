@@ -24,6 +24,12 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
     ######WORKER CODE HERE######
     ############################ */
     const rgxNexus = /^https:\/\/dl\.dnanex\.us\//i,
+          safeResource = `https://gist.github.com/
+            IbrahimTanyalcin/
+            ecf5f91d86a07e31a038283148b4a52e/
+            archive/
+            35deaee01bcfd2c58c24df709f6d6b2a0edc0247.tar.gz
+          `.replace(/\s+/gi,""),
           rgxPrcnt = /[0-9]+\.[0-9]+%/gi,
           {unlink, rm : remove} = require("fs/promises"),
           dirRoot = path.resolve(workerData.rootFolder, workerData.staticFolder),
@@ -31,6 +37,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
             ".bai": path.resolve(dirRoot, "bai"), 
             ".bam": path.resolve(dirRoot, "bam"), 
             ".fa": path.resolve(dirRoot, "fa"), 
+            ".fas": path.resolve(dirRoot, "fa"), 
             ".fasta": path.resolve(dirRoot, "fa"), 
             ".fai": path.resolve(dirRoot, "fai"),
             ".tar": path.resolve(dirRoot, "gz"),
@@ -42,8 +49,8 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
           },
           extArr = Object.keys(extMap),
           isCompressed = ((...exts) => ext => !!~exts.indexOf(ext))(".tar", ".gz", ".z", ".tgz", ".taz", ".lz4"),
-          rgxHttpStats = /^\s*HTTP[^\s]*\s+(?<status>[0-5]{3})\s+(?<statusText>[A-Z]+)\s*$/gim,
-          rgxHttpFilename = /^content-disposition\s*:\s*attachment\s*;\s*filename\s*=\s*"(?<filename>[^"]+)"\s*$/gim;
+          rgxHttpStats = /^\s*HTTP[^\s]*\s+(?<status>[0-5]{3})\s*(?<statusText>[A-Z]+)?\s*$/gim,
+          rgxHttpFilename = /^content-disposition\s*:\s*attachment\s*;\s*filename\s*=\s*"?(?<filename>[^"\r\n]+)"?\s*$/gim;
     let dlPool = 0,
         dlBlock = 0,
         dlPoolMax = 10,
@@ -63,28 +70,46 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
         },{interval: 1000});
         //payload is URI
         const {payload, sessid} = message;
-        if(!rgxNexus.test(payload)) {
+        if(!rgxNexus.test(payload) && payload !== safeResource) {
             port.postMessage({type: "worker-bad-host", payload: "URI is not a DNAnexus link", sessid});
             return decr();
         }
-        const {status, statusText, filename = ""} = await capture(
-                `curl -fsSL -I ${payload}`, 
-                {logger: false, pipe: false}
+        const {status, statusText, filename = "", timedout = ""} = await capture(
+                `curl -fsSL -I --connect-timeout 20 ${payload}`, 
+                {logger: false, pipe: false, onerror: oErr => oErr.rej(oErr.err)}
             )
             .then((val = "") => {
                 return [...val.matchAll(rgxHttpStats),...val.matchAll(rgxHttpFilename)]
                 .map(d => d.groups)
-                .reduce((ac,d) => {return {...d,...ac}},{});
+                .reduce((ac,d) => {return {...ac, ...d}},{});
             })
             .catch(err => {
+                if ([28].includes(err?.code)) {
+                    return {timedout: true}
+                }
                 return {};
             }),
             extName = path.extname(filename);
+        if (timedout) {
+            port.postMessage({
+                type: "worker-connection-timedout", 
+                payload: "Could not reach the server. Make sure your network has access", 
+                sessid
+            });
+            return decr();
+        }
         if (!filename) {
             port.postMessage({type: "worker-bad-filename", payload: "Filename empty or broken link", sessid});
             return decr();
         }
-        if (+status !== 200 || statusText !== "OK") {
+        /*
+        https://datatracker.ietf.org/doc/html/rfc7540#section-8.1.2.4
+        HTTP/2 does not define statusText
+        HTTP/1.1 does define statusText
+        unless I force cURL to use '--http1.1'
+        statusText needs to be dropped
+        */
+        if (+status !== 200 /*|| statusText !== "OK"*/) {
             port.postMessage({type: "worker-bad-link", payload: "Make sure the link is not broken or you are authorized to download", sessid});
             return decr();
         }
@@ -98,7 +123,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
         await capture(
             `/bin/bash ${path.resolve(workerData.bin,"downloadX.sh")} `
             + `${payload} ${filepath} `
-            + (fileIsCompressed ? "--rm 1 '.bai' '.bam' '.fa' '.fasta' '.fai'" : "0"),
+            + (fileIsCompressed ? "--rm 1 '.bai' '.bam' '.fa' '.fas' '.fasta' '.fai'" : "0"),
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}
@@ -108,7 +133,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
                 return port.postMessage({
                     type: "worker-dl-success", 
                     payload: filename, 
-                    updateFa: [".fa", ".fasta"].includes(extName),
+                    updateFa: [".fa", ".fas", ".fasta"].includes(extName),
                     updateBam: [".bam"].includes(extName)
                 }); //postMessage returns undefined
             }
@@ -125,7 +150,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
                         port.postMessage({
                             type: "worker-dl-success", 
                             payload: nFiles, 
-                            updateFa: extVisited.some(function(d){return this.includes(d);},[".fa", ".fasta"]),
+                            updateFa: extVisited.some(function(d){return this.includes(d);},[".fa", ".fas", ".fasta"]),
                             updateBam: extVisited.some(function(d){return this.includes(d);},[".bam"])
                         });
                         remove(dir, {recursive: true});
