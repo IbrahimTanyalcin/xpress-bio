@@ -339,6 +339,9 @@
             evtSource.addEventListener("worker-pool-full", function(e){
                 Swal.fire(e.data);
             });
+            evtSource.addEventListener("worker-connection-timedout", function(e){
+                Swal.fire(e.data);
+            });
             evtSource.addEventListener("worker-bad-filename", function(e){
                 Swal.fire(e.data);
             });
