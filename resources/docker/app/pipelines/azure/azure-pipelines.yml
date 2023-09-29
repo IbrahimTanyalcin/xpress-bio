@@ -11,7 +11,7 @@ pool:
   vmImage: "ubuntu-latest"
 steps:
 - ${{ if eq(parameters.buildWithSamtools, true) }}:
-  - template: azure-samptools.yml
+  - template: azure-pipelines-samtools.yml
     parameters: 
       homeDir: $(HOME_DIR)
       bashEnv: $(BASH_ENV)
