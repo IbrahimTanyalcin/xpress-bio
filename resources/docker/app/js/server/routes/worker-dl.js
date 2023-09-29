@@ -14,8 +14,7 @@ module.exports = function({express, app, info, files, serverSent}){
                 isContainer : info.isContainer,
                 rootFolder: info.rootFolder,
                 staticFolder: info.serverConf.static,
-                bin: info.dockerBinaries,
-                workers: info.workers
+                bin: info.dockerBinaries
             }
         }
     );
