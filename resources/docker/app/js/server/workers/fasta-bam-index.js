@@ -3,6 +3,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
       {log, until} = require("../../helpers.js"),
       {capture} = require("../../capture.js"),
       {fileExists} = require("../../fileExists.js"),
+      {getFiles} = require("../../getFiles.js"),
       path = require("path");
 
 (new Promise(res => {
@@ -22,11 +23,12 @@ const {workerData, parentPort} = require("node:worker_threads"),
         });
         res([port, ac.signal]);
     });
-})).then(([port, signal]) => {
+})).then(async ([port, signal]) => {
     /* ############################
     ######WORKER CODE HERE######
     ############################ */
     const
+        samtools = workerData.samtools,
         dirRoot = path.resolve(
             workerData.rootFolder, 
             workerData.staticFolder
@@ -43,8 +45,25 @@ const {workerData, parentPort} = require("node:worker_threads"),
         watchers = watchMap.map(dir =>
             watch(dir, { signal, persistent: true})
         ),
-        //below can accept a string or object.
-        evtStack = new Set(), //prepopulate with values on server start. filtered by fasta/bam files that do not have indexes
+        /* below can accept a string or object.
+        It is prepopulated with values on server start,
+        filtered by fasta/bam files that do not have indexes */
+        evtStack = new Set(
+            (await Promise.all([
+                ...(await getFiles(bamFolder))
+                .map(async d => 
+                    await fileExists(d + ".bai", {base: bamIndexFolder})
+                    ? false
+                    : d
+                ),
+                ...(await getFiles(fastaFolder))
+                .map(async d => 
+                    await fileExists(d + ".fai", {base: fastaIndexFolder})
+                    ? false
+                    : d
+                )
+            ])).filter(d => d)
+        ), 
         setShift = set => {
             const [firstItem] = set;
             set.delete(firstItem);
@@ -64,13 +83,13 @@ const {workerData, parentPort} = require("node:worker_threads"),
         } catch (err) {
             if (err?.name === 'AbortError') {
                 return log(
-                    `file system watcher @${dir} is aborting`
+                    `file system watcher @${"somedir"} is aborting`
                 );
             }
             port.postMessage({
                 type: "worker-fasta-bam-index-fs-watcher-error",
                 payload: [
-                    `file system watcher @${dir}`,
+                    `file system watcher @${"somedir"}`,
                     `crashed unexpectedy:\n`,
                     `error.message: ${err?.message}`
                 ].join(" ")
@@ -79,13 +98,21 @@ const {workerData, parentPort} = require("node:worker_threads"),
     });
     port.on("message", async function(message){
         //deal with API calls here
+        const {filename, force, sessid} = message;
+        evtStack.add({
+            filename, force, sessid
+        });
     });
     const loop = until(async function(){
+        /* console.log(evtStack); */
         if (!evtStack.size){return}
         if (idxPool >= idxPoolMax) {
             return port.postMessage({
                 type: "worker-fasta-bam-index-pool-full", 
-                payload: "Maximum index queue reached, wait until others are finished"
+                payload: [
+                    "Maximum index queue reached,", 
+                    "will be processed once others are finished"
+                ].join(" ")
             });
         }
         
@@ -101,49 +128,102 @@ const {workerData, parentPort} = require("node:worker_threads"),
             const item = setShift(evtStack);
             if(!item){return decr()}
             const
-                [fileName, reIndex] = item instanceof Object 
+                [fileName, reIndex, sessid] = item instanceof Object 
                     ? [
-                        item?.filename = "unknown_file", 
-                        item?.force = false
+                        item?.filename ?? "unknown_file", 
+                        item?.force ?? false,
+                        item?.sessid ?? ""
                     ]
-                    : [item, false],
-                extName = path.extname(item);
+                    : [item, false, void(0)],
+                baseFileName = path.basename(fileName),
+                extName = path.extname(baseFileName),
+                isBam = extName === ".bam";
+            let input, output, baseOutput; //derived from baseFileName for samtools
             if(!extArr.includes(extName)){
                 decr();
                 return port.postMessage({
                     type: "worker-fasta-bam-index-bad-filename", 
-                    payload: `The file ${fileName} is not indexible, skipping.`
+                    payload: `The file ${baseFileName} is not indexible, skipping.`,
+                    sessid,
+                    filename: baseFileName
                 });
             }
-            if(!await fileExists(
-                fileName,
+            input = await fileExists(
+                baseFileName,
                 {
-                    base: extName === ".bam"
-                        ? bamFolder
-                        : fastaFolder
+                    base: isBam ? bamFolder : fastaFolder
                 }
-            )) {
+            );
+            if(!input) {
                 decr();
                 return port.postMessage({
-                    type: "worker-fasta-bam-index-generic-error", 
-                    payload: `The file ${fileName} does not exist.`
+                    type: "worker-fasta-bam-index-file-does-not-exist", 
+                    payload: `The file ${baseFileName} does not exist.`,
+                    filename: baseFileName,
+                    sessid
                 });
             }
-            if(await fileExists(
-                fileName + extName === ".bam" ? ".bai" : ".fai",
-                {
-                    base: extName === ".bam"
-                        ? bamIndexFolder
-                        : fastaIndexFolder
-                }
-            ) && !reIndex) {
+            /* 
+            path.resolve processes from RIGHT to LEFT UNTIL
+            an abspath is formed. FileExists will disregard
+            base parameter if the first arg is already abs.
+            This means, whatever the fs watcher is returning,
+            the result will be normalized.
+            */
+            output = path.resolve(
+                isBam ? bamIndexFolder : fastaIndexFolder,
+                baseFileName + (isBam ? ".bai" : ".fai")
+            );
+            baseOutput = path.basename(output);
+            if(await fileExists(output) && !reIndex) {
                 decr();
                 return port.postMessage({
                     type: "worker-fasta-bam-index-file-exists", 
-                    payload: `The file ${fileName} already exists.`
+                    payload: `The file ${baseOutput} already exists.`,
+                    sessid,
+                    filename: baseOutput
                 });
             }
-            //handle bam or fasta indexing
+            await capture(
+                `${samtools} ${isBam ? "index" : "faidx"} ${input} -o ${output}`,
+                {
+                    shell: "/bin/bash",
+                    pipe: false,
+                    logger: false,
+                    onstart: function(pChild) {
+                        port.postMessage({
+                            type: "worker-fasta-bam-index-start", 
+                            payload: `Indexing of ${baseFileName} started.`,
+                            filename: baseFileName
+                        });
+                    },
+                    onerror: ({res, rej, err}) => {
+                        /* console.log(err?.message); */
+                        port.postMessage({
+                            type: "worker-fasta-bam-index-indexing-fail", 
+                            payload: [
+                                `Indexing of ${baseFileName} failed. Error:`,
+                                `${err?.message}`
+                            ].join("\n"),
+                            filename: baseFileName
+                        });
+                    }
+                }
+            )
+            .then(() => {
+                port.postMessage({
+                    type: "worker-fasta-bam-index-success", 
+                    payload: `Indexing of ${baseFileName} finished.`,
+                    filename: baseFileName
+                });
+            })
+            .catch(() => {});
+            port.postMessage({
+                type: "worker-fasta-bam-index-end", 
+                payload: `Indexing of ${baseFileName} ended.`,
+                filename: baseFileName
+            });
+            decr();
         })
         return false;
     },{interval: 1000});

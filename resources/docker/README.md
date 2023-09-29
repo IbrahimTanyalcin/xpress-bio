@@ -22,6 +22,8 @@
     - [Usage](#usage)
     - [Creating Starter Packs](#creating-starter-packs)
   - [Custom 'Hello World' App](#custom-hello-world-app)
+  - [Troubleshooting](#troubleshooting)
+    - [Passing $PATH or other environment variables](#passing-path-or-other-environment-variables)
 
 
 ## Motivation
@@ -132,7 +134,7 @@ Node arguments are parameters that are passed directly to [`node`](./app/main.js
 $ /bin/bash start.sh -j $(base64 -w 0 path/to/config.json)
 ```
 
-The passed config must be converted to base64 format as shown above. This argument can be used with or without `server.conf.json`. Check out the `Configuration` section for details.
+The passed config must be converted to base64 format as shown above. This argument can be used with or without `server.config.json`. Check out the `Configuration` section for details.
 
 `--fields/-f`: Dynamically pass an optional json configuration:
 
@@ -238,14 +240,15 @@ EOF
 ## Configuration
 
 There are 4 ways to configure `XPRESS-BIO`:
-- `server.conf.json` file
+- `server.config.json` file
+- other `*.config.json` files next to `server.config.json`
 - `--jsonconf/-j` argument to `node` 
 - `--fields/-f` argument to `node`
 - `XPRESS_BIO_FIELDS` environment variable
 
 Each of these options define the final configuration. The precedence, in descending order is as follows:
 
-`--fields/-f` > `XPRESS_BIO_FIELDS` > `--jsonconf/-j` > `server.conf.json`
+`--fields/-f` > `XPRESS_BIO_FIELDS` > `--jsonconf/-j` > `*.config.json` (`b.config.json` overrides `a.config.json` for same keys) > `server.config.json`
 
 For example: 
 
@@ -878,3 +881,81 @@ module.exports = function({express, app, info, files, serverSent}){
 - If you change `server.config.json` and set `index` field to `hello-world.html`, then you could do: `res.sendFile(files[info.serverConf.index])` instead of `res.sendFile(files["hello-world.html"])`
 - Keep in mind that `express, app, info, files, serverSent` objects are always passed to your routes fully initialized before your routes are executed. Check the `Route features` section to learn more about these objects.
 
+## Troubleshooting
+
+### Passing $PATH or other environment variables
+
+You might wonder why the command below would not work:
+
+```shell
+sudo /bin/bash -c '/bin/bash start.sh --fields <((cat <<EOF
+{"executables": {
+  "samtools": ["/home/some-user/.local/bin/samtools-1.18", "some/other/path"]
+}}
+EOF
+) | base64 -w 0)'
+```
+
+Above command tries to add an extra field 'executables' to server configuration via the `--fields` argument which allows `xpress-bio` to call `samtools` binary. Here `sudo` creates an additional context that causes the anonymous pipe to be closed or not give correct permissions to child processes even though they are spawned as `root`. Here are some alternatives:
+
+**Use a named FIFO:**
+```shell
+mkfifo /tmp/myfifo
+echo -n "{\"executables\": {\"samtools\": [\"/home/some-user/.local/bin/samtools-1.8\", \"some/other/path\"]}}" | base64 -w 0 > /tmp/myfifo &
+sudo bash -c '/bin/bash start.sh --fields /tmp/myfifo'
+rm /tmp/myfifo
+```
+<small>Do not use above for sensitive data as the information that is passed can be observed by others.</small>
+
+**Use the --env option:**
+
+Modify the current path or any env var as you see fit and then:
+
+```shell
+
+sudo /bin/bash -c "/bin/bash start.sh --env  <(echo \"PATH=$PATH\")"
+```
+
+This is the recommended way
+
+**Use the XPRESS-BIO-FIELDS env var:**
+```shell
+sudo XPRESS_BIO_FIELDS="$( (cat <<EOF
+{
+  "executables": {
+    "samtools": ["/some/path", "/home/some-user/.local/bin/samtools-1.18"]
+  }
+}
+EOF
+) | base64 -w 0)" /bin/bash -c "/bin/bash start.sh"
+```
+
+<small>Do not use above for sensitive data as the information that is passed can be observed by others.</small>
+
+**Use the -j option:**
+```shell
+sudo /bin/bash -c '/bin/bash start.sh -j $( (cat <<EOF
+{"executables": {
+  "samtools": ["/home/some-user/.local/bin/samtools-1.18", "some/path"]
+}}
+EOF
+) | base64 -w 0)'
+```
+
+<small>Do not use above for sensitive data as the information that is passed can be observed by others.</small>
+
+**Use the cascading configs feature:**
+
+Create a file called `custom.config.json`
+```json
+{
+    "executables": {
+        "samtools": [
+            "/home/some-user/.local/bin/samtools-1.18",
+            "/some/other/path"
+        ]
+    }
+}
+```
+
+Save it inside `app/js/server/`, next to `server.config.json`. Any json file under this path that ends with `*.config.json` will not be committed to git repos or docker builds but can be thought of an additional layer that gets alphabetically sorted and merged with `server.config.json` at runtime (`b.config.json` overrides `a.config.json` for same keys). For docker images, you can first execute `docker cp` to copy the custom configuration file and then start the server.

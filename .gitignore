@@ -113,3 +113,9 @@ typings/
 /resources/docker/app/src/public/assets/bam
 /resources/docker/app/src/public/assets/bai
 /resources/docker/app/src/public/assets/gz
+
+# Ignore all .config.json files in the server directory
+resources/docker/app/js/server/*.config.json
+
+# But do not ignore server.config.json
+!resources/docker/app/js/server/server.config.json
