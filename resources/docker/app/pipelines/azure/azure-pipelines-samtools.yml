@@ -14,6 +14,7 @@ parameters:
 steps:
 - bash: |
     set -e -x -o pipefail;
+    sudo apt-get -y install libcurl4-openssl-dev
     mkdir -p ./${{ parameters.loc }};
     cd ./${{ parameters.loc }};
     curl -fsSLO https://github.com/samtools/samtools/releases/download/1.18/samtools-1.18.tar.bz2;
