@@ -21,23 +21,23 @@ steps:
     sudo apt-get -y install libcurl4-openssl-dev
     mkdir -p ./${{ parameters.loc }};
     cd ./${{ parameters.loc }};
-    curl -fsSLO https://github.com/samtools/samtools/releases/download/${{ samtoolsVersion }}/samtools-${{ samtoolsVersion }}.tar.bz2;
-    curl -fsSLO https://github.com/samtools/bcftools/releases/download/${{ samtoolsVersion }}/bcftools-${{ samtoolsVersion }}.tar.bz2;
-    curl -fsSLO https://github.com/samtools/htslib/releases/download/${{ samtoolsVersion }}/htslib-${{ samtoolsVersion }}.tar.bz2;
-    tar -xvjf htslib-${{ samtoolsVersion }}.tar.bz2;
-    tar -xvjf samtools-${{ samtoolsVersion }}.tar.bz2;
-    tar -xvjf bcftools-${{ samtoolsVersion }}.tar.bz2;
-    pushd bcftools-${{ samtoolsVersion }} && make && popd;
-    pushd htslib-${{ samtoolsVersion }} && make && popd;
-    pushd samtools-${{ samtoolsVersion }} && make && popd;
-    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ samtoolsVersion }}" ${{ parameters.bashEnv }}; then
-      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    curl -fsSLO https://github.com/samtools/samtools/releases/download/${{ parameters.samtoolsVersion }}/samtools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    curl -fsSLO https://github.com/samtools/bcftools/releases/download/${{ parameters.samtoolsVersion }}/bcftools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    curl -fsSLO https://github.com/samtools/htslib/releases/download/${{ parameters.samtoolsVersion }}/htslib-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf htslib-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf samtools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf bcftools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    pushd bcftools-${{ parameters.samtoolsVersion }} && make && popd;
+    pushd htslib-${{ parameters.samtoolsVersion }} && make && popd;
+    pushd samtools-${{ parameters.samtoolsVersion }} && make && popd;
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
     fi
-    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ samtoolsVersion }}" ${{ parameters.bashEnv }}; then
-      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
     fi
-    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ samtoolsVersion }}" ${{ parameters.bashEnv }}; then
-      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
     fi
   displayName: 'install, build and add to PATH Samtools'
   workingDirectory: ${{ parameters.homeDir }}
