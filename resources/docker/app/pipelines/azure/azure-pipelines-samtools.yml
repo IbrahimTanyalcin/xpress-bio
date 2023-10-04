@@ -1,4 +1,4 @@
-parameter:
+parameters:
 - name: homeDir
   displayName: Home Directory
   type: string
