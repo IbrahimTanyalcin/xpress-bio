@@ -6,6 +6,7 @@ module.exports = {
     },
     testMatch: [
       "**/server/test/*.test.js"
+      //"**/server/test/serverFastaBamIndex.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

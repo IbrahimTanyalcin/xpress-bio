@@ -56,4 +56,10 @@ describe(`testing fileExists`, () => {
         let result = await fileExists(fileName);
         expect(result).toEqual(resolve(rootFolder, fileName));
     })
+
+    test("absolute path shall derive its base value", async () => {
+        expect.assertions(1);
+        let result = await fileExists(absPath);
+        expect(result).toBe(absPath);
+    })
 })

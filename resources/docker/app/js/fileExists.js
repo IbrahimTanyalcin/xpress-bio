@@ -23,8 +23,8 @@ async function fileExists (
     } = {}
 ) {
     if (path.isAbsolute(fName)){
-        fName = path.basename(fName);
         base = path.dirname(fName);
+        fName = path.basename(fName);
     }
     return findDir(
         path.resolve(base),
