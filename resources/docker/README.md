@@ -505,7 +505,7 @@ Here is what it looks like:
 ˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅
 > Here are your parameters:
 > {
->       "version": "0.0.4",
+>       "version": "0.1.0",
 >       "environment": "development",
 >       "rootFolder": "path/to/app",
 >       "nodeBinaries": "path/to/app/node_modules/.bin",
