@@ -118,7 +118,9 @@ describe(`testing download from URIs`, () => {
             new RegExp([
                 "event:\\s*fa-file-stats\\n",
                 "data:\\s*\\{\\n",
-                "data:\\s*\"example\\.fas\":\\s*[0-9]+\\n",
+                "(?:data:\\s*\"[^\"]+\"\\s*:\\s*[0-9]+,?\\n)*?",
+                "data:\\s*\"example\\.fas\":\\s*[0-9]+,?\\n",
+                "(?:data:\\s*\"[^\"]+\"\\s*:\\s*[0-9]+,?\\n)*?",
                 "data:\\s*\\}"
             ].join(""),"i")
         ),

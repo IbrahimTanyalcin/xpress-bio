@@ -2,6 +2,7 @@ const {Worker} = require("node:worker_threads"),
       {until} = require("../../helpers.js"),
       path = require('path'),
       portKey = Symbol.for("customPort"),
+      nameKey = Symbol.for("customName"),
       {getFiles} = require("../../getFiles.js"),
       {getStats} = require("../../getStats.js");
 
@@ -17,6 +18,7 @@ module.exports = function({express, app, info, files, serverSent}){
             }
         }
     );
+    worker[nameKey] = "worker-dl";
     until(() => worker[portKey])
     .then(port => {
         app

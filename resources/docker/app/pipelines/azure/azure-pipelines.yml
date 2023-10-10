@@ -1,8 +1,20 @@
 variables:
   PACKAGE_ROOT: $(System.DefaultWorkingDirectory)/resources/docker/app
+  HOME_DIR: $(Agent.HomeDirectory)
+  BASH_ENV: "~/.profile"
+parameters: 
+- name: buildWithSamtools
+  displayName: Build with Samtools
+  type: boolean
+  default: true
 pool:
   vmImage: "ubuntu-latest"
 steps:
+- ${{ if eq(parameters.buildWithSamtools, true) }}:
+  - template: azure-pipelines-samtools.yml
+    parameters: 
+      homeDir: $(HOME_DIR)
+      bashEnv: $(BASH_ENV)
 - task: NodeTool@0
   inputs:
     versionSpec: '16.x'

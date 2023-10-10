@@ -1,0 +1,43 @@
+parameters:
+- name: homeDir
+  displayName: Home Directory
+  type: string
+  default: /home
+- name: loc
+  displayName: Location to Build and Install
+  type: string
+  default: .local/bin
+- name: bashEnv
+  displayName: The bash profile or bashrc location
+  type: string
+  default: "~/.profile"
+- name: samtoolsVersion
+  displayName: Samtools version
+  type: string
+  default: 1.18
+steps:
+- bash: |
+    set -e -x -o pipefail;
+    sudo apt-get -y install libcurl4-openssl-dev
+    mkdir -p ./${{ parameters.loc }};
+    cd ./${{ parameters.loc }};
+    curl -fsSLO https://github.com/samtools/samtools/releases/download/${{ parameters.samtoolsVersion }}/samtools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    curl -fsSLO https://github.com/samtools/bcftools/releases/download/${{ parameters.samtoolsVersion }}/bcftools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    curl -fsSLO https://github.com/samtools/htslib/releases/download/${{ parameters.samtoolsVersion }}/htslib-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf htslib-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf samtools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    tar -xvjf bcftools-${{ parameters.samtoolsVersion }}.tar.bz2;
+    pushd bcftools-${{ parameters.samtoolsVersion }} && make && popd;
+    pushd htslib-${{ parameters.samtoolsVersion }} && make && popd;
+    pushd samtools-${{ parameters.samtoolsVersion }} && make && popd;
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/bcftools-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    fi
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/samtools-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    fi
+    if ! grep -q "${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ parameters.samtoolsVersion }}" ${{ parameters.bashEnv }}; then
+      echo 'export PATH="$PATH:${{ parameters.homeDir }}/${{ parameters.loc }}/htslib-${{ parameters.samtoolsVersion }}"' >> ${{ parameters.bashEnv }}
+    fi
+  displayName: 'install, build and add to PATH Samtools'
+  workingDirectory: ${{ parameters.homeDir }}

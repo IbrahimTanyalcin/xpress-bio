@@ -1,13 +1,21 @@
-
 const 
-	{log, atob, oMerge} = require("./helpers.js"); 
+	path = require('path'),
+	{log, atob, oMerge} = require("./helpers.js"),
+	{getFiles} = require("./getFiles.js");
 module.exports = async ({conf, fields})=>{
 	let defaultConf,
+		customConf,
 		pipeContents,
 		envContents = process.env?.XPRESS_BIO_FIELDS,
 		flag = (!!conf << 2) + (!!fields << 1) + !!envContents;
 	try {
 		defaultConf = require("./server/server.config.json");
+		customConf = (await getFiles("./js/server", {depth: 1}))
+			.filter(function(file){
+				return this.test(file)
+			},/(?<!^server)\.config\.json$/i)
+			.sort()
+			.map(d => require(path.join(__dirname, "server", d)));
 	} catch {
 		defaultConf = {};
 	}
@@ -22,21 +30,21 @@ module.exports = async ({conf, fields})=>{
 				process.exit(1);
 			}
 			if (flag === 7) {
-				return oMerge(defaultConf, JSON.parse(atob(conf)), JSON.parse(atob(envContents)), pipeContents);
+				return oMerge(defaultConf, ...customConf, JSON.parse(atob(conf)), JSON.parse(atob(envContents)), pipeContents);
 			} else if (flag === 6) {
-				return oMerge(defaultConf, JSON.parse(atob(conf)), pipeContents);
+				return oMerge(defaultConf, ...customConf, JSON.parse(atob(conf)), pipeContents);
 			} else if (flag === 3) {
-				return oMerge(defaultConf, JSON.parse(atob(envContents)), pipeContents);
+				return oMerge(defaultConf, ...customConf, JSON.parse(atob(envContents)), pipeContents);
 			}
-			return oMerge(defaultConf, pipeContents);
+			return oMerge(defaultConf, ...customConf, pipeContents);
 		case 5:
-			return oMerge(defaultConf, JSON.parse(atob(conf)), JSON.parse(atob(envContents)));
+			return oMerge(defaultConf, ...customConf, JSON.parse(atob(conf)), JSON.parse(atob(envContents)));
 		case 4:
-			return oMerge(defaultConf, JSON.parse(atob(conf)));
+			return oMerge(defaultConf, ...customConf, JSON.parse(atob(conf)));
 		case 1: 
-			return oMerge(defaultConf, JSON.parse(atob(envContents)));
+			return oMerge(defaultConf, ...customConf, JSON.parse(atob(envContents)));
 		case 0:
-			return defaultConf;
+			return oMerge(defaultConf, ...customConf);
 		default:
 			log("\x1b[31m",
 				"---app/js/getInfo.js---",

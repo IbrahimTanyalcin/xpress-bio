@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ "$(service --status-all 2>&1 | grep 'memcached' | sed -r 's/^\s*\[\s*([+-?])\s*\].*$/\1/i')" != "+" ]]
+if [[ "$(service --status-all 2>&1 | grep 'memcached' | sed -r 's/^\s*\[\s*([-+?])\s*\].*$/\1/i')" != "+" ]]
 then
     sed 's/^\s*//' <<EOL 
                 > ˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅˅

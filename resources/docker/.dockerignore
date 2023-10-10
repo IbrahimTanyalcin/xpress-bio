@@ -5,3 +5,9 @@
 **/src/public/assets/fa/*
 **/src/public/assets/fai/*
 **/src/public/assets/gz/*
+
+# Ignore all .config.json files in the server directory
+app/js/server/*.config.json
+
+# But do not ignore server.config.json
+!app/js/server/server.config.json
