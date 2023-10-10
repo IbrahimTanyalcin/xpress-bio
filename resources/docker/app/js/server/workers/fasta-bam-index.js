@@ -37,6 +37,20 @@ const {workerData, parentPort} = require("node:worker_threads"),
         bamIndexFolder =  path.resolve(dirRoot, "bai"),
         fastaFolder = path.resolve(dirRoot, "fa"),
         fastaIndexFolder = path.resolve(dirRoot, "fai"),
+        configs = {
+            bam: {
+                inputFolder: bamFolder,
+                outputFolder: bamIndexFolder,
+                ext: ".bai",
+                command: "index"
+            },
+            fasta: {
+                inputFolder: fastaFolder,
+                outputFolder: fastaIndexFolder,
+                ext: ".fai",
+                command: "faidx"
+            }
+        },
         extArr = [".fa", ".fas", ".fasta", ".bam"],
         watchMap = [
             path.resolve(dirRoot, "bam"),
@@ -137,7 +151,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     : [item, false, void(0)],
                 baseFileName = path.basename(fileName),
                 extName = path.extname(baseFileName),
-                isBam = extName === ".bam";
+                config = configs[extName === ".bam" ? "bam" : "fasta"];
             let input, output, baseOutput; //derived from baseFileName for samtools
             if(!extArr.includes(extName)){
                 decr();
@@ -151,7 +165,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
             input = await fileExists(
                 baseFileName,
                 {
-                    base: isBam ? bamFolder : fastaFolder
+                    base: config.inputFolder
                 }
             );
             if(!input) {
@@ -171,8 +185,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
             the result will be normalized.
             */
             output = path.resolve(
-                isBam ? bamIndexFolder : fastaIndexFolder,
-                baseFileName + (isBam ? ".bai" : ".fai")
+                config.outputFolder,
+                baseFileName + (config.ext)
             );
             baseOutput = path.basename(output);
             if(await fileExists(output) && !reIndex) {
@@ -185,7 +199,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 });
             }
             await capture(
-                `${samtools} ${isBam ? "index" : "faidx"} ${input} -o ${output}`,
+                `${samtools} ${config.command} ${input} -o ${output}`,
                 {
                     shell: "/bin/bash",
                     pipe: false,
