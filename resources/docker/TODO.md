@@ -12,7 +12,7 @@
   - Create a script to replace version strings automatically across the project. Modus operandi should be:
     - Accept JSON with keys as absolute path to files and an object with keys `regxp` and `replace` as values
     - Read N amount of bytes (500 * 1024) from file, by passing `Buffer.alloc(N)` and `fileHandle` to `fs.read`
-    - Covert current buffer to `utf8` string, replace accordingly using `regxp` and replace string that supports matched groups (`$1` etc)
+    - Convert current buffer to `utf8` string, replace accordingly using `regxp` and replace string that supports matched groups (`$1` etc)
     - Write contents of the buffer to another file with random generated hexstring name
     - Repeat until `EOF` is reached, then if `dryRun` option is false, delete the old file, and rename the new file to old file.
     - This method should be able to scale larger files since it does not depend of `readFile` from File System.
