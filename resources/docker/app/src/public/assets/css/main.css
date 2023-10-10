@@ -18,6 +18,7 @@
     --success-color: #395;
     --warning-color:#9F6000;
     --error-color: #D8000C;
+    --samtools-index-color: #ccaa70;
     --size: 100px;
     --layout-shift: 4rem;
     color-scheme: light dark; /* both supported */
@@ -41,6 +42,7 @@
     --success-color: #257045;
     --warning-color:#9F4060;
     --error-color: #cf4060;
+    --samtools-index-color: #eecc30;
     color-scheme: light dark; /* both supported */
 }
 

@@ -117,12 +117,27 @@
 
 @keyframes hexgrid-bg-progress {
     0% {
-      background-position: 0px;
+        background-position: 0px;
     }
     100% {
-      background-position: calc(var(--s) * 1px);
+        background-position: calc(var(--s) * 1px);
     }
-  }
+}
+
+@keyframes hexgrid-pulse {
+    0% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+    }
+    50% {
+        -webkit-transform: scale3d(var(--scale), var(--scale), var(--scale));
+        transform: scale3d(var(--scale), var(--scale), var(--scale));
+    }
+    to {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+    }
+}
 
 .grid-main[data-grid-type=hexagon] .grid-main-container div a {
     color: inherit;
