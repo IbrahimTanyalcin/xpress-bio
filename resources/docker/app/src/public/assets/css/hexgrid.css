@@ -124,6 +124,11 @@
     }
 }
 
+.grid-main[data-grid-type=hexagon] .grid-main-container div.hexgrid-pulse {
+    background: var(--samtools-index-color);
+    animation: hexgrid-pulse 2s ease-in-out infinite;
+}
+
 @keyframes hexgrid-pulse {
     0% {
         -webkit-transform: scaleX(1);

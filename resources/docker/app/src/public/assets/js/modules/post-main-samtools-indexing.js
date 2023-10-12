@@ -32,20 +32,64 @@ import { es6exports} from "./main.js";
         });
         console.log("evtSource is", evtSource);
         evtSource.addEventListener("worker-fasta-bam-index-start", function(e){
-            /* const filename = e.data,
-                  hexDiv = document.createElement("div"),
-                  icon = document.createElement("span"),
-                  content = document.createElement("span");
-            toggleClass(icon, "hexgrid-bg-progress");
-            toggleClass(content, "hexgrid-bg-progress");
-            hexDiv.appendChild(icon);
-            hexDiv.appendChild(content);
+            const {filename, message} = JSON.parse(e.data),
+                  hexDiv = document.createElement("div");
+            samtoolsIdxMap.get(filename)?.remove();
+            toggleClass(hexDiv, "hexgrid-pulse");
             hexDiv.setAttribute("title", filename);
-            icon.innerHTML = `<i class="fa fa-cloud-download"></i>`;
-            content.textContent = shortenStringMiddle(filename, {length: 20});
-            dlMap.set(filename, hexDiv);
-            firstHexGrid.appendChild(hexDiv); */
+            hexDiv.innerHTML = `
+                <span><i class="fa fa-tag"></i></span>
+                <span>${shortenStringMiddle(filename, {length: 20})}</span>
+            `
+            samtoolsIdxMap.set(filename, hexDiv);
+            firstHexGrid.appendChild(hexDiv);
         });
+        evtSource.addEventListener(
+            "worker-fasta-bam-index-success",
+            function(e){
+                const {filename, message} = JSON.parse(e.data),
+                    hexDiv = samtoolsIdxMap.get(filename);
+                if(!hexDiv){return}
+                hexDiv.style.background = `var(--success-color)`;
+            }
+        );
+        evtSource.addEventListener(
+            "worker-fasta-bam-index-indexing-fail",
+            function(e){
+                const {filename, message} = JSON.parse(e.data),
+                    hexDiv = samtoolsIdxMap.get(filename);
+                if(!hexDiv){return}
+                hexDiv.style.background = `var(--error-color)`;
+            }
+        );
+        evtSource.addEventListener(
+            "worker-fasta-bam-index-end",
+            function(e){
+                const {filename, message} = JSON.parse(e.data);
+                setTimeout(() => {
+                    samtoolsIdxMap.get(filename)?.remove?.()
+                },3000)
+            }
+        );
+
+        [
+            "worker-fasta-bam-index-pool-full",
+            "worker-fasta-bam-index-fs-watcher-error",
+            "worker-fasta-bam-index-bad-filename",
+            "worker-fasta-bam-index-file-does-not-exist",
+            "worker-fasta-bam-index-file-exists"
+        ].forEach(
+            (evt) => evtSource.addEventListener(evt, this),
+            function(e){
+                let message;
+                try {
+                    message = JSON.parse(e.data).message;
+                } catch {
+                    message = e.data;
+                }
+                Swal.fire(message);
+            }
+        )
     }
     postMainSamtoolsIndexing._taskqId = "postMainSamtoolsIndexing";
     postMainSamtoolsIndexing._taskqWaitFor = ["main"];
