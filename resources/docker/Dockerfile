@@ -22,6 +22,23 @@ RUN /bin/bash ./bin/memcached.sh \
 # ENV LOGNAME="IPV" Alternative to setLogname.sh
 ENV MOUNT_PATH="/app/mount"
 EXPOSE 3000 
+
+###############################################################################
+##################################<SAMTOOLS>###################################
+###############################################################################
+ARG SAMTOOLS_VERSION=1.18
+ARG INSTALL_SAMTOOLS=true
+ARG TARGET_DIR=/home/IPV/.local/bin
+
+# Conditional install
+RUN if [ "$INSTALL_SAMTOOLS" = "true" ]; then /bin/bash ./bin/installSamtools.sh $SAMTOOLS_VERSION $TARGET_DIR; fi
+
+# Update $PATH so that spawn/exec within Node can find it
+ENV PATH="$PATH:$TARGET_DIR/samtools-$SAMTOOLS_VERSION:$TARGET_DIR/bcftools-$SAMTOOLS_VERSION:$TARGET_DIR/htslib-$SAMTOOLS_VERSION"
+###############################################################################
+##################################</SAMTOOLS>##################################
+###############################################################################
+
 #USER IPV:IPV
 #ENTRYPOINT ["npm", "start"]
 ENTRYPOINT ["/bin/bash", "./bin/start.sh"]

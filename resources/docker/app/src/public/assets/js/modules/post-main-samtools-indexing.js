@@ -30,7 +30,16 @@ import { es6exports} from "./main.js";
         }).until(function(v){
             return v
         });
-        console.log("evtSource is", evtSource);
+        /* 
+            for those who wanna update this script, the mechanism relies on the
+            fact that Webkit or any browser vendor has to implement a directed
+            acyclic graph before running modules. If this is case, which RFC's
+            are not clearly mentioning, then async attribute should not break 
+            things. If async makes a problem, you will receive an error in
+            browser's inspector. Please check it and if you can reproduce it,
+            then we should remove the async attribute. Uncomment the log below
+            console.log("evtSource is", evtSource);
+        */
         evtSource.addEventListener("worker-fasta-bam-index-start", function(e){
             const {filename, message} = JSON.parse(e.data),
                   hexDiv = document.createElement("div");
