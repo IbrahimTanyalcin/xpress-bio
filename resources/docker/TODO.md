@@ -16,3 +16,5 @@
     - Write contents of the buffer to another file with random generated hexstring name
     - Repeat until `EOF` is reached, then if `dryRun` option is false, delete the old file, and rename the new file to old file.
     - This method should be able to scale larger files since it does not depend of `readFile` from File System.
+  - Isolate `updateBam` and `updateFa` events from `worder-dl.js` so they can be used from other worker initiator routes.
+  - Once newer version of `ch` package is imported, update the `until` helper to enable pausing an `untillable`. Use this mechanism inside `worker-fasta-bam-index.js` to use an `async generator` to poll every 3 seconds to observe an arbitrary event stack and if the length of stack is not empty, then broadcast `updateBam` or `updateFa` events.
