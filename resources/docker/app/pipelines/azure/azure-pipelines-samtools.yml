@@ -18,6 +18,7 @@ parameters:
 steps:
 - bash: |
     set -e -x -o pipefail;
+    sudo apt-get -y update
     sudo apt-get -y install libcurl4-openssl-dev
     mkdir -p ./${{ parameters.loc }};
     cd ./${{ parameters.loc }};
