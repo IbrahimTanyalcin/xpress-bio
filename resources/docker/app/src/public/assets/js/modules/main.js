@@ -1,3 +1,4 @@
+let es6exports = {};
 !function(){
     function main(
         _storage,
@@ -259,7 +260,9 @@
             });
         })
         .then(function(){
-            const evtSource = new EventSource('/estream/subscribe');
+            const evtSource 
+                = es6exports.evtSource 
+                = new EventSource('/estream/subscribe');
             let connectionLost;
             evtSource.addEventListener("message", function(e){
                 const oPayload = JSON.parse(e.data);
@@ -417,7 +420,8 @@
         taskq.export(panelWrapper, "panelWrapper")
              .export(themeButton, "themeButton")
              .export(helpButton, "helpButton")
-             .export(toolsButton, "toolsButton");
+             .export(toolsButton, "toolsButton")
+             .export(firstHexGrid, "firstHexGrid");
         taskq._exportPersist.helpButton = helpButton;
         taskq._exportPersist.expandButton = expandButton;
         taskq._exportPersist.toolsButton = toolsButton;
@@ -430,3 +434,4 @@
     main._taskqWaitFor = ["LocalStorage","pre","pro"];
     taskq.push(main);
 }();
+export {es6exports};
