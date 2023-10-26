@@ -1,4 +1,5 @@
-import copyTextToClipboard from "../../../js/modules/copyTextToClipboard.js"; 
+import copyTextToClipboard from "../../../js/modules/copyTextToClipboard.js";
+import { IGVBrowsers } from "../../../js/modules/post-main-visualize-action.js";
 
 const rndGen = taskq._exportPersist.genHexStr,
     registerHover = ({modal, table, cols, rows, keys}) => {
@@ -48,7 +49,11 @@ const rndGen = taskq._exportPersist.genHexStr,
         @> ${"#" + igvGoTo}
         on click ...${[
             async function() {
-                if ((typeof igv === "undefined") || !igv.browser){
+                let browser;
+                if (
+                    (typeof igv === "undefined") 
+                    || (!(browser = igv?.browser || IGVBrowsers?.pinned))
+                ){
                     if (doNotShowIGVMissingWarning){return}
                     const result = await Swal.fire({
                         icon: "warning",
@@ -66,11 +71,11 @@ const rndGen = taskq._exportPersist.genHexStr,
                     if(isNaN(rowInfoEl.__position)) {
                         throw new TypeError(`Column ${keys["position-index"] + 1} cannot be coerced to a number`);
                     }
-                    let bpLength = igv?.browser?.genome?.chromosomes?.[rowInfoEl.__identifier]?.bpLength ?? Infinity,
+                    let bpLength = browser?.genome?.chromosomes?.[rowInfoEl.__identifier]?.bpLength ?? Infinity,
                         searchStrStart = `${Math.max(0, Math.min(+rowInfoEl.__position - 150, bpLength))}`,
                         searchStrEnd = `${Math.min(+rowInfoEl.__position + 150, bpLength)}`,
                         searchStr = `${rowInfoEl.__identifier}:${searchStrStart}-${searchStrEnd}`;
-                    await igv.browser.search(searchStr)
+                    await browser.search(searchStr)
                     .then(async (x)=> {
                         if (x ?? 1) {return}
                         if (doNotShowIGVSearchWarning){return}

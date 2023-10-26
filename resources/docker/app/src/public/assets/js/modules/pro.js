@@ -1,3 +1,4 @@
+import { IGVBrowsers } from "./post-main-visualize-action.js";
 !function(){
     function pro(
         flatten,
@@ -62,7 +63,10 @@
             });
             return cb(res);
         };
-        const rmBrowser = async function(browser = igv?.browser){
+        const rmBrowser = async function(browser = igv?.browser || IGVBrowsers.browsers[0]){
+            if (IGVBrowsers.browsers.length > 1) {
+                return Swal.fire("Remove the IGV applet manually from its toolbar");
+            }
             return igv?.removeBrowser(browser);
         };
         ////////////////////////////////
