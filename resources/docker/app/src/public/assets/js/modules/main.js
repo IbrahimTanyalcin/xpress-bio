@@ -117,17 +117,17 @@ let es6exports = {};
                     this.firstChild.textContent = "analyze ";
                     toggleClass(this.firstElementChild,"fa-expand",true)
                         .toggleClass("fa-compress",false);
-                    toggleClass(panelWrapper,"smaller",false);
+                    /* toggleClass(panelWrapper,"smaller",false); // uncomment for enabling shrinking*/
                     toggleClass(side,"expanded",false);
                 } else {
                     this._status = true;
                     this.firstChild.textContent = "hide ";
                     toggleClass(this.firstElementChild,"fa-expand",false)
                         .toggleClass("fa-compress",true);
-                    toggleClass(panelWrapper,"smaller",true);
+                    /* toggleClass(panelWrapper,"smaller",true); // uncomment for enabling shrinking*/
                     toggleClass(side,"expanded",true);
                 }
-                zoomPanel();
+               /*  zoomPanel(); //uncomment for enabling shrinking*/
             },false);
             uploadButton.addEventListener("click",function(e){
                 const rgxNexus = /^https:\/\/dl\.dnanex\.us\//gi;
@@ -184,7 +184,7 @@ let es6exports = {};
                 selectedPanel = panels[index - 1];
                 zoomPanel(); */
             },false);
-            actionButton.addEventListener("click", function(){
+            /* actionButton.addEventListener("click", function(){
                 if(this._disabled){return}
                 this._disabled = true;
                 if (!this._igvLoaded){
@@ -232,7 +232,7 @@ let es6exports = {};
                     console.log(err);
                     this._disabled = false;
                 });
-            }, false);
+            }, false); */
             deleteButtons.forEach((slave, master) => {
                 slave.addEventListener("click", async function(){
                     if(!master.value){
@@ -421,7 +421,9 @@ let es6exports = {};
              .export(themeButton, "themeButton")
              .export(helpButton, "helpButton")
              .export(toolsButton, "toolsButton")
-             .export(firstHexGrid, "firstHexGrid");
+             .export(firstHexGrid, "firstHexGrid")
+             .export(actionButton, "actionButton")
+             .export(selectedPanel, "selectedPanel"); //panels[0] is for IGV by default
         taskq._exportPersist.helpButton = helpButton;
         taskq._exportPersist.expandButton = expandButton;
         taskq._exportPersist.toolsButton = toolsButton;
