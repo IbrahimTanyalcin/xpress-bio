@@ -28,14 +28,15 @@ export default function (IGVBrowsers, data, datum, resize) {
             )
         });
     const icons = {
-        delete: ch.dom`<span class="delete-icon"><i class="fa fa-trash-o"></i></span>`,
-        tracks: ch.dom`<span><i class="fa fa-road"></i></span>`,
-        pin: ch.dom`<span class="igv-toolbar-pin"><i class="fa fa-crosshairs"></i></span>`,
-        up: ch.dom`<span><i class="fa fa-caret-up"></i></span>`,
-        down: ch.dom`<span><i class="fa fa-caret-down"></i></span>`,
+        delete: ch.dom`<span title="delete applet" class="delete-icon"><i class="fa fa-trash-o"></i></span>`,
+        tracks: ch.dom`<span title="add tracks"><i class="fa fa-road"></i></span>`,
+        pin: ch.dom`<span title="pin applet" style="border-radius: 4px;" class="igv-toolbar-pin"><i class="fa fa-crosshairs"></i></span>`,
+        up: ch.dom`<span title="move up"><i class="fa fa-caret-up"></i></span>`,
+        down: ch.dom`<span title="move down"><i class="fa fa-caret-down"></i></span>`,
         annot: ch.dom`
-            <div 
-                style = "font-size: 1rem;"
+            <div
+                title = "add annotations" 
+                style = "font-size: 1rem; line-height: 2rem; max-height: 2rem; max-width: 10rem; margin: 0px;"
                 class="custom-dropdown"
             >
                 <select
@@ -50,8 +51,8 @@ export default function (IGVBrowsers, data, datum, resize) {
                 <label class="floating-label">Annotations</label>
             </div>
         `,
-        add: ch.dom`<span><i class="fa fa-plus-square"></i></span>`,
-        back: ch.dom`<span><i class="fa fa-long-arrow-left"></i></span>`
+        add: ch.dom`<span title="add selected tracks"><i class="fa fa-plus-square"></i></span>`,
+        back: ch.dom`<span title="go back"><i class="fa fa-long-arrow-left"></i></span>`
     }
     return [
         {

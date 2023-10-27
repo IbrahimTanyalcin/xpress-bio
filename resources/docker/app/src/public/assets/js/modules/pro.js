@@ -57,6 +57,34 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
                 return new Error("IGV object error");
             }
         };
+        const loadIGVTrack = function (browser, filename, config = {}) {
+            const parsed = parseFilename(filename);
+            let {
+                    type, format, basename, baseurl, fullname,
+                    baseurlIndex, extIndex, sortDirection
+                } = config,
+                track;
+            switch (parsed.ext) {
+                case ".bam":
+                    track = {
+                        type: type ?? "alignment",
+                        format: format ?? "bam",
+                        name: basename ?? parsed.base,
+                        url: (baseurl ?? "/static/bam/")
+                            + (fullname ?? filename),
+                        indexURL: (baseurlIndex ?? "/static/bai/") 
+                            + (fullname ?? filename) 
+                            + (extIndex ?? ".bai"),
+                        sort: {
+                            direction: sortDirection ?? "ASC"
+                        }
+                    };
+                    break;
+                default:
+                    throw new Error("Unknown track extension: " + parsed.ext)
+            }
+            return browser.loadTrack(track)
+        };
         const rmFile = async function(fileType, fileName, cb = interpolators.identityRaw){
             const res = await fetch(`/del/${fileType}/${fileName}`, {
                 method: 'DELETE'
@@ -75,7 +103,8 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
         taskq.export(gridFields, "gridFields")
              .export(createIGVObject, "createIGVObject")
              .export(rmFile, "rmFile")
-             .export(rmBrowser, "rmBrowser");
+             .export(rmBrowser, "rmBrowser")
+             .export(loadIGVTrack, "loadIGVTrack");
         ////////////////////////////////
         ////////////EXPORTS/////////////
         ////////////////////////////////
