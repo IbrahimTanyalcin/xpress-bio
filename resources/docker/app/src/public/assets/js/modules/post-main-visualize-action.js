@@ -25,7 +25,9 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
         genHexStr,
         actionButton,
         createIGVObject,
-        selectedPanel
+        selectedPanel,
+        loadIGVTrack,
+        dropdown
     ) {
         /* evtSource available in case it is needed */
         const evtSource = await rafx.async(es6exports).animate(function(v){
@@ -34,8 +36,6 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
             return v
         });
         
-        //console.log("hey hey hey!!!");
-
         let igvData;
         actionButton.addEventListener("click", function(){
             if(this._disabled){return}
@@ -66,7 +66,7 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
                 return;
             }
             Promise.resolve()
-            .then(() => {
+            .then(async () => {
                 /* if(igv.browser) {
                     return igv.browser.loadSessionObject(oIGV)
                     .then(() => {
@@ -81,13 +81,42 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
                     this._disabled = false;
                 }) */
 
+                if (IGVBrowsers.browsers.size){
+                    const result = await Swal.fire({
+                        icon: "question",
+                        title: "What would you like to do?",
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                        backdrop: false,
+                        showCancelButton: true,
+                        cancelButtonText: "Add a new applet",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Append to pinned applet"
+                    });
+                    if (result.isConfirmed && IGVBrowsers.pinned) {
+                        return loadIGVTrack(
+                            IGVBrowsers.pinned, 
+                            dropdown.value 
+                            || dropdown.options[dropdown.selectedIndex]?.value
+                        )
+                    } else if (!result.isDismissed && !IGVBrowsers.pinned) {
+                        return Swal.fire({
+                            title: 'No Pins',
+                            text: 'Pin an IGV applet first.',
+                            imageUrl: '/static/img/applet-pin-demo.gif',
+                            imageWidth: "calc(20vw, 320px)",
+                            imageHeight: "auto",
+                            imageAlt: 'Applet pin demo',
+                        })
+                    } 
+                }
                 igvData.push({
                     browser: void(0),
                     oIGV,
                     order: 0 //not used for the time being
                 })
-                this._disabled = false;
             })
+            .then(() => this._disabled = false)
             .catch(err => {
                 console.log(err);
                 this._disabled = false;

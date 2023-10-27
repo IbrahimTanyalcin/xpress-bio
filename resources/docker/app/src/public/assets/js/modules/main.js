@@ -423,7 +423,8 @@ let es6exports = {};
              .export(toolsButton, "toolsButton")
              .export(firstHexGrid, "firstHexGrid")
              .export(actionButton, "actionButton")
-             .export(selectedPanel, "selectedPanel"); //panels[0] is for IGV by default
+             .export(selectedPanel, "selectedPanel") //panels[0] is for IGV by default
+             .export(dropdown, "dropdown"); //orignally used for bam files
         taskq._exportPersist.helpButton = helpButton;
         taskq._exportPersist.expandButton = expandButton;
         taskq._exportPersist.toolsButton = toolsButton;

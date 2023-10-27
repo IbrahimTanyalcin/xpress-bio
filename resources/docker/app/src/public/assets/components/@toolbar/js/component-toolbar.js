@@ -76,7 +76,11 @@ function toolbar({name, attrs, styles, props, data, el}){
                     v.highlight._tX = tX
                 }px, ${
                     v.highlight._tY = tY
-                }px) scale(${sX}, ${sY})`],
+                }px) scale(${
+                    v.highlight._sX = sX
+                }, ${
+                    v.highlight._sY = sY
+                })`],
                 ["opacity", highlight ? "0.9" : "0"],
                 ["border-radius", highlight ? config.borderRadius : "0"]
             ]);
@@ -93,6 +97,34 @@ function toolbar({name, attrs, styles, props, data, el}){
                     ["opacity", "0"]
                 ])
             }, 250)
+        }}
+        on pointerdown@hoveranim ${() => (e) => {
+            ch(v.highlight)
+            .style([
+                ["transform", `translate(${
+                    v.highlight._tX
+                }px, ${
+                    v.highlight._tY
+                }px) scale(${
+                    v.highlight._sX * 1.6
+                }, ${
+                    v.highlight._sY * 1.6
+                })`]
+            ])
+        }}
+        on pointerup@hoveranim ${() => (e) => {
+            ch(v.highlight)
+            .style([
+                ["transform", `translate(${
+                    v.highlight._tX
+                }px, ${
+                    v.highlight._tY
+                }px) scale(${
+                    v.highlight._sX
+                }, ${
+                    v.highlight._sY
+                })`]
+            ])
         }}
         `
     }}

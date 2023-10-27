@@ -57,8 +57,8 @@ const rndGen = taskq._exportPersist.genHexStr,
                     if (doNotShowIGVMissingWarning){return}
                     const result = await Swal.fire({
                         icon: "warning",
-                        title: "No IGV browser",
-                        text: `Initiate IGV before searching for loci`,
+                        title: "No pinned IGV browser",
+                        text: `Initiate and Pin an IGV applet before searching for loci`,
                         confirmButtonText: "Don't show this again",
                         showCancelButton:true
                     });
