@@ -1,5 +1,5 @@
 import {es6exports} from "./main.js";
-let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
+let IGVBrowsers = {browsers: new Set(), pinned: void(0), methods: {}};
 !function(){
     async function postMainVisualizeAction(
         gridFields,
@@ -37,6 +37,9 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
         });
         
         let igvData;
+        IGVBrowsers.methods.loadIGVTrack = loadIGVTrack;
+        IGVBrowsers.methods.shortenStringMiddle = shortenStringMiddle;
+
         actionButton.addEventListener("click", function(){
             if(this._disabled){return}
             this._disabled = true;
@@ -67,20 +70,6 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
             }
             Promise.resolve()
             .then(async () => {
-                /* if(igv.browser) {
-                    return igv.browser.loadSessionObject(oIGV)
-                    .then(() => {
-                        console.log("igv redrawn");
-                        this._disabled = false;
-                    });
-                }
-                return igv.createBrowser(selectedPanel.firstElementChild, oIGV)
-                .then(browser => {
-                    igv.browser = browser;
-                    console.log("igv rendered");
-                    this._disabled = false;
-                }) */
-
                 if (IGVBrowsers.browsers.size){
                     const result = await Swal.fire({
                         icon: "question",
@@ -123,14 +112,6 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0)};
             });
         }, false);
 
-        /*after itemMargin: adopt ...${[
-            "igv-applet", 
-            (await import(
-                "../../components/@igv/js/component-igv.js"
-            )).render
-        ]} */
-
-        console.log("THIS SHOULD COME LAST!");
         const ch = ch2;
         ch`
         @> body:${body}

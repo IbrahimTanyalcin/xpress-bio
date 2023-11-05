@@ -4,6 +4,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
       {capture} = require("../../capture.js"),
       {fileExists} = require("../../fileExists.js"),
       {getFiles} = require("../../getFiles.js"),
+      genHexStr = require("../../genHexStr.js"),
       path = require("path");
 
 (new Promise(res => {
@@ -29,6 +30,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
     ############################ */
     const
         samtools = workerData.samtools,
+        bgzip = workerData.bgzip,
+        tabix = workerData.tabix,
         dirRoot = path.resolve(
             workerData.rootFolder, 
             workerData.staticFolder
@@ -37,6 +40,10 @@ const {workerData, parentPort} = require("node:worker_threads"),
         bamIndexFolder =  path.resolve(dirRoot, "bai"),
         fastaFolder = path.resolve(dirRoot, "fa"),
         fastaIndexFolder = path.resolve(dirRoot, "fai"),
+        annotGffFolder = path.resolve(dirRoot, "gff"),
+        annotBgzFolder = path.resolve(dirRoot, "bgz"),
+        annotTbiIndexFolder = path.resolve(dirRoot, "tbi"),
+        annotCsiIndexFolder = path.resolve(dirRoot, "csi"),
         configs = {
             bam: {
                 inputFolder: bamFolder,
@@ -49,19 +56,33 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 outputFolder: fastaIndexFolder,
                 ext: ".fai",
                 command: "faidx"
+            },
+            gff: {
+                inputFolder: annotGffFolder,
+                outputFolder: annotBgzFolder,
+                ext: ".bgz",
+                command: "bgzip"
+            },
+            bgz: {
+                inputFolder: annotBgzFolder,
+                outputFolder: [annotTbiIndexFolder, annotCsiIndexFolder],
+                ext: [".tbi", ".csi"],
+                command: "tabix"
             }
         },
-        extArr = [".fa", ".fas", ".fasta", ".bam"],
+        extArr = [".fa", ".fas", ".fasta", ".bam", ".gff", ".bgz"],
         watchMap = [
             path.resolve(dirRoot, "bam"),
-            path.resolve(dirRoot, "fa")
+            path.resolve(dirRoot, "fa"),
+            path.resolve(dirRoot, "gff"),
+            path.resolve(dirRoot, "bgz")
         ],
         watchers = watchMap.map(dir =>
             watch(dir, { signal, persistent: true})
         ),
         /* below can accept a string or object.
         It is prepopulated with values on server start,
-        filtered by fasta/bam files that do not have indexes */
+        filtered by fasta/bam/gff/bgz files that do not have indexes */
         evtStack = new Set(
             (await Promise.all([
                 ...(await getFiles(bamFolder))
@@ -75,7 +96,20 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     await fileExists(d + ".fai", {base: fastaIndexFolder})
                     ? false
                     : d
-                )
+                ),
+                ...(await getFiles(annotGffFolder))
+                .map(async d => 
+                    await fileExists(d + ".bgz", {base: annotBgzFolder})
+                    ? false
+                    : d
+                ),
+                ...(await getFiles(annotBgzFolder))
+                .map(async d => 
+                    await fileExists(d + ".tbi", {base: annotTbiIndexFolder})
+                    || await fileExists(d + ".csi", {base: annotCsiIndexFolder})
+                    ? false
+                    : d
+                ),
             ])).filter(d => d)
         ), 
         setShift = set => {
@@ -151,8 +185,19 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     : [item, false, void(0)],
                 baseFileName = path.basename(fileName),
                 extName = path.extname(baseFileName),
-                config = configs[extName === ".bam" ? "bam" : "fasta"];
-            let input, output, baseOutput; //derived from baseFileName for samtools
+                config = (() => {
+                    switch(true) {
+                        case (extName === ".bam"):
+                            return configs.bam
+                        case ([".fa", ".fas", ".fasta"].includes(extName)):
+                            return configs.fasta
+                        case (extName === ".gff"):
+                            return configs.gff
+                        case (extName === ".bgz"):
+                            return configs.bgz
+                    }
+                })();
+            let input, output; //derived from baseFileName for samtools
             if(!extArr.includes(extName)){
                 decr();
                 return port.postMessage({
@@ -184,22 +229,36 @@ const {workerData, parentPort} = require("node:worker_threads"),
             This means, whatever the fs watcher is returning,
             the result will be normalized.
             */
-            output = path.resolve(
-                config.outputFolder,
-                baseFileName + (config.ext)
-            );
-            baseOutput = path.basename(output);
-            if(await fileExists(output) && !reIndex) {
-                decr();
-                return port.postMessage({
-                    type: "worker-fasta-bam-index-file-exists", 
-                    payload: `The file ${baseOutput} already exists.`,
-                    sessid,
-                    filename: baseOutput
-                });
+            output = [config.outputFolder].flat(Infinity)
+                .map(
+                    function(d, i) {return path.resolve(d, baseFileName + this[i])},
+                    [config.ext].flat(Infinity)
+                );
+            for (let pathstr of output) {
+                let baseOutput = path.basename(pathstr);
+                if(await fileExists(pathstr) && !reIndex) {
+                    decr();
+                    return port.postMessage({
+                        type: "worker-fasta-bam-index-file-exists", 
+                        payload: `The file ${baseOutput} already exists.`,
+                        sessid,
+                        filename: baseOutput
+                    });
+                }
             }
             await capture(
-                `${samtools} ${config.command} ${input} -o ${output}`,
+                (() => {
+                    switch (config.command) {
+                        case "index":
+                        case "faidx":
+                            return `${samtools} ${config.command} "${input}" -o "${output}"`
+                        case "tabix":
+                            return `(${tabix} -p gff "${input}" && mv "${input}.tbi" "${output[0]}") || (${tabix} -p gff --csi "${input}" && mv "${input}.csi" "${output[1]}")`
+                        case "bgzip":
+                            const temp = path.resolve(dirRoot, "gz", genHexStr(8, 3, "temp_"));
+                            return `(grep "^#" "${input}"; grep -v "^#" "${input}" | sort -t "$(echo -e '\\t')" -k1,1 -k4,4n) | ${bgzip} > "${temp}" && mv "${temp}" "${output}"`
+                    }
+                })(),
                 {
                     shell: "/bin/bash",
                     pipe: false,
@@ -228,7 +287,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 port.postMessage({
                     type: "worker-fasta-bam-index-success", 
                     payload: `Indexing of ${baseFileName} finished.`,
-                    filename: baseFileName
+                    filename: baseFileName,
+                    updateAnnot: ["tabix", "bgzip"].includes(config.command)
                 });
             })
             .catch(() => {});

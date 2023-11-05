@@ -184,55 +184,6 @@ let es6exports = {};
                 selectedPanel = panels[index - 1];
                 zoomPanel(); */
             },false);
-            /* actionButton.addEventListener("click", function(){
-                if(this._disabled){return}
-                this._disabled = true;
-                if (!this._igvLoaded){
-                    const that = this;
-                    Swal.fire({
-                        title: "Loading IGV",
-                        allowEscapeKey: false,
-                        allowOutsideClick: false,
-                        backdrop: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    taskq.load("/static/js/igv.js").then(function(res){
-                        that._disabled = false;
-                        that._igvLoaded = true;
-                        Swal.close();
-                        that.click();
-                    });
-                    return;
-                }
-                let oIGV = createIGVObject();
-                if (oIGV instanceof Error) {
-                    Swal.fire("make sure you select a bam file");
-                    this._disabled = false;
-                    return;
-                }
-                Promise.resolve()
-                .then(() => {
-                    if(igv.browser) {
-                        return igv.browser.loadSessionObject(oIGV)
-                        .then(() => {
-                            console.log("igv redrawn");
-                            this._disabled = false;
-                        });
-                    }
-                    return igv.createBrowser(selectedPanel.firstElementChild, oIGV)
-                    .then(browser => {
-                        igv.browser = browser;
-                        console.log("igv rendered");
-                        this._disabled = false;
-                    })
-                })
-                .catch(err => {
-                    console.log(err);
-                    this._disabled = false;
-                });
-            }, false); */
             deleteButtons.forEach((slave, master) => {
                 slave.addEventListener("click", async function(){
                     if(!master.value){
@@ -260,6 +211,18 @@ let es6exports = {};
             });
         })
         .then(function(){
+            const doneObj = {value: void(0), done: false};
+            Promise.all([
+                import("./main-annotation-indexing.js").then(f => ({enableAnnotations: f.default}))
+            ])
+            .then(objs => Object.assign({}, ...objs))
+            .then(dyImports => {
+                doneObj.value = dyImports;
+                doneObj.done = true;
+            })
+            return doneObj;
+        })
+        .then(function(dyImports){
             const evtSource 
                 = es6exports.evtSource 
                 = new EventSource('/estream/subscribe');
@@ -311,6 +274,7 @@ let es6exports = {};
                     headerTemplate.textContent = "File size: " + bytesToHuman(oPayload[this.value]);
                 });
             });
+            dyImports.enableAnnotations(evtSource);
             evtSource.addEventListener("error", function(e){
                 if (connectionLost) {return}
                 connectionLost = true;
