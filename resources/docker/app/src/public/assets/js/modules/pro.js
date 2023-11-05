@@ -1,4 +1,5 @@
 import { IGVBrowsers } from "./post-main-visualize-action.js";
+import { Annotations } from "./main-annotation-indexing.js";
 !function(){
     function pro(
         flatten,
@@ -32,14 +33,16 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
             try {
                 let fastaFull = dropdown2.value,
                     bamFull = dropdown.value,
-                    fasta = parseFilename(fastaFull),
-                    bam = parseFilename(bamFull);
+                    fasta, bam;
+                try { fasta = parseFilename(fastaFull)} catch {}
+                try { bam = parseFilename(bamFull)} catch {}
+                if (!fasta){throw new Error("At least a fasta is needed.")}
                 return {
                     reference: {
                         name: fasta.base,
                         fastaURL: "/static/fa/" + fastaFull,
                         indexURL: "/static/fai/" + fastaFull + ".fai",
-                        tracks: [
+                        tracks: bam ? [
                             {
                                 type: "alignment",
                                 format: "bam",
@@ -49,8 +52,15 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
                                 sort: {
                                     direction: "ASC"
                                 }
-                            }
-                        ]
+                            }/* ,
+                            {
+                                name: "GFF Test",
+                                type: "annotation",
+                                format: "gff",
+                                url: "/static/bgz/GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz",
+                                indexURL: "/static/tbi/GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz.tbi"
+                            } */
+                        ] : []
                     }
                 }
             } catch {
@@ -58,6 +68,9 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
             }
         };
         const loadIGVTrack = function (browser, filename, config = {}) {
+            if (!filename) {
+                return Swal.fire("No file selected.")
+            }
             const parsed = parseFilename(filename);
             let {
                     type, format, basename, baseurl, fullname,
@@ -80,10 +93,42 @@ import { IGVBrowsers } from "./post-main-visualize-action.js";
                         }
                     };
                     break;
+                case ".gff":
+                    return Swal.fire({
+                        icon: "warning",
+                        title: "GFF files can be large. Continue?",
+                        text: "GFF files are not indexible like BGZ files. It means they take longer to load. You can continue loading this track or select the bgzipped version.",
+                        allowEscapeKey: true,
+                        allowOutsideClick: true,
+                        backdrop: true,
+                        showCancelButton: true,
+                        confirmButtonText: "Continue"
+                    }).then(result => {
+                        if (!result.isConfirmed){return}
+                        return browser.loadTrack({
+                            type: type ?? "annotation",
+                            format: format ?? "gff",
+                            name: basename ?? parsed.base,
+                            url: (baseurl ?? "/static/gff/") + (fullname ?? filename)
+                        }).catch(err => Swal.fire(err.message))
+                    })
+                case ".bgz":
+                    {
+                        let indexFilename = Annotations.value.get(fullname ?? filename),
+                            parsedIndex = parseFilename(indexFilename);
+                        track = {
+                            type: type ?? "annotation",
+                            format: format ?? "gff",
+                            name: basename ?? parsed.base,
+                            url: (baseurl ?? "/static/bgz/") + (fullname ?? filename),
+                            indexURL: (baseurlIndex ?? `/static/${parsedIndex.ext.slice(1)}/`) + indexFilename
+                        }
+                    }
+                    break;
                 default:
                     throw new Error("Unknown track extension: " + parsed.ext)
             }
-            return browser.loadTrack(track)
+            return browser.loadTrack(track).catch(err => Swal.fire(err.message))
         };
         const rmFile = async function(fileType, fileName, cb = interpolators.identityRaw){
             const res = await fetch(`/del/${fileType}/${fileName}`, {

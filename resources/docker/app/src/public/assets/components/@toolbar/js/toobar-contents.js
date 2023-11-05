@@ -1,3 +1,4 @@
+import { Annotations } from "../../../js/modules/main-annotation-indexing.js";
 const ch = ch2;
 export default function (IGVBrowsers, data, datum, resize) {
     const 
@@ -46,7 +47,18 @@ export default function (IGVBrowsers, data, datum, resize) {
                 data-value=""
                 >
                     <option selected></option>
-                    <option>Loading...</option>
+                ${
+                    Array.from(Annotations.value?.keys?.() ?? [])
+                    .map((d, i) => ch[`option{
+                        "prop": [
+                            ["textContent", "${
+                                IGVBrowsers.methods.shortenStringMiddle(d)
+                            }"],
+                            ["value", "${d}"]
+                        ],
+                        "attr": [["value", "${d}"],["title", "${d}"]]
+                    }`].outerHTML)
+                }
                 </select>
                 <label class="floating-label">Annotations</label>
             </div>
@@ -116,7 +128,11 @@ export default function (IGVBrowsers, data, datum, resize) {
         {
             html: icons.add,
             cb: () => {
-                console.log(7);
+                const slctEl = icons.annot.firstElementChild;
+                IGVBrowsers.methods.loadIGVTrack(
+                    datum.browser,
+                    slctEl.value || slctEl.options[slctEl.selectedIndex]?.value
+                )
             },
             hidden: true
         },

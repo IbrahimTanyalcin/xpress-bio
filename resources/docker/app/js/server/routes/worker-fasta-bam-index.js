@@ -2,7 +2,8 @@ const {Worker} = require("node:worker_threads"),
       {until, log} = require("../../helpers.js"),
       path = require('path'),
       portKey = Symbol.for("customPort"),
-      {findExecutable} = require("../../findExecutable.js");
+      {findExecutable} = require("../../findExecutable.js"),
+      {updateAnnotF} = require("../../updateAnnot.js");
 
 module.exports = async function({express, app, info, files, serverSent}){
     const samtools = await findExecutable(
@@ -20,6 +21,38 @@ module.exports = async function({express, app, info, files, serverSent}){
                 process.exit(1);
             }
         }
+    ),
+    bgzip = await findExecutable(
+        [info.serverConf?.executables?.bgzip],
+        {
+            append: "bgzip",
+            finder: path.resolve(info.dockerBinaries, "funcs.sh"),
+            functionName: "get_executable_path",
+            onerror: ({paths}) => {
+                log(
+                    "Could not find the path to bgzip.",
+                    "Tried:",
+                    `${paths.join("\n")}`
+                );
+                process.exit(1);
+            }
+        }
+    ),
+    tabix = await findExecutable(
+        [info.serverConf?.executables?.tabix],
+        {
+            append: "tabix",
+            finder: path.resolve(info.dockerBinaries, "funcs.sh"),
+            functionName: "get_executable_path",
+            onerror: ({paths}) => {
+                log(
+                    "Could not find the path to tabix.",
+                    "Tried:",
+                    `${paths.join("\n")}`
+                );
+                process.exit(1);
+            }
+        }
     );
     const worker = new Worker(
         path.resolve(__dirname,"../workers/fasta-bam-index.js"), 
@@ -29,7 +62,9 @@ module.exports = async function({express, app, info, files, serverSent}){
                 rootFolder: info.rootFolder,
                 staticFolder: info.serverConf.static,
                 bin: info.dockerBinaries,
-                samtools
+                samtools,
+                bgzip,
+                tabix
             }
         }
     );
@@ -50,7 +85,7 @@ module.exports = async function({express, app, info, files, serverSent}){
         port.on("message", function(message){
             const
                 sseChannel = "streamOne", 
-                {type, payload, sessid, filename} = message;
+                {type, payload, sessid, filename, updateAnnot} = message;
             switch(type) {
                 case "worker-fasta-bam-index-start":
                 case "worker-fasta-bam-index-success":
@@ -61,6 +96,9 @@ module.exports = async function({express, app, info, files, serverSent}){
                         .msgAll(sseChannel, {
                             payload: {filename, message: payload}
                         });
+                    if (updateAnnot) {
+                        updateAnnotF(info, serverSent, {channel: sseChannel});
+                    }
                     break;
                 case "worker-fasta-bam-index-pool-full":
                 case "worker-fasta-bam-index-fs-watcher-error":

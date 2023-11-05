@@ -22,7 +22,7 @@
                         )).render
                     ]
                 ]}
-                => ${() => () => {console.log("RES IS SET TO TRUE");res(true)}}
+                => ${() => () => {res(true)}}
                 `
             })
         })

@@ -60,7 +60,11 @@ const rndGen = taskq._exportPersist.genHexStr,
                         title: "No pinned IGV browser",
                         text: `Initiate and Pin an IGV applet before searching for loci`,
                         confirmButtonText: "Don't show this again",
-                        showCancelButton:true
+                        showCancelButton:true,
+                        imageUrl: '/static/img/applet-pin-demo.gif',
+                        imageWidth: "calc(20vw, 320px)",
+                        imageHeight: "auto",
+                        imageAlt: 'Applet pin demo'
                     });
                     if(result.isConfirmed){
                         doNotShowIGVMissingWarning = 1;

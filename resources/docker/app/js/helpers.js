@@ -188,6 +188,35 @@ Object.defineProperties(
 					return m;
 				}
 			}
+		},
+		throttle: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function(f, {thisArg = void(0), delay=100} = {}){
+				const that = this;
+				let timeout,
+					prom,
+					resolver;
+				return function(...args) {
+					clearTimeout(timeout);
+					thisArg = thisArg ?? that;
+					if (resolver) {
+						timeout = setTimeout(() => {
+							resolver?.(f.apply(thisArg, args));
+							resolver = prom = null;
+						}, delay);
+						return prom;
+					}
+					return prom = new Promise(res => {
+						resolver = res;
+						timeout = setTimeout(() => {
+							res(f.apply(thisArg, args));
+							resolver = prom = null;
+						}, delay);
+					})
+				}
+			}
 		}
 	}
 );
