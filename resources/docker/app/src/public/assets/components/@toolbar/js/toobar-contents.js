@@ -20,7 +20,7 @@ export default function (IGVBrowsers, data, datum, resize) {
                 .immediateAnimate([{display : onoff ? "block" : "none"}])
                 .promiseAnimate()
             )
-        ).catch(() => {})/* .catch((err) => {console.log(err)}) */,
+        ).catch(() => {}),
         resetPinStyle = ch.throttle((el) => {
             Array.from(
                 document.querySelectorAll(".igv-toolbar-pin")
@@ -65,7 +65,9 @@ export default function (IGVBrowsers, data, datum, resize) {
         `,
         add: ch.dom`<span title="add selected tracks"><i class="fa fa-plus-square"></i></span>`,
         back: ch.dom`<span title="go back"><i class="fa fa-long-arrow-left"></i></span>`
-    }
+    },
+    deck1 = ["delete", "tracks", "pin", "up", "down"],
+    deck2 = ["annot", "add", "back"];
     return [
         {
             html: icons.delete,
@@ -78,8 +80,8 @@ export default function (IGVBrowsers, data, datum, resize) {
         {
             html: icons.tracks,
             cb: async () => {
-                await toggle(["delete", "tracks", "pin", "up", "down"], false);
-                await toggle(["annot", "add", "back"], true);
+                await toggle(deck1, false);
+                await toggle(deck2, true);
                 resize();
             }
         },
@@ -120,7 +122,6 @@ export default function (IGVBrowsers, data, datum, resize) {
         {
             html: icons.annot,
             cb: () => {
-                console.log(6);
             },
             highlight: false,
             hidden: true
@@ -139,8 +140,8 @@ export default function (IGVBrowsers, data, datum, resize) {
         {
             html: icons.back,
             cb: async () => {
-                await toggle(["annot", "add", "back"], false);
-                await toggle(["delete", "tracks", "pin", "up", "down"], true);
+                await toggle(deck2, false);
+                await toggle(deck1, true);
                 resize();
             },
             hidden: true
