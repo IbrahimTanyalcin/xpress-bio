@@ -1,4 +1,4 @@
-import getIconContents from "./toobar-contents.js";
+import getIconContents from "./toolbar-contents.js";
 function toolbar({name, attrs, styles, props, data, el}){
     const ch = ch2;
     const {values, d, IGVBrowsers} = data;

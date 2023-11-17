@@ -35,7 +35,9 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
           dirRoot = path.resolve(workerData.rootFolder, workerData.staticFolder),
           fileTypes = {
             fasta: [".fa", ".fas", ".fasta"],
+            fastaIndex: [".fai"],
             bam: [".bam"],
+            bamIndex: [".bai"],
             annot: [".gff", ".bgz", ".tbi", ".csi"]
           },
           extMap = {
@@ -132,7 +134,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
         await capture(
             `/bin/bash ${path.resolve(workerData.bin,"downloadX.sh")} `
             + `${payload} ${filepath} `
-            + (fileIsCompressed ? "--rm 1 '.bai' '.bam' '.fa' '.fas' '.fasta' '.fai' '.gff' '.bgz' '.tbi' '.csi'" : "0"),
+            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : "0"),
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}
