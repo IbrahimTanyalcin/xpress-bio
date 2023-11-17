@@ -11,7 +11,15 @@ export default function (IGVBrowsers, data, datum, resize) {
                 .cancelAnimate({commit: ["transform", "opacity"]})
                 .exec(function() {
                     if (!onoff){return}
-                    return ch.immediateAnimate([{display : "block"}])
+                    /*
+                    REGRESSION CHROME UPDATE: 
+                    new chrome 119 does NOT read from animation state,
+                    although getComputedStyle($0).display will return "block",
+                    explicitly not setting style object to block will cause
+                    pointer events to not fire! This needs a bug report.
+                    */
+                    return ch.style("display","block")
+                    .immediateAnimate([{display : "block"}])
                 })
                 .animate([{
                     transform: onoff ? "scale(1, 1)" : "scale(0, 0)",

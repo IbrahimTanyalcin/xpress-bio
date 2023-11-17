@@ -49,28 +49,32 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 inputFolder: bamFolder,
                 outputFolder: bamIndexFolder,
                 ext: ".bai",
+                selfExt: ".bam",
                 command: "index"
             },
             fasta: {
                 inputFolder: fastaFolder,
                 outputFolder: fastaIndexFolder,
                 ext: ".fai",
+                selfExt: [".fa", ".fas", ".fasta"],
                 command: "faidx"
             },
             gff: {
                 inputFolder: annotGffFolder,
                 outputFolder: annotBgzFolder,
                 ext: ".bgz",
+                selfExt: ".gff",
                 command: "bgzip"
             },
             bgz: {
                 inputFolder: annotBgzFolder,
                 outputFolder: [annotTbiIndexFolder, annotCsiIndexFolder],
                 ext: [".tbi", ".csi"],
+                selfExt: ".bgz",
                 command: "tabix"
             }
         },
-        extArr = [".fa", ".fas", ".fasta", ".bam", ".gff", ".bgz"],
+        extArr = Object.values(configs).flatMap(d => d?.selfExt ?? []),
         watchMap = [
             path.resolve(dirRoot, "bam"),
             path.resolve(dirRoot, "fa"),
@@ -85,28 +89,28 @@ const {workerData, parentPort} = require("node:worker_threads"),
         filtered by fasta/bam/gff/bgz files that do not have indexes */
         evtStack = new Set(
             (await Promise.all([
-                ...(await getFiles(bamFolder))
+                ...(await getFiles(configs.bam.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".bai", {base: bamIndexFolder})
+                    await fileExists(d + configs.bam.ext, {base: configs.bam.outputFolder})
                     ? false
                     : d
                 ),
-                ...(await getFiles(fastaFolder))
+                ...(await getFiles(configs.fasta.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".fai", {base: fastaIndexFolder})
+                    await fileExists(d + configs.fasta.ext, {base: configs.fasta.outputFolder})
                     ? false
                     : d
                 ),
-                ...(await getFiles(annotGffFolder))
+                ...(await getFiles(configs.gff.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".bgz", {base: annotBgzFolder})
+                    await fileExists(d + configs.gff.ext, {base: configs.gff.outputFolder})
                     ? false
                     : d
                 ),
-                ...(await getFiles(annotBgzFolder))
+                ...(await getFiles(configs.bgz.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".tbi", {base: annotTbiIndexFolder})
-                    || await fileExists(d + ".csi", {base: annotCsiIndexFolder})
+                    await fileExists(d + configs.bgz.ext[0], {base: configs.bgz.outputFolder[0]})
+                    || await fileExists(d + configs.bgz.ext[1], {base: configs.bgz.outputFolder[1]})
                     ? false
                     : d
                 ),
@@ -185,18 +189,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     : [item, false, void(0)],
                 baseFileName = path.basename(fileName),
                 extName = path.extname(baseFileName),
-                config = (() => {
-                    switch(true) {
-                        case (extName === ".bam"):
-                            return configs.bam
-                        case ([".fa", ".fas", ".fasta"].includes(extName)):
-                            return configs.fasta
-                        case (extName === ".gff"):
-                            return configs.gff
-                        case (extName === ".bgz"):
-                            return configs.bgz
-                    }
-                })();
+                config = Object.values(configs).find(d => [].concat(d?.selfExt ?? []).includes(extName));
             let input, output; //derived from baseFileName for samtools
             if(!extArr.includes(extName)){
                 decr();
