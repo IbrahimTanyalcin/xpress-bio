@@ -4,7 +4,7 @@ teeOutput="docker-output.txt"
 maxIter=10
 currIter=0
 appName="web-app-igv"
-semverVersion="0.1.0"
+semverVersion="0.1.1"
 
 main() {
     set -e -x -o pipefail

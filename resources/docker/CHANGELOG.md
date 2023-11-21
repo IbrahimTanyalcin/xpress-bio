@@ -21,3 +21,10 @@
   - added the ability to specify N number of custom json configs next to `app/js/server/server.config.json`. These are not committed to the repo, sorted alphabetically and then merged recursively with the base configuration.
   ### fixes 
   - Changed the order of `-` in the regex `[+-?]` where it would be mistaken as a range operator in older versions of `sed`
+- ## v0.1.1
+  ### changes
+  - Extended indexing to `gff`/`bgz` files to create `.tbi/.csi` index files
+  - Extended download worker to place `gff`/`bgz`/`tbi`/`csi` files to their respective folder
+  - Converted IGV applets into web components with a dedicated toolbar
+  - Enabled reordering/creating multiple IGV applets
+  - Removed restrictions to spawn IGV applet without `bam` files. User now can create an IGV applet with a `fasta` file only.

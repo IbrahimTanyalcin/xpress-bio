@@ -5,6 +5,10 @@
 **/src/public/assets/fa/*
 **/src/public/assets/fai/*
 **/src/public/assets/gz/*
+**/src/public/assets/gff/*
+**/src/public/assets/bgz/*
+**/src/public/assets/csi/*
+**/src/public/assets/tbi/*
 
 # Ignore all .config.json files in the server directory
 app/js/server/*.config.json

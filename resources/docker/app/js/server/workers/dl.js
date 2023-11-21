@@ -33,6 +33,13 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
           rgxPrcnt = /[0-9]+\.[0-9]+%/gi,
           {unlink, rm : remove} = require("fs/promises"),
           dirRoot = path.resolve(workerData.rootFolder, workerData.staticFolder),
+          fileTypes = {
+            fasta: [".fa", ".fas", ".fasta"],
+            fastaIndex: [".fai"],
+            bam: [".bam"],
+            bamIndex: [".bai"],
+            annot: [".gff", ".bgz", ".tbi", ".csi"]
+          },
           extMap = {
             ".bai": path.resolve(dirRoot, "bai"), 
             ".bam": path.resolve(dirRoot, "bam"), 
@@ -45,7 +52,11 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
             ".z": path.resolve(dirRoot, "gz"),
             ".tgz": path.resolve(dirRoot, "gz"),
             ".taz": path.resolve(dirRoot, "gz"),
-            ".lz4": path.resolve(dirRoot, "gz")
+            ".lz4": path.resolve(dirRoot, "gz"),
+            ".gff": path.resolve(dirRoot, "gff"),
+            ".bgz": path.resolve(dirRoot, "bgz"),
+            ".tbi": path.resolve(dirRoot, "tbi"),
+            ".csi": path.resolve(dirRoot, "csi")
           },
           extArr = Object.keys(extMap),
           isCompressed = ((...exts) => ext => !!~exts.indexOf(ext))(".tar", ".gz", ".z", ".tgz", ".taz", ".lz4"),
@@ -123,7 +134,7 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
         await capture(
             `/bin/bash ${path.resolve(workerData.bin,"downloadX.sh")} `
             + `${payload} ${filepath} `
-            + (fileIsCompressed ? "--rm 1 '.bai' '.bam' '.fa' '.fas' '.fasta' '.fai'" : "0"),
+            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : "0"),
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}
@@ -133,8 +144,9 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
                 return port.postMessage({
                     type: "worker-dl-success", 
                     payload: filename, 
-                    updateFa: [".fa", ".fas", ".fasta"].includes(extName),
-                    updateBam: [".bam"].includes(extName)
+                    updateFa: fileTypes.fasta.includes(extName),
+                    updateBam: fileTypes.bam.includes(extName),
+                    updateAnnot: fileTypes.annot.includes(extName)
                 }); //postMessage returns undefined
             }
             //downloadX returns entire stdout history separated with \r
@@ -150,8 +162,9 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
                         port.postMessage({
                             type: "worker-dl-success", 
                             payload: nFiles, 
-                            updateFa: extVisited.some(function(d){return this.includes(d);},[".fa", ".fas", ".fasta"]),
-                            updateBam: extVisited.some(function(d){return this.includes(d);},[".bam"])
+                            updateFa: extVisited.some(function(d){return this.includes(d);}, fileTypes.fasta),
+                            updateBam: extVisited.some(function(d){return this.includes(d);}, fileTypes.bam),
+                            updateAnnot: extVisited.some(function(d){return this.includes(d);}, fileTypes.annot)
                         });
                         remove(dir, {recursive: true});
                     });

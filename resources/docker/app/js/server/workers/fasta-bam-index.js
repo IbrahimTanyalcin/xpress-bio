@@ -4,6 +4,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
       {capture} = require("../../capture.js"),
       {fileExists} = require("../../fileExists.js"),
       {getFiles} = require("../../getFiles.js"),
+      genHexStr = require("../../genHexStr.js"),
       path = require("path");
 
 (new Promise(res => {
@@ -29,6 +30,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
     ############################ */
     const
         samtools = workerData.samtools,
+        bgzip = workerData.bgzip,
+        tabix = workerData.tabix,
         dirRoot = path.resolve(
             workerData.rootFolder, 
             workerData.staticFolder
@@ -37,45 +40,80 @@ const {workerData, parentPort} = require("node:worker_threads"),
         bamIndexFolder =  path.resolve(dirRoot, "bai"),
         fastaFolder = path.resolve(dirRoot, "fa"),
         fastaIndexFolder = path.resolve(dirRoot, "fai"),
+        annotGffFolder = path.resolve(dirRoot, "gff"),
+        annotBgzFolder = path.resolve(dirRoot, "bgz"),
+        annotTbiIndexFolder = path.resolve(dirRoot, "tbi"),
+        annotCsiIndexFolder = path.resolve(dirRoot, "csi"),
         configs = {
             bam: {
                 inputFolder: bamFolder,
                 outputFolder: bamIndexFolder,
                 ext: ".bai",
+                selfExt: ".bam",
                 command: "index"
             },
             fasta: {
                 inputFolder: fastaFolder,
                 outputFolder: fastaIndexFolder,
                 ext: ".fai",
+                selfExt: [".fa", ".fas", ".fasta"],
                 command: "faidx"
+            },
+            gff: {
+                inputFolder: annotGffFolder,
+                outputFolder: annotBgzFolder,
+                ext: ".bgz",
+                selfExt: ".gff",
+                command: "bgzip"
+            },
+            bgz: {
+                inputFolder: annotBgzFolder,
+                outputFolder: [annotTbiIndexFolder, annotCsiIndexFolder],
+                ext: [".tbi", ".csi"],
+                selfExt: ".bgz",
+                command: "tabix"
             }
         },
-        extArr = [".fa", ".fas", ".fasta", ".bam"],
+        extArr = Object.values(configs).flatMap(d => d?.selfExt ?? []),
         watchMap = [
             path.resolve(dirRoot, "bam"),
-            path.resolve(dirRoot, "fa")
+            path.resolve(dirRoot, "fa"),
+            path.resolve(dirRoot, "gff"),
+            path.resolve(dirRoot, "bgz")
         ],
         watchers = watchMap.map(dir =>
             watch(dir, { signal, persistent: true})
         ),
         /* below can accept a string or object.
         It is prepopulated with values on server start,
-        filtered by fasta/bam files that do not have indexes */
+        filtered by fasta/bam/gff/bgz files that do not have indexes */
         evtStack = new Set(
             (await Promise.all([
-                ...(await getFiles(bamFolder))
+                ...(await getFiles(configs.bam.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".bai", {base: bamIndexFolder})
+                    await fileExists(d + configs.bam.ext, {base: configs.bam.outputFolder})
                     ? false
                     : d
                 ),
-                ...(await getFiles(fastaFolder))
+                ...(await getFiles(configs.fasta.inputFolder))
                 .map(async d => 
-                    await fileExists(d + ".fai", {base: fastaIndexFolder})
+                    await fileExists(d + configs.fasta.ext, {base: configs.fasta.outputFolder})
                     ? false
                     : d
-                )
+                ),
+                ...(await getFiles(configs.gff.inputFolder))
+                .map(async d => 
+                    await fileExists(d + configs.gff.ext, {base: configs.gff.outputFolder})
+                    ? false
+                    : d
+                ),
+                ...(await getFiles(configs.bgz.inputFolder))
+                .map(async d => 
+                    await fileExists(d + configs.bgz.ext[0], {base: configs.bgz.outputFolder[0]})
+                    || await fileExists(d + configs.bgz.ext[1], {base: configs.bgz.outputFolder[1]})
+                    ? false
+                    : d
+                ),
             ])).filter(d => d)
         ), 
         setShift = set => {
@@ -151,8 +189,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     : [item, false, void(0)],
                 baseFileName = path.basename(fileName),
                 extName = path.extname(baseFileName),
-                config = configs[extName === ".bam" ? "bam" : "fasta"];
-            let input, output, baseOutput; //derived from baseFileName for samtools
+                config = Object.values(configs).find(d => [].concat(d?.selfExt ?? []).includes(extName));
+            let input, output; //derived from baseFileName for samtools
             if(!extArr.includes(extName)){
                 decr();
                 return port.postMessage({
@@ -184,22 +222,36 @@ const {workerData, parentPort} = require("node:worker_threads"),
             This means, whatever the fs watcher is returning,
             the result will be normalized.
             */
-            output = path.resolve(
-                config.outputFolder,
-                baseFileName + (config.ext)
-            );
-            baseOutput = path.basename(output);
-            if(await fileExists(output) && !reIndex) {
-                decr();
-                return port.postMessage({
-                    type: "worker-fasta-bam-index-file-exists", 
-                    payload: `The file ${baseOutput} already exists.`,
-                    sessid,
-                    filename: baseOutput
-                });
+            output = [config.outputFolder].flat(Infinity)
+                .map(
+                    function(d, i) {return path.resolve(d, baseFileName + this[i])},
+                    [config.ext].flat(Infinity)
+                );
+            for (let pathstr of output) {
+                let baseOutput = path.basename(pathstr);
+                if(await fileExists(pathstr) && !reIndex) {
+                    decr();
+                    return port.postMessage({
+                        type: "worker-fasta-bam-index-file-exists", 
+                        payload: `The file ${baseOutput} already exists.`,
+                        sessid,
+                        filename: baseOutput
+                    });
+                }
             }
             await capture(
-                `${samtools} ${config.command} ${input} -o ${output}`,
+                (() => {
+                    switch (config.command) {
+                        case "index":
+                        case "faidx":
+                            return `${samtools} ${config.command} "${input}" -o "${output}"`
+                        case "tabix":
+                            return `(${tabix} -p gff "${input}" && mv "${input}.tbi" "${output[0]}") || (${tabix} -p gff --csi "${input}" && mv "${input}.csi" "${output[1]}")`
+                        case "bgzip":
+                            const temp = path.resolve(dirRoot, "gz", genHexStr(8, 3, "temp_"));
+                            return `(grep "^#" "${input}"; grep -v "^#" "${input}" | sort -t "$(echo -e '\\t')" -k1,1 -k4,4n) | ${bgzip} > "${temp}" && mv "${temp}" "${output}"`
+                    }
+                })(),
                 {
                     shell: "/bin/bash",
                     pipe: false,
@@ -228,7 +280,8 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 port.postMessage({
                     type: "worker-fasta-bam-index-success", 
                     payload: `Indexing of ${baseFileName} finished.`,
-                    filename: baseFileName
+                    filename: baseFileName,
+                    updateAnnot: ["tabix", "bgzip"].includes(config.command)
                 });
             })
             .catch(() => {});

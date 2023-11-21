@@ -1,6 +1,7 @@
 const path = require('path'),
       {getFiles} = require("../../getFiles.js"),
-      {getStats} = require("../../getStats.js");
+      {getStats} = require("../../getStats.js"),
+      {updateAnnotFnt} = require("../../updateAnnot.js");
 module.exports = function({express, app, info, files, serverSent}){
     app
     .get('/update', function (req, res, next) {
@@ -39,6 +40,7 @@ module.exports = function({express, app, info, files, serverSent}){
                 .msg("streamOne", req.session.id, {payload})
             )
         );
+        updateAnnotFnt(info, serverSent, {sessid: req.session.id, channel: "streamOne"});
         serverSent
         .msg("streamOne", req.session.id, {directive: "event", payload: "connection-established"})
         .msg("streamOne", req.session.id, {payload: "Connection Established"});
