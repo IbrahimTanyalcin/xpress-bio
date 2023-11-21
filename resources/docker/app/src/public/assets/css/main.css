@@ -16,6 +16,7 @@
     --transparent-color: #FFFFFF00;
     --info-color: #38f;
     --success-color: #395;
+    --success-color-transparent: #3a45;
     --warning-color:#9F6000;
     --error-color: #D8000C;
     --samtools-index-color: #ccaa70;
@@ -40,6 +41,7 @@
     --heading-color: #818cab;
     --info-color: #45b;
     --success-color: #257045;
+    --success-color-transparent: #25704588;
     --warning-color:#9F4060;
     --error-color: #cf4060;
     --samtools-index-color: #eecc30;

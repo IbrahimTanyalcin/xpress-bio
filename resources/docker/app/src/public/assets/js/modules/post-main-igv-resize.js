@@ -1,3 +1,4 @@
+import { IGVBrowsers } from "./post-main-visualize-action.js";
 !function(){
     function postMainIGVResize(
         panelWrapper
@@ -19,6 +20,9 @@
             throttleFlag = setTimeout(function(){
                 if (typeof igv !== "undefined") {
                     igv?.browser?.visibilityChange();
+                    IGVBrowsers.browsers.forEach(d => {
+                        d.visibilityChange()
+                    });
                     console.log(`igv redrawn due to viewport change ${(new Date()).toUTCString()}`);
                 }
                 throttleFlag = undef;

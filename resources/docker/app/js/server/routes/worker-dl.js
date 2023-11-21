@@ -4,7 +4,8 @@ const {Worker} = require("node:worker_threads"),
       portKey = Symbol.for("customPort"),
       nameKey = Symbol.for("customName"),
       {getFiles} = require("../../getFiles.js"),
-      {getStats} = require("../../getStats.js");
+      {getStats} = require("../../getStats.js"),
+      {updateAnnotF} = require("../../updateAnnot.js");
 
 module.exports = function({express, app, info, files, serverSent}){
     const worker = new Worker(
@@ -27,7 +28,7 @@ module.exports = function({express, app, info, files, serverSent}){
             res.status(200).end();
         });
         port.on("message", function(message){
-            const {type, payload, sessid, percentage, updateFa, updateBam} = message;
+            const {type, payload, sessid, percentage, updateFa, updateBam, updateAnnot} = message;
             switch(type) {
                 case "worker-pool-full":
                 case "worker-bad-host":
@@ -71,6 +72,9 @@ module.exports = function({express, app, info, files, serverSent}){
                                 .msgAll("streamOne", {payload})
                             )
                         );
+                    }
+                    if (updateAnnot) {
+                        updateAnnotF(info, serverSent, {channel: "streamOne"});
                     }
                     break;
                 case "worker-dl-progress":

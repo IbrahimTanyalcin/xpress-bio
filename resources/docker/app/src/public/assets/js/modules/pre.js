@@ -1,5 +1,6 @@
 let keepFirstNElements,
-    bytesToHuman;
+    bytesToHuman,
+    shortenStringMiddle;
 !function(){
     function pre() {
         var body = document.body,
@@ -438,7 +439,7 @@ let keepFirstNElements,
             }
             return aC.slice(-i);
         }
-        function shortenStringMiddle(str, {length = 20, fill = "..."} = {}){
+        shortenStringMiddle = function shortenStringMiddle(str, {length = 20, fill = "..."} = {}){
             length = max(0, length);
             const fLen = fill.length;
             if(str.length <= length) {
@@ -621,4 +622,4 @@ let keepFirstNElements,
     pre._taskqWaitFor = ["LocalStorage"];
     taskq.push(pre);
 }();
-export {keepFirstNElements, bytesToHuman};
+export {keepFirstNElements, bytesToHuman, shortenStringMiddle};
