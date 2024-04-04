@@ -64,6 +64,14 @@ Object.defineProperties(
 				return Buffer.from(base64, "base64").toString();
 			}
 		},
+		btoa: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value:(str) => {
+				return Buffer.from(str).toString("base64");
+			}
+		},
 		serverSend: {
 			enumerable: true,
 			configurable: true,
