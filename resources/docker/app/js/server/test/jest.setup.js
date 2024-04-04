@@ -1,8 +1,11 @@
 const 
     {resolve, join} = require('path'),
     rootFolder = resolve(__dirname, "..", "..", ".."),
+    binFolder = resolve(rootFolder, "bin"),
     staticFolder = join(rootFolder, "src", "public", "assets"),
-    fixturesFolder = resolve(__dirname, "fixtures");
+    testFolder = __dirname,
+    fixturesFolder = resolve(__dirname, "fixtures"),
+    tempFolder = resolve(__dirname, "temp");
 Object.assign(
     global,
     {
@@ -10,10 +13,15 @@ Object.assign(
         reqDwnld: require("./fixtures/reqDwnld.js"),
         validateSSE: require("./fixtures/validateSSE.js"),
         compareHashes: require("./fixtures/compareHashes.js"),
+        getHashes: require("./fixtures/getHashes.js"),
         cleanUpFiles: require("./fixtures/cleanUpFiles.js"),
+        cleanUpFolders: require("./fixtures/cleanUpFolders.js"),
         rootFolder,
+        binFolder,
         staticFolder,
+        testFolder,
         fixturesFolder,
+        tempFolder,
         ...(Object.entries({
             "bam": "bam", "bai": "bai", "fasta": "fa", "fai": "fai"
         })
