@@ -74,13 +74,13 @@ jobs:
           if ! grep -q "${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/htslib-${{ github.event.inputs.samtoolsVersion }}" ${{ env.BASH_ENV }}; then
             echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/htslib-${{ github.event.inputs.samtoolsVersion }}"' >> ${{ env.BASH_ENV }}
           fi
-        workingDirectory: ${{ env.HOME_DIR }}
+        working-directory: ${{ env.HOME_DIR }}
 
       - name: 'npm install and output coverage'
         run: |
           npm install
           npm run test-server-azure
-        workingDirectory: ${{ env.PACKAGE_ROOT }}
+        working-directory: ${{ env.PACKAGE_ROOT }}
 
       - name: 'Publish Code Coverage Results'
         uses: actions/upload-artifact@v3
