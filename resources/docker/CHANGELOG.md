@@ -28,3 +28,5 @@
   - Converted IGV applets into web components with a dedicated toolbar
   - Enabled reordering/creating multiple IGV applets
   - Removed restrictions to spawn IGV applet without `bam` files. User now can create an IGV applet with a `fasta` file only.
+- ## v0.1.2
+  - Added `--atomic path/to/dir` options to `app/bin/downloadX.sh`
