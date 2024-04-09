@@ -6,8 +6,8 @@ const
 
 /**
 @description remove folders if exist
-@param {string|string[]} folders a pathstring or
-an array ofpath strings
+@param {string|string[]} folders a path string or
+an array of path strings
 @returns {Array} an array with undefined or error 
 object for each folder
 */
@@ -16,7 +16,7 @@ const
         folders = [folders].flat(Infinity);
         if (folders.some(folder => !path.isAbsolute(folder))){
             throw new Error(
-                "Foldernames given to cleanUpFolders must be absolute."
+                "Folder names given to cleanUpFolders must be absolute."
             )
         }
         if (folders.some(folder => folder.length <= 6)){

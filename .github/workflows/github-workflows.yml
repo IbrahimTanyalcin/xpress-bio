@@ -1,0 +1,89 @@
+name: xpress-bio CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      buildWithSamtools:
+        description: 'Build with Samtools'
+        required: false
+        default: 'true'
+      loc:
+        description: 'Location to Build and Install'
+        required: false
+        default: '.local/bin'
+      samtoolsVersion:
+        description: 'Samtools version'
+        required: false
+        default: '1.18'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_ROOT: ${{ github.workspace }}/resources/docker/app
+    steps:
+      - name: Setup HOME_DIR and BASH_ENV
+        run: |
+          echo 'HOME_DIR="$HOME"' >> $GITHUB_ENV
+          echo 'BASH_ENV="$HOME/.profile"' >> $GITHUB_ENV
+
+      - uses: actions/checkout@v3
+
+      - name: 'Install Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      - name: 'install ubuntu libs'
+        run: >
+          sudo /bin/bash -c "
+          set -e -x -o pipefail;
+          apt-get -y update
+          && apt-get -y install memcached
+          && apt-get -y install libmemcached-tools
+          && apt-get -y install bc
+          && apt-get -y install liblz4-tool
+          && apt-get -y install bsdmainutils
+          ;"
+
+      - name: 'install, build and add to PATH Samtools'
+        if: ${{ github.event.inputs.buildWithSamtools == 'true' }}
+        run: |
+          set -e -x -o pipefail;
+          sudo apt-get -y update
+          sudo apt-get -y install libcurl4-openssl-dev
+          mkdir -p ./${{ github.event.inputs.loc }};
+          cd ./${{ github.event.inputs.loc }};
+          curl -fsSLO https://github.com/samtools/samtools/releases/download/${{ github.event.inputs.samtoolsVersion }}/samtools-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          curl -fsSLO https://github.com/samtools/bcftools/releases/download/${{ github.event.inputs.samtoolsVersion }}/bcftools-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          curl -fsSLO https://github.com/samtools/htslib/releases/download/${{ github.event.inputs.samtoolsVersion }}/htslib-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          tar -xvjf htslib-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          tar -xvjf samtools-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          tar -xvjf bcftools-${{ github.event.inputs.samtoolsVersion }}.tar.bz2;
+          pushd bcftools-${{ github.event.inputs.samtoolsVersion }} && make && popd;
+          pushd htslib-${{ github.event.inputs.samtoolsVersion }} && make && popd;
+          pushd samtools-${{ github.event.inputs.samtoolsVersion }} && make && popd;
+          if ! grep -q "${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/bcftools-${{ github.event.inputs.samtoolsVersion }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/bcftools-${{ github.event.inputs.samtoolsVersion }}"' >> ${{ env.BASH_ENV }}
+          fi
+          if ! grep -q "${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/samtools-${{ github.event.inputs.samtoolsVersion }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/samtools-${{ github.event.inputs.samtoolsVersion }}"' >> ${{ env.BASH_ENV }}
+          fi
+          if ! grep -q "${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/htslib-${{ github.event.inputs.samtoolsVersion }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ github.event.inputs.loc }}/htslib-${{ github.event.inputs.samtoolsVersion }}"' >> ${{ env.BASH_ENV }}
+          fi
+        workingDirectory: ${{ env.HOME_DIR }}
+
+      - name: 'npm install and output coverage'
+        run: |
+          npm install
+          npm run test-server-azure
+        workingDirectory: ${{ env.PACKAGE_ROOT }}
+
+      - name: 'Publish Code Coverage Results'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/cobertura-coverage.xml

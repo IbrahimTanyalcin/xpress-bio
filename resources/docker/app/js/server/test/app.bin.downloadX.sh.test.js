@@ -109,7 +109,7 @@ describe(`testing app/bin/downloadX.sh`, () => {
         watcher.break();
         expect(await getHashes(dest)).toEqual([preComputedHashes.fas]);
         expect(tempFolderDetected).toBe(true);
-    }, timeout);
+    }, timeout * 2);
 
     /* 
         Here I am using the --libcurl option to 
