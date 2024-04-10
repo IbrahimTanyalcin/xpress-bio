@@ -38,8 +38,27 @@ jobs:
           && apt-get -y install bsdmainutils
           ;"
 
+      - name: Cache samtools
+        id: cache-samtools
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${{ env.SAMTOOLS_VERSION }}
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}
+          key: ${{ runner.os }}-samtools-${{ env.SAMTOOLS_VERSION }}
+
+      - name: Verify cache-samtools binaries
+        if: ${{ steps.cache-samtools.outputs.cache-hit == 'true' }}
+        run: |
+          set -e
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${SAMTOOLS_VERSION}/samtools --version
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${SAMTOOLS_VERSION}/bcftools --version
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${SAMTOOLS_VERSION}/htsfile --version
+        shell: bash
+
       - name: 'install, build and add to PATH Samtools'
-        if: ${{ env.BUILD_WITH_SAMTOOLS == 'true' }}
+        if: ${{ (env.BUILD_WITH_SAMTOOLS == 'true') && (steps.cache-samtools.outputs.cache-hit != 'true') }}
         run: |
           set -e -x -o pipefail;
           sudo apt-get -y update
