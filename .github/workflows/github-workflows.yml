@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Setup HOME_DIR and BASH_ENV
         run: |
-          echo 'HOME_DIR="$HOME"' >> $GITHUB_ENV
-          echo 'BASH_ENV="$HOME/.profile"' >> $GITHUB_ENV
+          echo "HOME_DIR=${HOME}" >> $GITHUB_ENV
+          echo "BASH_ENV=${HOME}/.profile" >> $GITHUB_ENV
 
       - uses: actions/checkout@v3
 
