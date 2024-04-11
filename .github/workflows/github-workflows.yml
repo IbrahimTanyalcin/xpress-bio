@@ -57,7 +57,7 @@ jobs:
           ${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${SAMTOOLS_VERSION}/htsfile --version
         shell: bash
 
-      - name: 'install, build and add to PATH Samtools'
+      - name: 'install and build Samtools'
         if: ${{ (env.BUILD_WITH_SAMTOOLS == 'true') && (steps.cache-samtools.outputs.cache-hit != 'true') }}
         run: |
           set -e -x -o pipefail;
@@ -74,6 +74,11 @@ jobs:
           pushd bcftools-${{ env.SAMTOOLS_VERSION }} && make && popd;
           pushd htslib-${{ env.SAMTOOLS_VERSION }} && make && popd;
           pushd samtools-${{ env.SAMTOOLS_VERSION }} && make && popd;
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: 'add to PATH Samtools'
+        run: |
+          set -e -x -o pipefail;
           if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}" ${{ env.BASH_ENV }}; then
             echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}"' >> ${{ env.BASH_ENV }}
           fi
