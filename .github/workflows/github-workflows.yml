@@ -93,7 +93,7 @@ jobs:
       - name: 'npm install and output coverage'
         run: |
           npm install
-          npm run test-server-azure
+          npm run test-server-github
         working-directory: ${{ env.PACKAGE_ROOT }}
 
       - name: Commit and push to another repo
