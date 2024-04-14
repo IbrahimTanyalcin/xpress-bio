@@ -96,6 +96,31 @@ jobs:
           npm run test-server-azure
         working-directory: ${{ env.PACKAGE_ROOT }}
 
+      - name: Commit and push to another repo
+        run: |
+          set -e
+          git config --global user.email ${{ secrets.GIT_USER_EMAIL }}
+          git config --global user.name ${{ secrets.GIT_USER_NAME }}
+          git clone https://gsk-tech:${{ secrets.GH_PAT }}@github.com/gsk-tech/test-blog.git temp_repo
+          mkdir -p ${{ env.TARGET_DIR }}
+          cp -r "${{ env.TEST_ARTIFACT }}" "${{ env.TARGET_DIR }}"/
+          cd temp_repo
+          /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ENTRY_JSON }}" "pipeline artifacts"
+          /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ARTIFACT_JSON }}" "xpress-bio.coverage.js"
+          git add "${{ env.ENTRY_JSON }}"
+          git add "${{ env.ARTIFACT_JSON }}"
+          git add "${{ env.TARGET_DIR }}/lcov-report"
+          git commit -m "Add xpress-bio coverage results $(date -u)"
+          git push
+        working-directory: ${{ env.PACKAGE_ROOT }}
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          TEST_ARTIFACT: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/lcov-report
+          TARGET_DIR: ${{ env.PACKAGE_ROOT }}/temp_repo/pipeline-artifacts/xpress-bio
+          ENTRY_JSON: ${{ env.PACKAGE_ROOT }}/temp_repo/static/md/meta.json
+          ARTIFACT_JSON: "${{ env.PACKAGE_ROOT }}/temp_repo/static/md/pipeline artifacts/meta.json"
+          UPDATE_DATE_SCRIPT: ${{ env.PACKAGE_ROOT }}/temp_repo/.github/bin/update-date.sh
+
       - name: 'Publish Code Coverage Results'
         uses: actions/upload-artifact@v3
         with:
