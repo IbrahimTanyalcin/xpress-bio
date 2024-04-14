@@ -6,6 +6,7 @@
   "scripts": {
     "test-server": "jest --runInBand --config ./js/server/test/jest.config.js",
     "test-server-azure": "jest --runInBand --config ./js/server/test/jest.config.js --coverageReporters=cobertura",
+    "test-server-github": "jest --runInBand --config ./js/server/test/jest.config.js --coverageReporters=lcov --coverageReporters=cobertura",
     "start": "cross-env-shell nodemon ./main.js"
   },
   "keywords": [
