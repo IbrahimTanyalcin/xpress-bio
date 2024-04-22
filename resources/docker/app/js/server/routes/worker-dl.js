@@ -15,7 +15,9 @@ module.exports = function({express, app, info, files, serverSent}){
                 isContainer : info.isContainer,
                 rootFolder: info.rootFolder,
                 staticFolder: info.serverConf.static,
-                bin: info.dockerBinaries
+                bin: info.dockerBinaries,
+                uriWhiteList: info.serverConf?.uriWhiteList ?? [],
+                uriBlackList: info.serverConf?.uriBlackList ?? []
             }
         }
     );

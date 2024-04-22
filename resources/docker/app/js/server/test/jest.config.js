@@ -7,6 +7,12 @@ module.exports = {
     testMatch: [
       "**/server/test/*.test.js"
       //"**/server/test/serverFastaBamIndex.test.js"
+      //"**/server/test/app.bin.downloadX.sh.test.js"
+      //"**/server/test/serverAtomic.test.js"
+      //"**/server/test/strMatchList.test.js"
+      //"**/server/test/serverDwnld.test.js"
+      //"**/server/test/uriWhiteList.test.js"
+      //"**/server/test/uriBlackList.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

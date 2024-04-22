@@ -1,0 +1,161 @@
+
+/*
+    id: 1
+    method: POST
+    path: /dl/nexus
+    payload: {payload: "https://gist.github.com/IbrahimTanyalcin/efbbc63ab7295a0f7f9cd2092fb915fd/archive/53428dc74007356d528efd86b0ab6271a6271eab.tar.gz"}
+    explanation: recording of SSE sent to client from the server start till the end of download success
+*/
+
+retry: 5000
+event: connection-established
+data: Connection Established
+
+event: bam-file-list
+data: [
+data:       "GCF_DHFR-gB-C35_S19_L001_merged.bam"
+data: ]
+
+event: fa-file-stats
+data: {
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta": 2396323876,
+data:       "cho2.0_hap1.final_scaffolds.fasta": 2797043410,
+data:       "example.fas": 8588688,
+data:       "genome.fa": 2153570041,
+data:       "mchr12.fasta": 72458087
+data: }
+
+event: annot-file-list
+data: {
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff": "",
+data:       "cho2.0_annotation.final_corrected copy.gff": "",
+data:       "cho2.0_annotation.final_corrected.gff": "",
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz": "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz.tbi",
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic_sorted.gff.bgz": "GCF_003668045.3_CriGri-PICRH-1.0_genomic_sorted.gff.bgz.tbi",
+data:       "cho2.0_annotation.final_corrected copy.gff.bgz": "cho2.0_annotation.final_corrected copy.gff.bgz.csi",
+data:       "cho2.0_annotation.final_corrected.gff.bgz": "cho2.0_annotation.final_corrected.gff.bgz.csi"
+data: }
+
+data: {
+data:       "size": 1,
+data:       "cpu": ".4",
+data:       "upTime": 1009,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }
+
+event: worker-dl-start
+data: efbbc63ab7295a0f7f9cd2092fb915fd-53428dc74007356d528efd86b0ab6271a6271eab.tar.gz
+
+data: {
+data:       "size": 1,
+data:       "cpu": "0",
+data:       "upTime": 2170,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }
+
+data: {
+data:       "size": 1,
+data:       "cpu": "0",
+data:       "upTime": 3328,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }
+
+event: worker-dl-success
+data: [
+data:       "/home/ibowankenobi/DNA-Nexus/test-express-node-js/resources/docker/app/src/public/assets/fa/example-2.fas",
+data:       "/home/ibowankenobi/DNA-Nexus/test-express-node-js/resources/docker/app/src/public/assets/fai/example-2.fas.fai"
+data: ]
+
+event: worker-dl-end
+data: efbbc63ab7295a0f7f9cd2092fb915fd-53428dc74007356d528efd86b0ab6271a6271eab.tar.gz
+
+event: fa-file-stats
+data: {
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta": 2396323876,
+data:       "cho2.0_hap1.final_scaffolds.fasta": 2797043410,
+data:       "example-2.fas": 25766071,
+data:       "example.fas": 8588688,
+data:       "genome.fa": 2153570041,
+data:       "mchr12.fasta": 72458087
+data: }
+
+/*
+    id: 2
+    method: N/A
+    path: N/A
+    payload: N/A
+    explanation: recording of SSE sent to client from the server start till the end of download success triggered externally by download.sh
+*/
+retry: 5000
+event: connection-established
+data: Connection Established
+
+event: bam-file-list
+data: [
+data:       "GCF_DHFR-gB-C35_S19_L001_merged.bam"
+data: ]
+
+event: fa-file-stats
+data: {
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.fasta": 2396323876,
+data:       "cho2.0_hap1.final_scaffolds.fasta": 2797043410,
+data:       "example.fas": 8588688,
+data:       "genome.fa": 2153570041,
+data:       "mchr12.fasta": 72458087
+data: }
+
+event: annot-file-list
+data: {
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff": "",
+data:       "cho2.0_annotation.final_corrected copy.gff": "",
+data:       "cho2.0_annotation.final_corrected.gff": "",
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz": "GCF_003668045.3_CriGri-PICRH-1.0_genomic.gff.bgz.tbi",
+data:       "GCF_003668045.3_CriGri-PICRH-1.0_genomic_sorted.gff.bgz": "GCF_003668045.3_CriGri-PICRH-1.0_genomic_sorted.gff.bgz.tbi",
+data:       "cho2.0_annotation.final_corrected copy.gff.bgz": "cho2.0_annotation.final_corrected copy.gff.bgz.csi",
+data:       "cho2.0_annotation.final_corrected.gff.bgz": "cho2.0_annotation.final_corrected.gff.bgz.csi"
+data: }
+
+data: {
+data:       "size": 2,
+data:       "cpu": "1.2",
+data:       "upTime": 4481,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }
+
+event: worker-fasta-bam-index-start
+data: {
+data:       "filename": "example-2.fas",
+data:       "message": "Indexing of example-2.fas started."
+data: }
+
+event: worker-fasta-bam-index-success
+data: {
+data:       "filename": "example-2.fas",
+data:       "message": "Indexing of example-2.fas finished."
+data: }
+
+event: worker-fasta-bam-index-end
+data: {
+data:       "filename": "example-2.fas",
+data:       "message": "Indexing of example-2.fas ended."
+data: }
+
+data: {
+data:       "size": 2,
+data:       "cpu": "0",
+data:       "upTime": 5638,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }
+
+data: {
+data:       "size": 2,
+data:       "cpu": "0",
+data:       "upTime": 6796,
+data:       "used": "214G",
+data:       "available": "25G"
+data: }

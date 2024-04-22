@@ -28,3 +28,14 @@
   - Converted IGV applets into web components with a dedicated toolbar
   - Enabled reordering/creating multiple IGV applets
   - Removed restrictions to spawn IGV applet without `bam` files. User now can create an IGV applet with a `fasta` file only.
+- ## v0.1.2
+  - Added `--atomic path/to/dir` options to `app/bin/downloadX.sh`
+  - Added `temp` folder for atomic downloads and other general purposes. Created automatically at server start
+  - Added `getDirs` to `app/js`
+  - Added `btoa` (binary to ascii) to `helpers`
+  - Added `safeResources` as a separate file under `app/js`
+  - Added ability to whitelist or blacklist URIs to downloads
+  - Added new integration tests for atomicity of downloads
+  - Added new functions under test `fixtures`
+  - Added `sse-examples.txt` (Server-Sent-Events) examples under `fixtures`
+  - Added `transpileStrMathList` to filter URI strings

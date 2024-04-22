@@ -117,6 +117,7 @@ typings/
 /resources/docker/app/src/public/assets/bgz
 /resources/docker/app/src/public/assets/csi
 /resources/docker/app/src/public/assets/tbi
+/resources/docker/app/src/public/assets/temp
 
 # Ignore all .config.json files in the server directory
 resources/docker/app/js/server/*.config.json
