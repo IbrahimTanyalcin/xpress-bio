@@ -39,7 +39,7 @@ async function render (info) {
     */
     const createdFolders = await createFolders(
         info.serverConf.static, 
-        ["bam", "bai", "fa", "fai", "gz", "bgz", "tbi", "csi", "gff"],
+        ["bam", "bai", "fa", "fai", "gz", "bgz", "tbi", "csi", "gff", "temp"],
         {
             base: info.rootFolder, 
             dryRun: false, 

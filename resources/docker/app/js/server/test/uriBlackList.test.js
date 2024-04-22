@@ -12,15 +12,6 @@ const
         timeout: 20000
     },
     nClients = 100,
-    /**
-     * Below you are able to control uriWhiteList
-     * and uriBlackList. Empty whitelist let's 
-     * everything pass, but if it is non-empty
-     * safeResources like gists etc. will also be
-     * included. Alternatively I could have add
-     * https://nodejs.org/ to the blacklist for 
-     * the test to pass.
-     */
     rootProcess = capture(
         `/bin/bash ${resolve(
             __dirname,
@@ -29,11 +20,10 @@ const
             "start.sh"
         )} -j ${btoa(JSON.stringify({
             uriWhiteList: [
-                {
-                    value: "^https:\\\/\\\/dl\\.dnanex\\.us\\\/",
-                    isRegExp: true,
-                    RegExpFlags: "i"
-                }
+            ],
+            uriBlackList: [
+                "^https://www.google.com",
+                `^https://gist.github.com/`
             ]
         }))}`,
         {
@@ -58,7 +48,7 @@ const
     )
     .catch((err) => console.log(err));
 
-describe(`testing download from URIs`, () => {
+describe(`testing uri blacklisting functionality via -j/--jsonconf`, () => {
     beforeAll(async () => {
         await until(function(){
             return serverDetails.started;
@@ -70,7 +60,7 @@ describe(`testing download from URIs`, () => {
         await rootProcess;
     })
 
-    test(`URIs that are not allowed emit worker-bad-host event`, async () => {
+    test(`If a URI matches one of the items in blacklist, worker-bad-host event is fired`, async () => {
         expect.assertions(1);
         const
             rawData = {value: ''},
@@ -80,18 +70,19 @@ describe(`testing download from URIs`, () => {
         await reqDwnld({
             URI: `http://${serverDetails.host}:${serverDetails.port}/dl/nexus`,
             cliResponse,
-            postData: JSON.stringify({payload: "https://nodejs.org/"})
+            postData: JSON.stringify({payload: "https://www.google.com/"})
         });
         const evtsMatchedAndOrdered = await validateSSE(
             rawData,
-            /event:\s*worker-bad-host/mi
+            /event:\s*worker-bad-host/mi,
+            /data:\s*URI\s+is\s+in\s+the\s+blacklist/mi
         );
         console.log(rawData.value);
         expect(evtsMatchedAndOrdered).toBe(true);
     }, serverDetails.timeout);
 
-    test(`allowed URIs emit ordered events`, async () => {
-        expect.assertions(2);
+    test(`Blacklists are evaluated after whitelists so if you add a safe resource, it will fire worker-bad-host event`, async () => {
+        expect.assertions(1);
         const
             rawData = {value: ''},
             cliResponse = await simulClient(serverDetails);
@@ -102,52 +93,12 @@ describe(`testing download from URIs`, () => {
             cliResponse,
             postData: JSON.stringify({payload: "https://gist.github.com/IbrahimTanyalcin/ecf5f91d86a07e31a038283148b4a52e/archive/35deaee01bcfd2c58c24df709f6d6b2a0edc0247.tar.gz"})
         });
-        const evtsMatchedAndOrdered = validateSSE(
+        const evtsMatchedAndOrdered = await validateSSE(
             rawData,
-            /event:\s*worker-dl-start/mi,
-            /event:\s*worker-dl-success/mi,
-            /*
-            there is normally 'worker-dl-progress' event fired
-            multiple times here, but github does not send
-            'content-length' headers
-            */
-            new RegExp([
-                "event:\\s*worker-dl-end\\n",
-                "data:\\s*[A-Z0-9\\-]+?\\.tar\\.gz\\n\\n",
-            ].join(""),"i")
-        ),
-        /* 
-        Also, if the 'example.fas' file is downloaded, server
-        should send all clients a 'fa-file-stats' event right
-        after 'worker-dl-success' event 
-        */
-        evtFaFileStats = validateSSE(
-            /* 
-            remove the first fa-file-stats event 
-            on client connect 
-            */
-            () => ({
-                value: rawData.value.slice(
-                    rawData.value.indexOf("fa-file-stats") + 14
-                )
-            }),
-            /event:\s*worker-dl-success/mi,
-            new RegExp([
-                "event:\\s*fa-file-stats\\n",
-                "data:\\s*\\{\\n",
-                "(?:data:\\s*\"[^\"]+\"\\s*:\\s*[0-9]+,?\\n)*?",
-                "data:\\s*\"example\\.fas\":\\s*[0-9]+,?\\n",
-                "(?:data:\\s*\"[^\"]+\"\\s*:\\s*[0-9]+,?\\n)*?",
-                "data:\\s*\\}"
-            ].join(""),"i")
-        ),
-        validateTimeout = setTimeout(() => {
-            evtsMatchedAndOrdered.break();
-            evtFaFileStats.break();
-            console.log(rawData.value);
-        }, serverDetails.timeout);
-        expect(await evtsMatchedAndOrdered).toBe(true);
-        expect(await evtFaFileStats).toBe(true);
-        clearTimeout(validateTimeout);
+            /event:\s*worker-bad-host/mi,
+            /data:\s*URI\s+is\s+in\s+the\s+blacklist/mi
+        );
+        console.log(rawData.value);
+        expect(evtsMatchedAndOrdered).toBe(true);
     }, serverDetails.timeout);
 });

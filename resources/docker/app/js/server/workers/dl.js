@@ -1,6 +1,8 @@
-const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
+const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
+      {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
       {workerData, parentPort} = require("node:worker_threads"),
       {log, until, rmIndent} = require("../../helpers.js"),
+      {safeResources} = require("../../safeResources.js"),
       {capture} = require("../../capture.js"),
       path = require("path");
 
@@ -23,16 +25,12 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
     /* ############################
     ######WORKER CODE HERE######
     ############################ */
-    const rgxNexus = /^https:\/\/dl\.dnanex\.us\//i,
-          safeResource = `https://gist.github.com/
-            IbrahimTanyalcin/
-            ecf5f91d86a07e31a038283148b4a52e/
-            archive/
-            35deaee01bcfd2c58c24df709f6d6b2a0edc0247.tar.gz
-          `.replace(/\s+/gi,""),
+    const uriWhiteList = transpileStrMatchList(safeResources, workerData.uriWhiteList),
+          uriBlackList = transpileStrMatchList(workerData.uriBlackList),
           rgxPrcnt = /[0-9]+\.[0-9]+%/gi,
           {unlink, rm : remove} = require("fs/promises"),
           dirRoot = path.resolve(workerData.rootFolder, workerData.staticFolder),
+          tempFolder = path.resolve(dirRoot, "temp"),
           fileTypes = {
             fasta: [".fa", ".fas", ".fasta"],
             fastaIndex: [".fai"],
@@ -81,8 +79,15 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
         },{interval: 1000});
         //payload is URI
         const {payload, sessid} = message;
-        if(!rgxNexus.test(payload) && payload !== safeResource) {
-            port.postMessage({type: "worker-bad-host", payload: "URI is not a DNAnexus link", sessid});
+        if (
+            workerData.uriWhiteList.length
+            && !uriWhiteList.match(payload)
+        ) {
+            port.postMessage({type: "worker-bad-host", payload: "URI is not in the whitelist", sessid});
+            return decr();
+        }
+        if (uriBlackList.match(payload)) {
+            port.postMessage({type: "worker-bad-host", payload: "URI is in the blacklist", sessid});
             return decr();
         }
         const {status, statusText, filename = "", timedout = ""} = await capture(
@@ -132,9 +137,9 @@ const {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
               fileIsCompressed = isCompressed(extName);
         port.postMessage({type: "worker-dl-start", payload: filename});
         await capture(
-            `/bin/bash ${path.resolve(workerData.bin,"downloadX.sh")} `
-            + `${payload} ${filepath} `
-            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : "0"),
+            `/bin/bash '${path.resolve(workerData.bin,"downloadX.sh")}' `
+            + `'${payload}' '${filepath}' `
+            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : `--atomic '${tempFolder}'`),
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}

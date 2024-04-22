@@ -130,18 +130,14 @@ let es6exports = {};
                /*  zoomPanel(); //uncomment for enabling shrinking*/
             },false);
             uploadButton.addEventListener("click",function(e){
-                const rgxNexus = /^https:\/\/dl\.dnanex\.us\//gi;
                 Swal.fire({
                     input: 'url',
-                    inputLabel: 'DNAnexus URL',
-                    inputPlaceholder: 'Enter the URL'
+                    inputLabel: 'Enter URL below',
+                    inputPlaceholder: 'https://...'
                 })
                 .then(url => {
                     if (!url.isConfirmed) {
                         return;
-                    }
-                    if (!rgxNexus.test(url.value)){
-                        return Swal.fire("Submitted link must be a DNAnexus link");
                     }
                     const parsed = parseFilename(url.value);
                     if (dlMap.has(parsed.base + parsed.ext)){

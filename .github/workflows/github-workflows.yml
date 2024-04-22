@@ -1,0 +1,128 @@
+name: xpress-bio CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_ROOT: ${{ github.workspace }}/resources/docker/app
+      BUILD_WITH_SAMTOOLS: 'true'
+      LOC: '.local/bin'
+      SAMTOOLS_VERSION: '1.18'
+    steps:
+      - name: Setup HOME_DIR and BASH_ENV
+        run: |
+          echo "HOME_DIR=${HOME}" >> $GITHUB_ENV
+          echo "BASH_ENV=${HOME}/.profile" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v3
+
+      - name: 'Install Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      - name: 'install ubuntu libs'
+        run: >
+          sudo /bin/bash -c "
+          set -e -x -o pipefail;
+          apt-get -y update
+          && apt-get -y install memcached
+          && apt-get -y install libmemcached-tools
+          && apt-get -y install bc
+          && apt-get -y install liblz4-tool
+          && apt-get -y install bsdmainutils
+          ;"
+
+      - name: Cache samtools
+        id: cache-samtools
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${{ env.SAMTOOLS_VERSION }}
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}
+          key: ${{ runner.os }}-samtools-${{ env.SAMTOOLS_VERSION }}
+
+      - name: Verify cache-samtools binaries
+        if: ${{ steps.cache-samtools.outputs.cache-hit == 'true' }}
+        run: |
+          set -e
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${SAMTOOLS_VERSION}/samtools --version
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${SAMTOOLS_VERSION}/bcftools --version
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${SAMTOOLS_VERSION}/htsfile --version
+        shell: bash
+
+      - name: 'install and build Samtools'
+        if: ${{ (env.BUILD_WITH_SAMTOOLS == 'true') && (steps.cache-samtools.outputs.cache-hit != 'true') }}
+        run: |
+          set -e -x -o pipefail;
+          sudo apt-get -y update
+          sudo apt-get -y install libcurl4-openssl-dev
+          mkdir -p ./${{ env.LOC }};
+          cd ./${{ env.LOC }};
+          curl -fsSLO https://github.com/samtools/samtools/releases/download/${{ env.SAMTOOLS_VERSION }}/samtools-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          curl -fsSLO https://github.com/samtools/bcftools/releases/download/${{ env.SAMTOOLS_VERSION }}/bcftools-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          curl -fsSLO https://github.com/samtools/htslib/releases/download/${{ env.SAMTOOLS_VERSION }}/htslib-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          tar -xvjf htslib-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          tar -xvjf samtools-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          tar -xvjf bcftools-${{ env.SAMTOOLS_VERSION }}.tar.bz2;
+          pushd bcftools-${{ env.SAMTOOLS_VERSION }} && make && popd;
+          pushd htslib-${{ env.SAMTOOLS_VERSION }} && make && popd;
+          pushd samtools-${{ env.SAMTOOLS_VERSION }} && make && popd;
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: 'add to PATH Samtools'
+        run: |
+          set -e -x -o pipefail;
+          if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/bcftools-${{ env.SAMTOOLS_VERSION }}"' >> ${{ env.BASH_ENV }}
+          fi
+          if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${{ env.SAMTOOLS_VERSION }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${{ env.SAMTOOLS_VERSION }}"' >> ${{ env.BASH_ENV }}
+          fi
+          if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}"' >> ${{ env.BASH_ENV }}
+          fi
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: 'npm install and output coverage'
+        run: |
+          npm install
+          npm run test-server-github
+        working-directory: ${{ env.PACKAGE_ROOT }}
+
+      - name: Commit and push to another repo
+        run: |
+          set -e
+          git config --global user.email ${{ secrets.GIT_USER_EMAIL }}
+          git config --global user.name ${{ secrets.GIT_USER_NAME }}
+          git clone https://gsk-tech:${{ secrets.GH_PAT }}@github.com/gsk-tech/test-blog.git temp_repo
+          mkdir -p ${{ env.TARGET_DIR }}
+          cp -r "${{ env.TEST_ARTIFACT }}" "${{ env.TARGET_DIR }}"/
+          cd temp_repo
+          /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ENTRY_JSON }}" "pipeline artifacts"
+          /bin/bash "${{ env.UPDATE_DATE_SCRIPT }}" "${{ env.ARTIFACT_JSON }}" "xpress-bio.coverage.js"
+          git add "${{ env.ENTRY_JSON }}"
+          git add "${{ env.ARTIFACT_JSON }}"
+          git add "${{ env.TARGET_DIR }}/lcov-report"
+          git commit -m "Add xpress-bio coverage results $(date -u)"
+          git push
+        working-directory: ${{ env.PACKAGE_ROOT }}
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          TEST_ARTIFACT: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/lcov-report
+          TARGET_DIR: ${{ env.PACKAGE_ROOT }}/temp_repo/pipeline-artifacts/xpress-bio
+          ENTRY_JSON: ${{ env.PACKAGE_ROOT }}/temp_repo/static/md/meta.json
+          ARTIFACT_JSON: "${{ env.PACKAGE_ROOT }}/temp_repo/static/md/pipeline artifacts/meta.json"
+          UPDATE_DATE_SCRIPT: ${{ env.PACKAGE_ROOT }}/temp_repo/.github/bin/update-date.sh
+
+      - name: 'Publish Code Coverage Results'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/cobertura-coverage.xml
