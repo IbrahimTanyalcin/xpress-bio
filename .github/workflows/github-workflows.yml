@@ -13,6 +13,9 @@ jobs:
       BUILD_WITH_SAMTOOLS: 'true'
       LOC: '.local/bin'
       SAMTOOLS_VERSION: '1.18'
+      BUILD_WITH_BLAST: 'true'
+      BLAST_VERSION: '2.15.0'
+      BLAST_ARCH: 'x64-linux.tar.gz'
     steps:
       - name: Setup HOME_DIR and BASH_ENV
         run: |
@@ -87,6 +90,39 @@ jobs:
           fi
           if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}" ${{ env.BASH_ENV }}; then
             echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/htslib-${{ env.SAMTOOLS_VERSION }}"' >> ${{ env.BASH_ENV }}
+          fi
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: Cache blast
+        id: cache-blast
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin
+          key: ${{ runner.os }}-blast-${{ env.BLAST_VERSION }}
+      
+      - name: Verify cache-blast binaries
+        if: ${{ steps.cache-blast.outputs.cache-hit == 'true' }}
+        run: |
+          set -e
+          ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${BLAST_VERSION}+/bin/blastn -version
+        shell: bash
+
+      - name: 'install Blast'
+        if: ${{ (env.BUILD_WITH_BLAST == 'true') && (steps.cache-blast.outputs.cache-hit != 'true') }}
+        run: |
+          set -e -x -o pipefail;
+          mkdir -p ./${{ env.LOC }};
+          cd ./${{ env.LOC }};
+          curl -fsSLO https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${{ env.BLAST_VERSION }}/ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}
+          tar -xvzf ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: 'add to PATH Blast'
+        run: |
+          set -e -x -o pipefail;
+          if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin"' >> ${{ env.BASH_ENV }}
           fi
         working-directory: ${{ env.HOME_DIR }}
 
