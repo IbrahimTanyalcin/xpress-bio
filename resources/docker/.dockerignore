@@ -9,6 +9,8 @@
 **/src/public/assets/bgz/*
 **/src/public/assets/csi/*
 **/src/public/assets/tbi/*
+**/src/public/assets/temp/*
+**/src/public/assets/blast/*
 
 # Ignore all .config.json files in the server directory
 app/js/server/*.config.json

@@ -1,4 +1,7 @@
+let once;
 function generateStyle (outerBarcode) {
+    if (once){return}
+    once = 1;
     ch(document.head)`
         *> ${"style"} |> sappend ${0}
         >> textContent ${`
@@ -16,6 +19,7 @@ function generateStyle (outerBarcode) {
                 align-items: center;
                 justify-content: space-between;
                 color: var(--font-color-light);
+                z-index: 1;
             }
             .${outerBarcode} .info-msg {
                 background-color: var(--info-color);

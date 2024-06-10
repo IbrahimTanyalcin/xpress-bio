@@ -2,7 +2,7 @@ import registerHover from "./registerHover.js";
 import registerResponsive from "./registerResponsive.js";
 
 const rndGen = taskq._exportPersist.genHexStr,
-    renderTable = ({cols, rows, keys, contentArea, modal}) => {
+    renderTable = ({cols, rows, keys, contentArea, modal, ...options}) => {
         const rndID = rndGen(8, 2, "table-viewer-table-");
         let offset = "2rem";
         ch`
@@ -42,8 +42,8 @@ const rndGen = taskq._exportPersist.genHexStr,
             `
         }}
         `;
-        registerResponsive({modal, tableID: rndID, offset});
-        registerHover({modal, table: document.getElementById(rndID), cols, keys, rows});
+        registerResponsive({modal, tableID: rndID, offset, ...options});
+        registerHover({modal, table: document.getElementById(rndID), cols, keys, rows, ...options});
     }
 
 export default renderTable;

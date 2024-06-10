@@ -244,6 +244,13 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     switch (config.command) {
                         case "index":
                         case "faidx":
+                            if (config.command === "faidx"){
+                                port.postMessage({
+                                    type: "worker-fasta-bam-index-blast-db-request",
+                                    payload: "Requesting blastn to create a db if not exists",
+                                    filename: baseFileName
+                                });
+                            }
                             return `${samtools} ${config.command} "${input}" -o "${output}"`
                         case "tabix":
                             return `(${tabix} -p gff "${input}" && mv "${input}.tbi" "${output[0]}") || (${tabix} -p gff --csi "${input}" && mv "${input}.csi" "${output[1]}")`

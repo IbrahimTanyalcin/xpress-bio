@@ -39,3 +39,12 @@
   - Added new functions under test `fixtures`
   - Added `sse-examples.txt` (Server-Sent-Events) examples under `fixtures`
   - Added `transpileStrMathList` to filter URI strings
+- ## v0.2.0
+  ### changes
+  - Integrates `blastn` (v2.15.0)
+  - added automatic and parallel blast db creation
+  - added ability to run multiple blast queries on frontend
+  - added ability for blast runs to generate both output format 6 and default format
+  - added subscriber v0.0.3 to coordinate event dispatches to blast windows
+  - extended fasta deletion from the UI to also silently remove blast queries and databases associated with that reference fasta
+  - extended pipeline to build with `blastn`
