@@ -79,3 +79,21 @@ td .hoverable, th .hoverable {
 td .hoverable:hover, th .hoverable:hover {
     background: var(--primary-color);
 }
+
+td .hoverable.info:hover, th .hoverable.info:hover {
+    background: var(--info-color);
+}
+
+td.forward-strand {
+    clip-path: polygon(64% 0, 100% 50%, 64% 100%, 0 100%, 0 0);
+    background: linear-gradient(to right, transparent, var(--success-color)) !important;
+}
+
+td.reverse-strand {
+    clip-path: polygon(36% 0, 100% 0, 100% 100%, 36% 100%, 0 50%);
+    background: linear-gradient(to right, var(--error-color), transparent) !important;
+}
+
+:is(td.forward-strand, td.reverse-strand) .hoverable {
+    text-align: center;
+}

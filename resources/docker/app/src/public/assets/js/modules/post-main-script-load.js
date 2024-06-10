@@ -11,7 +11,11 @@
             },
             "static/components/@tools/js/init.js": {
                 "load-on-click": toolsButton
-            }
+            },
+            "static/js/subscriber.0.0.3.evergreen.es.js": {
+                "type": "module"
+            },
+            "static/components/@modal/js/modal.0.0.0.evergreen.umd.min.js": null
         }).then(srcs => console.log(`script content delivered: ${srcs}`));
     }
     postMainScriptLoad._taskqId = "postMainScriptLoad";

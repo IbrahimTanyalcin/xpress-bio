@@ -22,6 +22,12 @@
                         )).render
                     ]
                 ]}
+                adopt ...${["dna-spinner", (await import("../../components/@dnaSpinner/js/dna-spinner.js")).dnaSpinnerGen(ch)]}
+                <dna-spinner ${{}}/>
+                adopt ...${["bioinfo-input", (await import("../../components/@bioinfoInput/js/bioinfo-input.js")).bioinfoInputGen(ch)]}
+                <bioinfo-input ${{}}/>
+                adopt ...${["cody-logger", (await import("../../components/@codyLogger/js/cody-logger.js")).codyLoggerGen(ch)]}
+                <cody-logger ${{}}/>
                 => ${() => () => {res(true)}}
                 `
             })

@@ -1,7 +1,7 @@
 const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
       {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
       {workerData, parentPort} = require("node:worker_threads"),
-      {log, until, rmIndent} = require("../../helpers.js"),
+      {log, until, rmIndent, sanitizeFilename} = require("../../helpers.js"),
       {safeResources} = require("../../safeResources.js"),
       {capture} = require("../../capture.js"),
       path = require("path");
@@ -114,6 +114,7 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
             });
             return decr();
         }
+        //filename = sanitizeFilename(filename);
         if (!filename) {
             port.postMessage({type: "worker-bad-filename", payload: "Filename empty or broken link", sessid});
             return decr();
