@@ -21,3 +21,10 @@ Not all e2e tests are covering newer functions, so as a preflight mechanism, man
   - move `genome.fa` from `temp` into `fa/`
   - check the integrity of the generated `genome.fai` and `blast/db/genome.fa/`
   - repeat the same test without first running a blast query to check if server silently responds with `400` (because `/query/genome.fa` or contents do not exist to be deleted)
+
+- ## v0.2.0 Running a query before blast db is created
+  - move `genome.fa` to `assets/temp/`
+  - delete `genome.fa` from the UI, verify that queries, blast database, fai indexes and fasta file are removed
+  - move `genome.fa` back to `fa/` via shell `mv`
+  - once db creation hexagon pulsates, refresh the page, click `Analyze` and open a igv app with `genome.fa`. The UI will display that fai index cannot be found. Ignore the error
+  - start a blast query before db creation is complete. The window waits until blastdb is created, displays messages related to blastdb creation on the logs and proceeds to run the query once db is ready
