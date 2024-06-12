@@ -14,6 +14,7 @@ curl -fsSLO https://github.com/samtools/htslib/releases/download/$SAMTOOLS_VERSI
 tar -xvjf htslib-$SAMTOOLS_VERSION.tar.bz2
 tar -xvjf samtools-$SAMTOOLS_VERSION.tar.bz2
 tar -xvjf bcftools-$SAMTOOLS_VERSION.tar.bz2
+rm htslib-$SAMTOOLS_VERSION.tar.bz2 samtools-$SAMTOOLS_VERSION.tar.bz2 bcftools-$SAMTOOLS_VERSION.tar.bz2
 pushd bcftools-$SAMTOOLS_VERSION && make && popd
 pushd htslib-$SAMTOOLS_VERSION && make && popd
 pushd samtools-$SAMTOOLS_VERSION && make && popd

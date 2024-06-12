@@ -10,6 +10,7 @@ mkdir -p $TARGET_DIR
 cd $TARGET_DIR
 curl -fsSLO https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/$BLAST_VERSION/ncbi-blast-$BLAST_VERSION+-$BLAST_ARCH
 tar -xvzf ncbi-blast-$BLAST_VERSION+-$BLAST_ARCH
+rm ncbi-blast-$BLAST_VERSION+-$BLAST_ARCH
 
 for tool in ncbi-blast; do
     chown -R root:IPV $TARGET_DIR/$tool-$BLAST_VERSION+
