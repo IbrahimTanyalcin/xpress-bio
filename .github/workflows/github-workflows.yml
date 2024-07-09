@@ -16,14 +16,14 @@ jobs:
       BUILD_WITH_BLAST: 'true'
       BLAST_VERSION: '2.15.0'
       BLAST_ARCH: 'x64-linux'
-      BLAST_HOME: ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+
-      BLAST_TARBALL: ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}.tar.gz
       BLAST_DOWNLOAD_URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+
     steps:
       - name: Setup HOME_DIR and BASH_ENV
         run: |
           echo "HOME_DIR=${HOME}" >> $GITHUB_ENV
           echo "BASH_ENV=${HOME}/.profile" >> $GITHUB_ENV
+          echo "BLAST_HOME=${HOME}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+" >> $GITHUB_ENV
+          echo "BLAST_TARBALL=ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}.tar.gz" >> $GITHUB_ENV
 
       - uses: actions/checkout@v3
 
