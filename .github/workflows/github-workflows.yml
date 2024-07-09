@@ -15,7 +15,10 @@ jobs:
       SAMTOOLS_VERSION: '1.18'
       BUILD_WITH_BLAST: 'true'
       BLAST_VERSION: '2.15.0'
-      BLAST_ARCH: 'x64-linux.tar.gz'
+      BLAST_ARCH: 'x64-linux'
+      BLAST_HOME: ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+
+      BLAST_TARBALL: ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}.tar.gz
+      BLAST_DOWNLOAD_URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+
     steps:
       - name: Setup HOME_DIR and BASH_ENV
         run: |
@@ -98,14 +101,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin
+            ${{ env.BLAST_HOME }}/bin
           key: ${{ runner.os }}-blast-${{ env.BLAST_VERSION }}
       
       - name: Verify cache-blast binaries
         if: ${{ steps.cache-blast.outputs.cache-hit == 'true' }}
         run: |
           set -e
-          ${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${BLAST_VERSION}+/bin/blastn -version
+          ${{ env.BLAST_HOME }}/bin/blastn -version
         shell: bash
 
       - name: 'install Blast'
@@ -114,15 +117,15 @@ jobs:
           set -e -x -o pipefail;
           mkdir -p ./${{ env.LOC }};
           cd ./${{ env.LOC }};
-          curl -fsSLO https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${{ env.BLAST_VERSION }}/ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}
-          tar -xvzf ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}
+          curl -fsSLO ${{ env.BLAST_DOWNLOAD_URL}}/${{ env.BLAST_VERSION }}/${{ env.BLAST_TARBALL }}
+          tar -xvzf ${{ env.BLAST_TARBALL }}
         working-directory: ${{ env.HOME_DIR }}
 
       - name: 'add to PATH Blast'
         run: |
           set -e -x -o pipefail;
-          if ! grep -q "${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin" ${{ env.BASH_ENV }}; then
-            echo 'export PATH="$PATH:${{ env.HOME_DIR }}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+/bin"' >> ${{ env.BASH_ENV }}
+          if ! grep -q "${{ env.BLAST_HOME }}/bin" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.BLAST_HOME }}/bin"' >> ${{ env.BASH_ENV }}
           fi
         working-directory: ${{ env.HOME_DIR }}
 
@@ -158,7 +161,7 @@ jobs:
           UPDATE_DATE_SCRIPT: ${{ env.PACKAGE_ROOT }}/temp_repo/.github/bin/update-date.sh
 
       - name: 'Publish Code Coverage Results'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/cobertura-coverage.xml
