@@ -42,7 +42,7 @@ ENV PATH="$PATH:$TARGET_DIR/samtools-$SAMTOOLS_VERSION:$TARGET_DIR/bcftools-$SAM
 ###############################################################################
 ####################################<BLAST>####################################
 ###############################################################################
-ARG BLAST_ARCH=x64-linux.tar.gz
+ARG BLAST_ARCH=x64-linux
 ARG BLAST_VERSION=2.15.0
 ARG INSTALL_BLAST=true
 

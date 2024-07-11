@@ -475,7 +475,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
     let minAgeMs = 1 * 4 * 60 * 60 * 1000,
         defAgeMs = 2 * 24 * 60 * 60 * 1000,
         maxAgeMs = Math.max(minAgeMs, +(workerData?.blastnConf?.maxAgeMs ?? defAgeMs) || 0),
-        maxInterval = 0x7FFFFFFF;
+        maxInterval = 0x7FFFFFFF; //largest 32 bit signed integer, approx. 24.8 days, cant be bigger
     const loopClearQueries = until(async function(){
         try {
             const 
