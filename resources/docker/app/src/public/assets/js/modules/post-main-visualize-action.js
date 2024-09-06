@@ -39,6 +39,7 @@ let IGVBrowsers = {browsers: new Set(), pinned: void(0), methods: {}};
         let igvData;
         IGVBrowsers.methods.loadIGVTrack = loadIGVTrack;
         IGVBrowsers.methods.shortenStringMiddle = shortenStringMiddle;
+        IGVBrowsers.methods.parseFilename = parseFilename;
 
         actionButton.addEventListener("click", function(){
             if(this._disabled){return}

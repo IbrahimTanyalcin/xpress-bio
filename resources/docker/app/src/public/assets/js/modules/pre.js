@@ -1,6 +1,10 @@
 let keepFirstNElements,
     bytesToHuman,
-    shortenStringMiddle;
+    shortenStringMiddle,
+    loadCSSAsyncOnce,
+    loadCSSAsyncOnceMulti,
+    loadScriptAsyncOnce,
+    loadScriptAsyncOnceMulti;
 !function(){
     function pre() {
         var body = document.body,
@@ -462,7 +466,11 @@ let keepFirstNElements,
             var match = name.match(/([^\/\\]+?)(\.[^.]*)?$/i);
             return {
                 base: match?.[1] ?? (()=>{throw new Error("cannot parse filename")})(), 
-                ext: match?.[2] ?? ""
+                ext: match?.[2] ?? "",
+                get full() {
+                    delete this.full;
+                    return this.full = this.base + this.ext
+                }
             };
         }
         var genHexStr = (function(){
@@ -564,6 +572,40 @@ let keepFirstNElements,
             );
             return Promise.all(promises);
         };
+        loadCSSAsyncOnce = function(src, attrs = {}){
+            const 
+                head = (document.head || document.getElementsByTagName("head")[0]),
+                oldNode = head.querySelector("link[href*='" + src.replace(/\?.*$/gi,"") + "']");
+            if (oldNode) {
+                console.log(`css content was already delivered: ${src}`);
+                return Promise.resolve(src);
+            }
+            return loadCSSAsync(src, attrs);
+        };
+        loadCSSAsyncOnceMulti = function (srcObj) {
+            const promises = [];
+            Object.entries(srcObj).forEach(([src, attrs]) => 
+                promises.push(loadCSSAsyncOnce(src, attrs ?? {}))
+            );
+            return Promise.all(promises);
+        };
+        loadScriptAsyncOnce = function(src, attrs = {}){
+            const 
+                head = (document.head || document.getElementsByTagName("head")[0]),
+                oldNode = head.querySelector("script[src*='" + src.replace(/\?.*$/gi,"") + "']");
+            if (oldNode) {
+                console.log(`script content was already delivered: ${src}`);
+                return Promise.resolve(src);
+            }
+            return loadScriptAsync(src, attrs);
+        };
+        loadScriptAsyncOnceMulti = function (srcObj) {
+            const promises = [];
+            Object.entries(srcObj).forEach(([src, attrs]) => 
+                promises.push(loadScriptAsyncOnce(src, attrs ?? {}))
+            );
+            return Promise.all(promises);
+        };
         var reusableSelf = {
             "spaceAround": spaceAround,
             "nrDotNr": nrDotNr,
@@ -611,7 +653,11 @@ let keepFirstNElements,
              .export(loadScriptAsyncMulti, "loadScriptAsyncMulti");
         taskq._exportPersist = taskq._exportPersist || {
             loadCSSAsync: loadCSSAsync,
+            loadCSSAsyncOnce: loadCSSAsyncOnce,
+            loadCSSAsyncOnceMulti: loadCSSAsyncOnceMulti,
             loadScriptAsync: loadScriptAsync,
+            loadScriptAsyncOnce: loadScriptAsyncOnce,
+            loadScriptAsyncOnceMulti: loadScriptAsyncOnceMulti,
             genHexStr
         };
         ////////////////////////////////
@@ -622,4 +668,12 @@ let keepFirstNElements,
     pre._taskqWaitFor = ["LocalStorage"];
     taskq.push(pre);
 }();
-export {keepFirstNElements, bytesToHuman, shortenStringMiddle};
+export {
+    keepFirstNElements, 
+    bytesToHuman, 
+    shortenStringMiddle, 
+    loadCSSAsyncOnce, 
+    loadCSSAsyncOnceMulti,
+    loadScriptAsyncOnce,
+    loadScriptAsyncOnceMulti
+};

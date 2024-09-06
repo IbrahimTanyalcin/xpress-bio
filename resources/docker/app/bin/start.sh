@@ -26,7 +26,7 @@ fi
 #set -- --npm -foo bar -baz qux -- --env "somevar=somevalstart" --nodemon -pqrs qwyu --ENV "someOtherEnv=someOtherVal" -- anotherArg -- foo barr --baz qux;
 cmdArgs=("$@")
 npmArgs=()
-nodemonArgs=(-e js,mjs,json,txt)
+nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
 nodeArgs=(--no-daemon)
 declare -n currCtx=nodeArgs;
 
@@ -82,7 +82,7 @@ then
                 > Container mode is detected.
                 > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EOL
-    su IPV -s /bin/bash -c "cd /app && npm start ${allArgs[*]}"
+    su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\\\*/\\\\\*/g')"
 else 
     cd "$(readlink -f -- "$(dirname -- "$(readlink -f -- "$0")")/..")"
     npm start "${allArgs[@]}"

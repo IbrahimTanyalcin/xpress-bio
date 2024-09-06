@@ -16,9 +16,16 @@ module.exports = async function({express, app, info, files, serverSent}){
             ".z": path.resolve(dirRoot, "gz"),
             ".tgz": path.resolve(dirRoot, "gz"),
             ".taz": path.resolve(dirRoot, "gz"),
-            ".lz4": path.resolve(dirRoot, "gz")
-          },
+            ".lz4": path.resolve(dirRoot, "gz"),
+            ".n*": path.resolve(dirRoot, "blast", "db"),
+            "md5sum.txt": path.resolve(dirRoot, "blast", "query")
+        },
         extArr = Object.keys(extMap),
+        useRm = ["blast-db", "blast-query-folder"],
+        doNotFireSuccess = ["blast-db", "blast-query-folder"],
+        doNotFireFail = ["blast-db", "blast-query-folder"],
+        portKey = Symbol.for("customPort"),
+        nameKey = Symbol.for("customName"),
         deleteFile = function({dir, fileType, req, res, next}) {
             const {refreshFasta} = require('../../refreshFasta.js'),
                   {refreshBam} = require('../../refreshBam.js');
@@ -41,15 +48,32 @@ module.exports = async function({express, app, info, files, serverSent}){
                 return
             }
             access(fileName, constants.F_OK | constants.R_OK)
-            .then(() => unlink(fileName))
             .then(() => {
-                serverSent
-                .msg("streamOne", req.session.id,  {directive: "event", payload: "file-delete-success"})
-                .msg("streamOne", req.session.id, {payload: {
-                    fileType, 
-                    fileName: fName, 
-                    message: `${fName} has been removed.`
-                }});
+                if (useRm.includes(fileType)) {return remove(fileName, {recursive: true})}
+                return unlink(fileName)
+            })
+            .then(() => {
+                switch (fileType) {
+                    case "blast-db":
+                        const workerBlastn = [...info.workers].filter(d => d[nameKey] === "worker-blastn")[0];
+                        if(!workerBlastn){break}
+                        workerBlastn[portKey].postMessage({
+                            type: "blast-db-set-delete-request",
+                            payload: "Requesting blastn db flag deletion from blastnDbReady set",
+                            filename: fName
+                        })
+                        break;
+                    default:
+                }
+                if (!doNotFireSuccess.includes(fileType)) {
+                    serverSent
+                    .msg("streamOne", req.session.id,  {directive: "event", payload: "file-delete-success"})
+                    .msg("streamOne", req.session.id, {payload: {
+                        fileType, 
+                        fileName: fName, 
+                        message: `${fName} has been removed.`
+                    }});
+                }
                 if (fileType === "reference") {
                     refreshFasta({info, serverSent});
                 } else if (fileType === "alignment") {
@@ -103,6 +127,14 @@ module.exports = async function({express, app, info, files, serverSent}){
             case "bai":
                 deleteFile({dir: extMap[".bai"], fileType: "bam-index", req, res, next});
                 break;
+            case "blastdb":
+            case "blast-db":
+                deleteFile({dir: extMap[".n*"], fileType: "blast-db", req, res, next});
+                break;
+            case "blastQueryFolder":
+            case "blast-query-folder":
+                deleteFile({dir: extMap["md5sum.txt"], fileType: "blast-query-folder", req, res, next});
+                break;
             default:
                 next({
                     fileType: "",
@@ -111,7 +143,8 @@ module.exports = async function({express, app, info, files, serverSent}){
                 });
         }
     }, function(err, req, res, next){
-        serverSent
+        if (!doNotFireFail.includes(err?.fileType)) {
+            serverSent
             .msg("streamOne", req.session.id,  {directive: "event", payload: "file-delete-fail"})
             .msg("streamOne", req.session.id, {
                 payload: err instanceof Error 
@@ -121,6 +154,7 @@ module.exports = async function({express, app, info, files, serverSent}){
                         message: "There was an error removing the file."
                     } : err
             });
+        }
         res.status(400).end();
     });
 }

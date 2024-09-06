@@ -13,11 +13,17 @@ jobs:
       BUILD_WITH_SAMTOOLS: 'true'
       LOC: '.local/bin'
       SAMTOOLS_VERSION: '1.18'
+      BUILD_WITH_BLAST: 'true'
+      BLAST_VERSION: '2.15.0'
+      BLAST_ARCH: 'x64-linux'
+      BLAST_DOWNLOAD_URL: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+
     steps:
       - name: Setup HOME_DIR and BASH_ENV
         run: |
           echo "HOME_DIR=${HOME}" >> $GITHUB_ENV
           echo "BASH_ENV=${HOME}/.profile" >> $GITHUB_ENV
+          echo "BLAST_HOME=${HOME}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+" >> $GITHUB_ENV
+          echo "BLAST_TARBALL=ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}.tar.gz" >> $GITHUB_ENV
 
       - uses: actions/checkout@v3
 
@@ -90,6 +96,39 @@ jobs:
           fi
         working-directory: ${{ env.HOME_DIR }}
 
+      - name: Cache blast
+        id: cache-blast
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.BLAST_HOME }}/bin
+          key: ${{ runner.os }}-blast-${{ env.BLAST_VERSION }}
+      
+      - name: Verify cache-blast binaries
+        if: ${{ steps.cache-blast.outputs.cache-hit == 'true' }}
+        run: |
+          set -e
+          ${{ env.BLAST_HOME }}/bin/blastn -version
+        shell: bash
+
+      - name: 'install Blast'
+        if: ${{ (env.BUILD_WITH_BLAST == 'true') && (steps.cache-blast.outputs.cache-hit != 'true') }}
+        run: |
+          set -e -x -o pipefail;
+          mkdir -p ./${{ env.LOC }};
+          cd ./${{ env.LOC }};
+          curl -fsSLO ${{ env.BLAST_DOWNLOAD_URL}}/${{ env.BLAST_VERSION }}/${{ env.BLAST_TARBALL }}
+          tar -xvzf ${{ env.BLAST_TARBALL }}
+        working-directory: ${{ env.HOME_DIR }}
+
+      - name: 'add to PATH Blast'
+        run: |
+          set -e -x -o pipefail;
+          if ! grep -q "${{ env.BLAST_HOME }}/bin" ${{ env.BASH_ENV }}; then
+            echo 'export PATH="$PATH:${{ env.BLAST_HOME }}/bin"' >> ${{ env.BASH_ENV }}
+          fi
+        working-directory: ${{ env.HOME_DIR }}
+
       - name: 'npm install and output coverage'
         run: |
           npm install
@@ -122,7 +161,7 @@ jobs:
           UPDATE_DATE_SCRIPT: ${{ env.PACKAGE_ROOT }}/temp_repo/.github/bin/update-date.sh
 
       - name: 'Publish Code Coverage Results'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: ${{ env.PACKAGE_ROOT }}/js/server/test/coverage/cobertura-coverage.xml
