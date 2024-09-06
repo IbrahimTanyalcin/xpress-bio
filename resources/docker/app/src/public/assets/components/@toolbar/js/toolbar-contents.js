@@ -1,5 +1,6 @@
 import { Annotations } from "../../../js/modules/main-annotation-indexing.js";
 const ch = ch2;
+let blastQuery = null;
 export default function (IGVBrowsers, data, datum, resize) {
     const 
         min = Math.min,
@@ -72,9 +73,11 @@ export default function (IGVBrowsers, data, datum, resize) {
             </div>
         `,
         add: ch.dom`<span title="add selected tracks"><i class="fa fa-plus-square"></i></span>`,
-        back: ch.dom`<span title="go back"><i class="fa fa-long-arrow-left"></i></span>`
+        back: ch.dom`<span title="go back"><i class="fa fa-long-arrow-left"></i></span>`,
+        search: ch.dom`<span title="run blast query"><i class="fa fa-search"></i></span>`,
+        refresh: ch.dom`<span title="clear regions of interest"><i class="fa fa-refresh"></i></span>`
     },
-    deck1 = ["delete", "tracks", "pin", "up", "down"],
+    deck1 = ["delete", "tracks", "pin", "search", "refresh", "up", "down"],
     deck2 = ["annot", "add", "back"];
     return [
         {
@@ -106,6 +109,25 @@ export default function (IGVBrowsers, data, datum, resize) {
                     return "var(--success-color-transparent)"
                 }}
             `}
+        },
+        {
+            html: icons.search,
+            cb: async () => {
+                if (icons.search._busy){return}
+                icons.search._busy = true;
+                if (!blastQuery) {
+                    blastQuery = (await import("/static/js/modules/module-blast-query.js")).default;
+                    await ch.until(() => blastQuery?.value).lastOp;
+                }
+                blastQuery.value(IGVBrowsers, data, datum); //pass datum etc.
+                icons.search._busy = false;
+            }
+        },
+        {
+            html: icons.refresh,
+            cb: ch.throttle(async () => {
+                datum.browser.clearROIs();
+            })
         },
         {
             html: icons.up,

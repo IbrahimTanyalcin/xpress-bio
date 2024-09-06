@@ -2,7 +2,7 @@ import copyTextToClipboard from "../../../js/modules/copyTextToClipboard.js";
 import { IGVBrowsers } from "../../../js/modules/post-main-visualize-action.js";
 
 const rndGen = taskq._exportPersist.genHexStr,
-    registerHover = ({modal, table, cols, rows, keys}) => {
+    registerHover = ({modal, table, cols, rows, keys, ...options}) => {
         const showValue = rndGen(8, 2, "table-viewer-show-value-"),
             copyToClipboard = rndGen(8, 2, "table-viewer-copy-clipboard-"),
             igvGoTo = rndGen(8, 2, "table-viewer-igv-go-to-"),
@@ -34,6 +34,7 @@ const rndGen = taskq._exportPersist.genHexStr,
                 const td = this.closest("td");
                 if(!td){return}
                 modal.issueInfo({msg: td.getAttribute("title"), fadeout: 30000});
+                options?.onClickShow?.({index: rowInfoEl.__index, modal, table, cols, rows, keys, ...options});
             }
         ]}
         up ${0}
@@ -43,6 +44,7 @@ const rndGen = taskq._exportPersist.genHexStr,
                 const td = this.closest("td");
                 if(!td){return}
                 copyTextToClipboard(td.getAttribute("title"));
+                options?.onClickCopy?.({index: rowInfoEl.__index, modal, table, cols, rows, keys, ...options});
             }
         ]}
         up ${0}
@@ -81,7 +83,11 @@ const rndGen = taskq._exportPersist.genHexStr,
                         searchStr = `${rowInfoEl.__identifier}:${searchStrStart}-${searchStrEnd}`;
                     await browser.search(searchStr)
                     .then(async (x)=> {
-                        if (x ?? 1) {return}
+                        if (x ?? 1) {
+                            //x is true if region was found, false if not.
+                            options?.onClickGo?.({searchStr, browser, index: rowInfoEl.__index, modal, table, cols, rows, keys, ...options});
+                            return
+                        }
                         if (doNotShowIGVSearchWarning){return}
                         const result = await Swal.fire({
                             icon: "warning",
@@ -158,6 +164,7 @@ const rndGen = taskq._exportPersist.genHexStr,
                             identifier = row[keys["sequence-index"]],
                             position = row[keys["position-index"]],
                             goto = `${identifier}:${position}`;
+                        rowInfoEl.__index = idx;
                         rowInfoEl.__identifier = identifier;
                         rowInfoEl.__position = position;
                         rowInfoEl.__goto = goto;
@@ -174,6 +181,7 @@ const rndGen = taskq._exportPersist.genHexStr,
                     = rowInfoEl.__identifier
                     = rowInfoEl.__position
                     = "";
+                    options?.onPointerOut?.({rowInfoEl, index: rowInfoEl.__index, modal, table, cols, rows, keys, ...options});
                 }
             ]
         }

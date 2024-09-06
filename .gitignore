@@ -107,7 +107,7 @@ typings/
 #ignore dna-nexus specific folder
 /resources/home/
 
-#ignore fasta, fai, bam, bai files
+#ignore fasta, fai, bam, bai, blast related and temporary files
 /resources/docker/app/src/public/assets/fa
 /resources/docker/app/src/public/assets/fai
 /resources/docker/app/src/public/assets/bam
@@ -118,6 +118,7 @@ typings/
 /resources/docker/app/src/public/assets/csi
 /resources/docker/app/src/public/assets/tbi
 /resources/docker/app/src/public/assets/temp
+/resources/docker/app/src/public/assets/blast
 
 # Ignore all .config.json files in the server directory
 resources/docker/app/js/server/*.config.json

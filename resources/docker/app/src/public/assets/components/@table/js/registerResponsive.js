@@ -1,7 +1,7 @@
 
-function registerResponsive({ modal, tableID, offset }) {
+function registerResponsive({ modal, tableID, offset, ...options}) {
     let timeoutID = void (0),
-        breakpoint = 568;
+        breakpoint = options?.breakpoint ?? 568;
     const table = document.getElementById(tableID),
         responsiveTable = new basictable(`#${tableID}`),
         switchResponsive = function (modal, event) {

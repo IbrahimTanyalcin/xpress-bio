@@ -1,14 +1,16 @@
 !async function({
     loadCSSAsync,
+    loadCSSAsyncOnce,
     loadScriptAsync,
+    loadScriptAsyncOnce,
     expandButton,
     toolsButton,
     side
 }){
-    await loadScriptAsync("static/components/@tools/js/chain.0.0.0.evergreen.umd.min.js");
-    await loadScriptAsync("static/components/@tools/js/ch.js");
-    await loadScriptAsync("static/components/@modal/js/modal.0.0.0.evergreen.umd.min.js");
-    await loadCSSAsync("static/components/@tools/css/init.css");
+    await loadScriptAsyncOnce("static/components/@tools/js/chain.0.0.0.evergreen.umd.min.js");
+    await loadScriptAsyncOnce("static/components/@tools/js/ch.js");
+    await loadCSSAsyncOnce("static/components/@tools/css/init.css");
+    await rafx.async().animate(function(){return (window || self || globalThis)?.Modal}).until(function(v){return v});
     const toolRegister = taskq._exportPersist.toolRegister = new Map();
     let renderBusy = 0;
     function render(){
@@ -27,9 +29,9 @@
                         datum.busy = 1;
                         if(!toolRegister.get("table-viewer")){
                             await loadScriptAsync("static/components/@table/js/init.js", {type: "module"});
-                            await loadScriptAsync("static/components/@table/js/basictable.min.js");
-                            await loadCSSAsync("static/components/@table/css/basictable.css");
-                            await loadCSSAsync("static/components/@table/css/responsive-table-type-1.css");
+                            await loadScriptAsyncOnce("static/components/@table/js/basictable.min.js");
+                            await loadCSSAsyncOnce("static/components/@table/css/basictable.css");
+                            await loadCSSAsyncOnce("static/components/@table/css/responsive-table-type-1.css");
                         }
                         toolRegister.get("table-viewer")(button);
                         datum.busy = 0;

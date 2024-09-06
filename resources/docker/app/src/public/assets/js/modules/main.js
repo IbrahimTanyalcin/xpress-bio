@@ -357,6 +357,8 @@ let es6exports = {};
                     }
                     if (oPayload?.fileType === "reference"){
                         rmFile("fai", oPayload?.fileName + ".fai");
+                        rmFile("blastdb", oPayload?.fileName); //removing blastdb does not fire success events
+                        rmFile("blast-query-folder", oPayload?.fileName); //removing blast query folder does not fire success events
                     } else if (oPayload?.fileType === "alignment") {
                         rmFile("bai", oPayload?.fileName + ".bai");
                     }

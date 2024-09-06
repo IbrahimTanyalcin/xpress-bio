@@ -2,6 +2,7 @@ const {Worker} = require("node:worker_threads"),
       {until, log} = require("../../helpers.js"),
       path = require('path'),
       portKey = Symbol.for("customPort"),
+      nameKey = Symbol.for("customName"),
       {findExecutable} = require("../../findExecutable.js"),
       {updateAnnotF} = require("../../updateAnnot.js");
 
@@ -115,6 +116,15 @@ module.exports = async function({express, app, info, files, serverSent}){
                         .msg(sseChannel, sessid, {
                             payload: {filename, message: payload}
                         });
+                    break;
+                case "worker-fasta-bam-index-blast-db-request":
+                    const workerBlastn = [...info.workers].filter(d => d[nameKey] === "worker-blastn")[0];
+                    if(!workerBlastn){break}
+                    workerBlastn[portKey].postMessage({
+                        type,
+                        filename,
+                        payload
+                    })
                     break;
             }
         });
