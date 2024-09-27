@@ -23,10 +23,10 @@ Object.assign(
         fixturesFolder,
         tempFolder,
         ...(Object.entries({
-            "bam": "bam", "bai": "bai", "fasta": "fa", "fai": "fai"
+            "bam": "bam", "bai": "bai", "fasta": "fa", "fai": "fai", "blastDb": ["blast", "db"], "blastQuery": ["blast", "query"]
         })
         .reduce((ac,[name, folder]) => (
-            ac[name + "Folder"] = join(staticFolder, folder), 
+            ac[name + "Folder"] = folder instanceof Array ? join(staticFolder, ...folder) : join(staticFolder, folder), 
             ac
         ),{})),
         badBam: resolve(fixturesFolder, "not.a.bam.test.bam"),

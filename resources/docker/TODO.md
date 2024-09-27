@@ -22,3 +22,8 @@
 - 2024 Apr
   - For tests, replace the `copyBam` or other similar constructs that use `fsPromises.copyFile` under the hood to either `rename` or make a system call to `mv` via `await capture(...)` to ensure copy operations are atomic. Although never stumbled on a test fail before, one time one of the github workflows failed on 1st test of `serverFastaBamIndex`. Checking [here](https://nodejs.org/docs/latest-v20.x/api/fs.html#fspromisescopyfilesrc-dest-mode), `Node` does not guarantee atomicity of this operation, which is acceptable.
   - Modify `getInfo.js`, convert `isContainer` to a `iife` and check `process.env.SINGULARITY_CONTAINER`, if `1`, return early with `1`, otherwise proceed with `await capture(...)`. Refactoring `isContainer` into a separate exportable function under `app/js` is not necessary since it only needs to be run once and the result will be consumed from `info` object returned by `getInfo.js` which is passed to every route.
+
+- 2024 Sep
+  - Start implementing `WebSockets` and in browser `Tmux`. `Ws` can be used for ungrouped client-server communication whereas `Server-sent Events` can be used for triggering events.
+  - Currently there are 2 versions of Cahir running. The old one is used for table viewer and the new one is used for other components and blast. Unify them but checking if new Cahir works out of the box with table viewer.
+  - Incorporate `Seqtk` and `SMEM`s on `FM-Index`es into the list of executables.

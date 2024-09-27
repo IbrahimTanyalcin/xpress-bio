@@ -1,5 +1,5 @@
 const {workerData, parentPort} = require("node:worker_threads"),
-      {log, until, sanitizeFilename} = require("../../helpers.js"),
+      {log, until, sanitizeFilename, clamp, tryKeys} = require("../../helpers.js"),
       {capture} = require("../../capture.js"),
       {fileExists} = require("../../fileExists.js"),
       genHexStr = require("../../genHexStr.js"),
@@ -173,7 +173,7 @@ const {workerData, parentPort} = require("node:worker_threads"),
                 [, {filename:fileName, query, blastOpts, sessid, key, sessids}] = item,
                 baseFileName = path.basename(fileName),
                 makeblastdb_ac = new AbortController(), //might or might not be used
-                makeblastdb_ac_timeout = 2 * 60 * 1000,
+                makeblastdb_ac_timeout = clamp(workerData?.blastnConf?.makeblastdbTimeout, 15 * 60 * 1000, maxInterval),
                 makeblastdb_ac_timeout_id = setTimeout(
                     () => makeblastdb_ac.abort(new Error("TimeoutError")), //DOMException does not exist in Node 16, starts from 17. Substitude with Error
                     makeblastdb_ac_timeout
@@ -230,10 +230,11 @@ const {workerData, parentPort} = require("node:worker_threads"),
                  */
                 blastnDbStack.set(baseFileName, [makeblastdb_ac]);
 
-                const dbReady = await until(function(){
+                let dbReady = until(function(){
                     makeblastdb_ac.signal.aborted && dbReady.break();
                     return blastnDbReady.has(baseFileName);
                 },{interval: 500});
+                dbReady = await dbReady;
                 if (makeblastdb_ac.signal.aborted) {
                     decr();
                     return port.postMessage({
@@ -279,15 +280,20 @@ const {workerData, parentPort} = require("node:worker_threads"),
                     const 
                         tempFile = path.resolve(tempDir, genHexStr(8, 3, "temp_")),
                         tempFileDefault = path.resolve(tempDir, genHexStr(8, 3, "temp_")),
-                        outputDefault = output.slice(0,-4) + "_default.txt";
+                        outputDefault = output.slice(0,-4) + "_default.txt",
+                        numThreads = clamp(
+                            tryKeys(workerData?.blastnConf, "numThreads", "num_threads", "threads", {default: workerData.ncpus / 2}),
+                            1, //min
+                            4 //max
+                        ) | 0;
                     return [
                         `set -o pipefail;`,
                         `mkdir -p ${tempDir}`,
                         `&&`,
                         `echo -e ">query\\n${query}" | tee >(blastn -query - -db ${inputDb} -out ${tempFile}`,
                         `-outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore"`,
-                        `-word_size 10 -max_target_seqs 5)`,
-                        `| blastn -query - -db ${inputDb} -out ${tempFileDefault} -word_size 10 -max_target_seqs 5`,
+                        `-word_size 10 -max_target_seqs 5 -num_threads ${numThreads})`,
+                        `| blastn -query - -db ${inputDb} -out ${tempFileDefault} -word_size 10 -max_target_seqs 5 -num_threads ${numThreads}`,
                         `&&`,
                         `mkdir -p ${config.outputFolder(baseFileName)}`,
                         `&&`,

@@ -53,7 +53,16 @@ If you are running from a docker container, do:
 ```shell
 docker run -it --rm --name your-app-name -p 3000:3000 xpress-bio:igv-bam-004
 ```
-Visit `localhost:3000` from your browser.
+
+If you want to run an older docker image of xpress-bio (years later when the ssl certificates expire), you can start the container with the recent certificates which it will automatically detect and install before starting the server:
+
+```shell
+docker run -it -v /your/certs/folder:/app/certs --rm --name your-app-name -p 3000:3000 xpress-bio:igv-bam-020
+```
+
+Do not change "/app/certs" if want above to work, that's the location the container will look for certs.
+
+For all above examples, visit `localhost:3000` from your browser.
 
 <small>
 ⚠️ The shell script will try to start <code>memcached</code> if not started already. Since starting services requires <code>sudo</code>, make sure you execute the commands as <code>sudo</code> if <code>memcached</code> is not running

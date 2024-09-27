@@ -31,7 +31,8 @@ module.exports = async function({express, app, info, files, serverSent}){
                 staticFolder: info.serverConf.static,
                 bin: info.dockerBinaries,
                 blastn,
-                blastnConf: info.serverConf?.blastn
+                blastnConf: info.serverConf?.blastn,
+                ncpus: info.ncpus
             }
         }
     );

@@ -225,6 +225,72 @@ Object.defineProperties(
 					})
 				}
 			}
+		},
+		/**
+		 * Clamps a number between 2 values
+		 * @param {*} value The value to be clamped
+		 * @param {*=} [min] The min value. If it is an object, it is destructured to extract fields. If cannot be coerced to number, it is Number.MIN_SAFE_INTEGER.
+		 * @param {*=} [max] The max value. If cannot be coerced to number, it is Number.MAX_SAFE_INTEGER
+		 * @param {*=} [def] The default value. If cannot be converted to number, it will be assigned the value of min.
+		 * @returns {Number} The clamped number
+		 * @example clamp("hmm", -100,20,3) //3
+		 */
+		clamp: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function (value, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER, def){
+				if (typeof min === "object") {({min, max, def} = min);}
+				if ((min = +min) !== min){min = Number.MIN_SAFE_INTEGER}
+				if ((max = +max) !== max){max = Number.MAX_SAFE_INTEGER}
+				if (max < min){ max ^= min; min ^= max; max ^= min;}  
+				if ((def = +def) !== def){def = min}
+				if ((value = +value) !== value){value = def}
+				return Math.max(min, Math.min(value, max))
+			}
+		},
+		/**
+		 * Tries the given keys in an object, returns as soon as one of them passes
+		 * @param {object} obj The object to be tried against
+		 * @param {string|string[]} keys An array of string keys to be tried on the object
+		 * @param {object=} [options] An options object
+		 * @param {*} [options.default] default value to be returned if all keys fail
+		 * @param {*} [options.defaultKey] default key to be returned if all keys fail
+		 * @param {Boolean} [options.returnKey] return key instead of value (object[key]) if this option is truthy
+		 * @param {Function} [options.transform] a transform function to be applied on the object[key]. Default is not null and not undefined.
+		 * @returns {*} The tried object[key] or the key itself if the test passes, otherwise default value or key
+		 * @example tryKey({a:1, b:2, c:3}, "hmm", "a", "b", {transform: (x) => x === 2, returnKey: true}) //"b"
+		 */
+		tryKeys: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function (o,...args) {
+				args = args.flat(Infinity);
+				let len = args.length,
+					opts = {},
+					defVal = void(0),
+					defKey = void(0),
+					transform = (x) => x !== null && x !== void(0);
+				if (typeof args[len - 1] === "object") {
+					opts = args[len - 1] ?? {};
+					args = args.slice(0, --len);
+					if (typeof opts?.transform === "function"){
+						transform = opts.transform
+					}
+					defVal = opts?.default ?? defVal
+					defKey = opts?.defaultKey ?? defKey
+				}
+				if (!args.length) {return opts?.returnKey ? defKey : defVal}
+				let tempVal, tempKey;
+				for (let i =0; i < len; ++i){
+					if (transform((tempVal = o?.[tempKey = args[i]]), tempKey, i, o)) {
+						if (opts?.returnKey) {return tempKey}
+						return tempVal
+					}
+				}
+				return opts?.returnKey ? defKey : defVal;
+			}
 		}
 	}
 );
