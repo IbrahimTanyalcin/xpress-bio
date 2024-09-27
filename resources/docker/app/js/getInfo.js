@@ -1,5 +1,6 @@
 
 const 
+	{cpus: os_cpus} = require("node:os"),
 	{findDir} = require("./findDir.js"),
 	path = require("path"),
 	{getArgs} = require("./getArgs.js"),
@@ -19,6 +20,12 @@ exports.getInfo = async function(ENV, ARGS){
 		if (rootFolder instanceof Error){
 			throw new Error("Unable to locate /node_modules folder.");
 		}
+		/**
+		 * I was compelled to use capture('nproc'), but went for os.cpus,
+		 * just getting the cpu core count, the array contents are not useful
+		 * they are snapshots at call time.
+		 */
+		const ncpus = os_cpus().length;
 		result = {
 			version: ENV.npm_package_version,
 			environment: ENV.NODE_ENV,
@@ -40,7 +47,9 @@ exports.getInfo = async function(ENV, ARGS){
 			serverPort: ARGS.port,
 			PID: process.pid,
 			PPID: process.ppid,
-			workers: new Set()
+			workers: new Set(),
+			ncpus,
+			nproc: ncpus
 		};
 		require.main._ipvCache = {getInfo: result};
 	} catch (err) {

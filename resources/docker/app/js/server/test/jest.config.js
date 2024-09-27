@@ -13,6 +13,9 @@ module.exports = {
       //"**/server/test/serverDwnld.test.js"
       //"**/server/test/uriWhiteList.test.js"
       //"**/server/test/uriBlackList.test.js"
+      //"**/server/test/helpers.clamp.test.js"
+      //"**/server/test/helpers.tryKeys.test.js"
+      //"**/server/test/serverBlastn.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

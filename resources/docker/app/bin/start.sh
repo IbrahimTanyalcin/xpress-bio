@@ -82,6 +82,8 @@ then
                 > Container mode is detected.
                 > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EOL
+    source "${scriptFolder}/funcs.sh";
+    installCerts
     su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\\\*/\\\\\*/g')"
 else 
     cd "$(readlink -f -- "$(dirname -- "$(readlink -f -- "$0")")/..")"

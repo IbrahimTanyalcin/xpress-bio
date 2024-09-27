@@ -399,6 +399,7 @@ function codyLoggerGen(ch) {
             ch(v.header)
             .on("click", toggle = v.toggle = el.toggle = ch.throttle(function(){
                 state = state ? 0 : 1;
+                const display = ["none", "block"][state];
                 ch(v.header).style("--state", state)
                 (v.svg)
                 .each((path, index) => {
@@ -409,13 +410,18 @@ function codyLoggerGen(ch) {
                 (v.headerMessage)
                 .set("textContent", ["Show Messages", "Hide Messages"][state])
                 (v.pre)
+                `=> ${() => () => (!state || v.pre.getAnimations().filter(a => a.playState !== "finished").length) && ch.cancelAnimate({commit: ["transform", "opacity"]})}`
+                `=> ${() => () => state && v.pre.style.setProperty("display", display, "important")}`
                 .animate([
                     {
                     transform: `translate(0px, ${(1 - state) * -100}px)`,
                     opacity: state,
-                    display: ["none", "block"][state]
+                    display
                     }
                 ], {duration: 400, fill:"both", easing: "ease-in-out"})
+                .lastOp
+                .then(() => v.pre.style.setProperty("display", display, "important"))
+                .catch(() => {})
             }, {delay: 50}))
         }}
         => ${({values:v}) => () => v.toggle()}

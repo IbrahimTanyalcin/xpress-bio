@@ -25,5 +25,7 @@ exports.safeResources = [
 	53428dc74007356d528efd86b0ab6271a6271eab/example-2.fas.fai
 	`.replace(/\s+/gi,""),
 	`https://drive.usercontent.google.com/
-	u/0/uc?id=19TgtJQ18GVHMMsTwfCn_f2yxZDMPxENE&export=download`.replace(/\s+/gi,"") //25Mb
+	u/0/uc?id=19TgtJQ18GVHMMsTwfCn_f2yxZDMPxENE&export=download`.replace(/\s+/gi,""), //25Mb
+	`https://drive.usercontent.google.com/
+	u/0/uc?id=11TbI4TJJiD7lP86VFBeWMmiCa2YAEGpN&export=download`.replace(/\s+/gi,"") //human.chrX.0to1Mb.fas
 ]
