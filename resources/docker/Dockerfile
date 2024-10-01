@@ -11,10 +11,14 @@ WORKDIR /app
 RUN ["/bin/bash", "-c", "apt-get -y update"]
 
 COPY ./app/package*.json ./
-RUN npm install --omit=dev
-COPY ./app ./
+COPY ./app/bin ./bin
+COPY ./app/certs ./certs
 RUN /bin/bash ./bin/installCerts.sh \
-&& /bin/bash ./bin/memcached.sh \
+&& npm config set cafile /etc/ssl/certs/ca-certificates.crt \
+&& npm install --omit=dev
+COPY ./app ./
+RUN rm -rf /app/certs
+RUN /bin/bash ./bin/memcached.sh \
 && /bin/bash ./bin/bc.sh \
 && /bin/bash ./bin/misc-dependencies.sh \
 && /bin/bash ./bin/setLogname.sh \
