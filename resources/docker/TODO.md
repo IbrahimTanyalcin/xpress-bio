@@ -27,3 +27,4 @@
   - Start implementing `WebSockets` and in browser `Tmux`. `Ws` can be used for ungrouped client-server communication whereas `Server-sent Events` can be used for triggering events.
   - Currently there are 2 versions of Cahir running. The old one is used for table viewer and the new one is used for other components and blast. Unify them but checking if new Cahir works out of the box with table viewer.
   - Incorporate `Seqtk` and `SMEM`s on `FM-Index`es into the list of executables.
+  - move `src/public/assets/js` folder outside `src/public` and create a soft link back to its original location during server start. The rationale is, people can use volumes or bind mounts to `src/public/assets` to reuse created files for persistency (a UI version is separately planned for this).

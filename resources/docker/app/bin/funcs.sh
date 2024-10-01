@@ -49,7 +49,7 @@ installCerts() {
         if [[ ! -d "$ca_cert_dir" ]]; then
             mkdir -p "$ca_cert_dir"
         fi
-        cp "$certs_dir"/*.crt "$certs_dir"/*.pem "$ca_cert_dir"
+        find "$certs_dir" \( -name "*.crt" -o -name "*.pem" \) -exec cp {} "$ca_cert_dir" \;
         if ! xpressbio_has update-ca-certificates; then
             issueInfo "update-ca-certificates not found, installing via apt-get..."
             apt-get update && apt-get install -y ca-certificates
