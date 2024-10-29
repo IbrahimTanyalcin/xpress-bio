@@ -147,6 +147,21 @@
             }
         }
     },
+    "web-socket": {
+        "conf": {
+            "logEvents": true
+        },
+        "mounts": {
+            "/ws": {
+                "routes": {
+                    "/ch1{/*any}": {
+                        "isRegExp": false,
+                        "name": "channel1"
+                    }
+                }
+            }
+        }
+    },
     "session": {
         "env-session-secret": "XPRESS_SECRET",
         "env-memcached-secret": "MEMSESS_SECRET",

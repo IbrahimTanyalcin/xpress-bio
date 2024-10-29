@@ -46,7 +46,9 @@ describe(`testing cold server start`, () => {
         await until(function(){
             return serverDetails.started;
         }, {interval: 500})
-    })
+        console.log("3 second countdown to stress test");
+        await new Promise((r) => setTimeout(r, 3000));
+    }, 10000)
 
     afterAll(async () => {
         kill(serverDetails.oProcess.pid);
@@ -65,6 +67,10 @@ describe(`testing cold server start`, () => {
         return Promise.allSettled(
             [...Array(nClients)]
             .map(d => simulClient(serverDetails))
+            /* 
+            in case you want to introduce some delay, for whatever reason
+            .map((d, i) => simulClient({...serverDetails, delay: i * 18})) 
+            */
         ).then(async (results) => {
             expect(results.map(d => d.value?.statusCode))
             .toEqual([...Array(nClients)].map(d => 200));
