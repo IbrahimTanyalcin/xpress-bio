@@ -1,6 +1,8 @@
 const
     express = require('express'),
     app = express(),
+    http = require('http'),
+    server = http.createServer(app),
     path = require('path'),
     {getFiles} = require("../getFiles.js"),
     {findDir} = require("../findDir.js"),
@@ -26,11 +28,12 @@ async function render (info) {
     );
 
     
-    await require("./utils/loadSession.js")({express, app, info, files});
+    const session = await require("./utils/loadSession.js")({express, app, info, files});
     const serverSent = await require("./utils/loadServerSent.js")({express, app, info, files});
     const memcache = await require("./utils/loadMemcachedRoutes.js")({express, app, info, files, serverSent});
     await require("./utils/loadCSRFClientSideRoutes.js")({express, app, info, files, serverSent, memcache});
-    const routeFiles = await require("./utils/loadUserRoutes.js")({express, app, info, files, serverSent, memcache});
+    const ws = await require("./utils/loadWebSocket.js")({server, express, app, info, files, session, serverSent, memcache});
+    const routeFiles = await require("./utils/loadUserRoutes.js")({express, app, info, files, serverSent, memcache, ws});
     
     const host = +info.isContainer <= 0 ? "127.0.0.1" : "0.0.0.0";
     const port = await getPort(info);  
@@ -58,7 +61,8 @@ async function render (info) {
         process.exit(1);
     });
     
-    app.listen(port,host);
+    //app.listen(port,host);
+    server.listen(port, host);
     log("listening on host:", `${host}:${port}`);
     
     /* setTimeout(function(){

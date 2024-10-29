@@ -16,6 +16,7 @@ module.exports = {
       //"**/server/test/helpers.clamp.test.js"
       //"**/server/test/helpers.tryKeys.test.js"
       //"**/server/test/serverBlastn.test.js"
+      //"**/server/test/serverStress.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

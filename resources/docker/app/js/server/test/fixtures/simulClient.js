@@ -46,7 +46,7 @@ const simulClient = (serverDetails) => new Promise((r, j) => {
                         throw new Error("Event stream has wrong content-type")
                     }
                     res.__cliCookie = cookie;
-                    clearInterval(timeout);
+                    clearTimeout(timeout);
                     r(res)
                 }
             )
