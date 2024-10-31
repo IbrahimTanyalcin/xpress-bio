@@ -101,6 +101,10 @@ exports.Cache = function (info){
 				target.end();
 				return;
 			} */
+			/* 
+			TODO: create MAP with keys as prop and values as the bound function
+			in the outer scope to reduce the amount new functions created. 
+			*/
 			return traps?.[prop]?.bind(memcached) 
 				?? target?.[prop]?.bind(memcached);
 		}

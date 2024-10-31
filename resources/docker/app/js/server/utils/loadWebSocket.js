@@ -2,10 +2,12 @@ const
     path = require('path'),
     WebSocket = require('ws'),
     isAlive = Symbol("isAlive"),
+    { match } = require('path-to-regexp'),
     genHexStr = require("../../genHexStr"),
-    {log, until} = require("../../helpers.js"),
-    { match } = require('path-to-regexp');
-
+    {log, until, clamp} = require("../../helpers.js"),
+    penaltyKey = Symbol.for("xpressbio.timeout.penalty"),
+    rateLimitKey = Symbol.for("xpressbio.timeout.ratelimit");
+    
 module.exports = async function ({server, express, app, info, files, session, serverSent, memcached}) {
     if(!info?.serverConf?.["web-socket"]) {
         log("no web-socket config found, skipping.");
@@ -24,6 +26,19 @@ module.exports = async function ({server, express, app, info, files, session, se
     }
     const 
         undef = void(0),
+        wsConf = info?.serverConf?.["web-socket"],
+        /* penaltyInterval = info?.serverConf?.["web-socket"]?.conf?.penalty
+            ?? info?.serverConf?.["web-socket"]?.penalty 
+            ?? 60000 */
+        penaltyInterval = clamp(
+            wsConf?.conf?.penalty ?? wsConf?.penalty,
+            {
+                min: 1000,
+                max: 3600000,
+                def: 60000
+            }
+        ),
+        rateLimitInterval = 5000,
         wss = new WebSocket.WebSocketServer({noServer: true}),
         offStates = [WebSocket.CLOSED, WebSocket.CLOSING],
         wsClients = {
@@ -33,6 +48,8 @@ module.exports = async function ({server, express, app, info, files, session, se
         wsKey = genHexStr(8, 3, "ws_"),
         destroy = function(){
             clearTimeout(this?.timeout);
+            clearTimeout(this?.ws?.[rateLimitKey]);
+            clearTimeout(this?.ws?.[penaltyKey]);
             this?.ws?.terminate?.();
             return this?.clients?.delete(this?.sessid);
         },
@@ -46,7 +63,7 @@ module.exports = async function ({server, express, app, info, files, session, se
         };
     let channelMatchers = [];
     try {
-        Object.entries(info?.serverConf?.["web-socket"]?.mounts ?? {}).forEach(([mount, oMount]) => {
+        Object.entries(wsConf?.mounts ?? {}).forEach(([mount, oMount]) => {
             Object.entries(oMount?.routes ?? {}).forEach(([route, oRoute]) => {
                 const 
                     matcher = match(path.join(mount, route).replaceAll("\\", "\/").replace(/\/+/g, "\/")),
@@ -57,9 +74,9 @@ module.exports = async function ({server, express, app, info, files, session, se
                 const nMap = wsClients.responses[name] = new Map();
                 channelMatchers.push({
                     matcher, 
-                    channel: name, 
                     info: oRoute, 
                     clients: nMap
+                    /* ,limiter: new limiter(memcached, oRoute, {interval: rateLimitInterval}) */
                 });
             })
         })
@@ -117,6 +134,12 @@ module.exports = async function ({server, express, app, info, files, session, se
         */
         ws.on('pong', () => ws[isAlive] = 1)
         ws.on('message', function(msg){
+            /* parse/validate the message here */
+            /* if(oChannel.limiter.trigger() instanceof Error) {
+                ws.pause();
+                return ws[rateLimitKey] = setTimeout(() => check if panelized, then resume here => ws.resume(), rateLimitInterval)
+            } */
+            /* penalizer(ws, {interval: penaltyInterval}) */
             console.log('msg=>', msg, msg.toString());
         })
         ws.on('close', /* function(){
@@ -141,7 +164,7 @@ module.exports = async function ({server, express, app, info, files, session, se
             if (req.session) {
                 console.log("test here-2", req.url, channelMatchers);
                 let oChannel = channelMatchers.find(({matcher, channel}) => matcher(pathname)),
-                    channel = oChannel?.channel;
+                    channel = oChannel?.info?.name;
                 if(!channel){
                     console.log("no matchers!!!");
                     socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
