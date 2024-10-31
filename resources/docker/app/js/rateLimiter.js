@@ -1,8 +1,9 @@
 const 
+    undef = void(0),
     {md5} = require("../../md5.js"),
     {until} = require("./helpers.js"),
     wk = new WeakMap();
-exports.limiter = function(cache, oRoute) {
+exports.limiter = function(cache, oRoute, {interval} = {interval: 5000}) {
     wk.set(this, new Map(oRoute?.limits.map(oLimit => {
         oLimit?.key ?? (()=>{throw new Error(
             `'key' field is missing in ${JSON.stringify(oLimit, null, "\t")}`
@@ -19,15 +20,18 @@ exports.limiter = function(cache, oRoute) {
                 };
         let counter = {value: 0, limit, message, trigger};
         until(function(){
-            cache.get(key).then(val => counter.value = val)
-        },{interval: timeout});
+            cache.get(key).then(val => {
+                if (val === undef) {cache.set(key, 0, timeout)}
+                counter.value = val ?? 0
+            })
+        },{interval});
         return [key, counter];
     })))
 }
 
 const proto = exports.limiter.prototype;
 proto.trigger = function() {
-    const _map = wk.get(this),
+    /* const _map = wk.get(this),
           len = _map.size,
           keys = [..._map.keys];
     for (let i = 0, counter; i < len; ++i) {
@@ -36,5 +40,12 @@ proto.trigger = function() {
             return new Error(counter.message)
         }
         _map.get(keys[i]).trigger();
+    } */
+    const _map = wk.get(this);
+    for (let counter of _map.values()) {
+        if (counter.value > counter.limit) {
+            return new Error(counter.message)
+        }
+        counter.trigger();
     }
 }
