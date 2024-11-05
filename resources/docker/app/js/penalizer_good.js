@@ -1,6 +1,10 @@
 const 
     undef = void(0),
-    {until_v2:until} = require("./helpers.js"),
+    {until} = require("./helpers.js"),
+    /* {md5} = require("../../md5.js"),
+    {until} = require("./helpers.js"),
+    timeoutKey = Symbol(),
+    accumulKey = Symbol(), */
     wk = new WeakMap(),
     accumulConst = 4;
 
@@ -10,12 +14,18 @@ function trigger(cb, interval) {
         this.timeout = undef;
         cb?.();
     }, this.value * interval);
+    /* clearTimeout(this.accumulTimeout); */
+    /* this.accumulTimeout = setTimeout(() => {
+        this.accumulTimeout = undef;
+        this.value = Math.max(0.5, this.value / 2 | 0);
+    }, this.value * interval * accumulConst) */
     this.accumulTimeout?.break();
-    this.accumulTimeout = until(() => {
-        console.log("running!", this.timeout, this.value);
+    this.accumulTimeout = until((timeout) => {
+        console.log("running!", timeout, this.timeout, this.value);
+        if (this.timeout && (timeout !== this.timeout)){console.log("not executing!"); return true}
         if (this.value <= 0.5) {console.log("done!"); return !(this.accumulTimeout = undef)}
         this.value = Math.max(0.5, this.value / 2 | 0);
-    }, {interval: this.interval})
+    }, {interval: this.interval, args: [this.timeout]})
 }
 exports.penalize = function(obj, {interval = 5000, cb, callback} = {interval: 5000}) { 
     let counter;
@@ -42,9 +52,5 @@ exports.unpenalize = function(obj) {
     if (!wk.has(obj)){return}
     const counter = wk.get(obj);
     clearTimeout(counter.timeout);
-    counter?.accumulTimeout?.break();
-}
-exports.isPenalized = function(obj){
-    if (!wk.has(obj)){return false}
-    return wk.get(obj).value !== 0.5;
+    clearTimeout(counter.accumulTimeout);
 }
