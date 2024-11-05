@@ -4,11 +4,12 @@ const
     isAlive = Symbol("isAlive"),
     { match } = require('path-to-regexp'),
     genHexStr = require("../../genHexStr"),
+    {Limiter} = require("../../rateLimiter.js"),
     {log, until, clamp} = require("../../helpers.js"),
-    penaltyKey = Symbol.for("xpressbio.timeout.penalty"),
-    rateLimitKey = Symbol.for("xpressbio.timeout.ratelimit");
+    {penalize, unpenalize, isPenalized} = require("../../penalizer.js"),
+    rateLimitKey = Symbol.for("xpressbio.ratelimit");
     
-module.exports = async function ({server, express, app, info, files, session, serverSent, memcached}) {
+module.exports = async function ({server, express, app, info, files, session, serverSent, memcache}) {
     if(!info?.serverConf?.["web-socket"]) {
         log("no web-socket config found, skipping.");
         return new Proxy({}, {
@@ -27,9 +28,6 @@ module.exports = async function ({server, express, app, info, files, session, se
     const 
         undef = void(0),
         wsConf = info?.serverConf?.["web-socket"],
-        /* penaltyInterval = info?.serverConf?.["web-socket"]?.conf?.penalty
-            ?? info?.serverConf?.["web-socket"]?.penalty 
-            ?? 60000 */
         penaltyInterval = clamp(
             wsConf?.conf?.penalty ?? wsConf?.penalty,
             {
@@ -49,7 +47,7 @@ module.exports = async function ({server, express, app, info, files, session, se
         destroy = function(){
             clearTimeout(this?.timeout);
             clearTimeout(this?.ws?.[rateLimitKey]);
-            clearTimeout(this?.ws?.[penaltyKey]);
+            unpenalize(this?.ws);
             this?.ws?.terminate?.();
             return this?.clients?.delete(this?.sessid);
         },
@@ -75,8 +73,8 @@ module.exports = async function ({server, express, app, info, files, session, se
                 channelMatchers.push({
                     matcher, 
                     info: oRoute, 
-                    clients: nMap
-                    /* ,limiter: new limiter(memcached, oRoute, {interval: rateLimitInterval}) */
+                    clients: nMap,
+                    limiter: new Limiter(memcache, oRoute, {interval: rateLimitInterval})
                 });
             })
         })
@@ -89,31 +87,32 @@ module.exports = async function ({server, express, app, info, files, session, se
     }
 
     wss.on('connection', function(ws, req, oChannel) {
+        console.log("TEST CONNECTION");
         const sessid = req.session.id;
         if (oChannel.clients.has(sessid)) {
             console.log("deduping connections!")
             return ws.terminate();
-        } else {
-            oChannel.clients.set(
-                sessid,
-                ws[wsKey] = {
-                    response: ws,
-                    ws,
-                    timeout: req.session.cookie.maxAge
-                    ? setTimeout(function(){
-                        oChannel.clients.delete(sessid);
-                        ws.terminate();
-                    }, req.session.cookie.maxAge)
-                    : undef,
-                    createdAt: Date.now(),
-                    sessid,
-                    destroy,
-                    name: oChannel.info.name,
-                    nMap: oChannel.clients,
-                    clients: oChannel.clients
-                }
-            )
         }
+        const channelName = oChannel.info.name;
+        oChannel.clients.set(
+            sessid,
+            ws[wsKey] = {
+                response: ws,
+                ws,
+                timeout: req.session.cookie.maxAge
+                ? setTimeout(function(){
+                    oChannel.clients.delete(sessid);
+                    ws.terminate();
+                }, req.session.cookie.maxAge)
+                : undef,
+                createdAt: Date.now(),
+                sessid,
+                destroy,
+                name: channelName,
+                nMap: oChannel.clients,
+                clients: oChannel.clients
+            }
+        );
         console.log('connection', oChannel);
         ws[isAlive] = 1;
         const heartbeat = until(() => {
@@ -134,13 +133,23 @@ module.exports = async function ({server, express, app, info, files, session, se
         */
         ws.on('pong', () => ws[isAlive] = 1)
         ws.on('message', function(msg){
+            let temp, structMsg;
             /* parse/validate the message here */
-            /* if(oChannel.limiter.trigger() instanceof Error) {
+            /* if validation fails RETURN AND penalize here */
+            /* validation should return {event, namespace, payload}, channel is known from channelName
+            if (temp = validate(msg)){
+                structMsg = {...temp, channel: channelName}
+            }
+            */
+            if(temp = oChannel.limiter.trigger(ws)) {
                 ws.pause();
-                return ws[rateLimitKey] = setTimeout(() => check if panelized, then resume here => ws.resume(), rateLimitInterval)
-            } */
-            /* penalizer(ws, {interval: penaltyInterval}) */
+                penalize(ws, {interval: penaltyInterval, cb: () => {ws.resume()}});
+                return ws[rateLimitKey] = setTimeout(() => !isPenalized(ws) && ws.resume(), rateLimitInterval)
+            }
             console.log('msg=>', msg, msg.toString());
+            /* validation passed, do
+            subscriber.dispatch(channelName, `${structMsg.event}@${structMsg.namespace}`, structMsg)
+            */
         })
         ws.on('close', /* function(){
             console.log('close');

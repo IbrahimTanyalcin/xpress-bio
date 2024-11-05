@@ -156,7 +156,17 @@
                 "routes": {
                     "/ch1{/*any}": {
                         "isRegExp": false,
-                        "name": "channel1"
+                        "name": "channel1",
+                        "limits": [
+                            {
+                                "key": "wsLimit",
+                                "global": false,
+                                "timeout": 60,
+                                "limit": "10000",
+                                "message": "You exceeded the websocket requests",
+                                "step": 1
+                            }
+                        ]
                     }
                 }
             }

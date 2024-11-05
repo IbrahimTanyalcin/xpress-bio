@@ -169,6 +169,52 @@ Object.defineProperties(
 				}
 			})()
 		},
+		until_v2: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: ((_tmo, _res) => {
+				async function* until (f, interval, breaker, pauser, resolver){
+					let cond = false;
+					while(!breaker.value && !cond){
+						yield cond = await nPromise(f, interval, pauser, resolver);
+					}
+				}
+				function nPromise(f, interval, pauser, resolver) {
+					return new Promise(res => {
+						f[_res] = res;
+						f[_tmo] = setTimeout(() => {
+							if(!pauser.value){return res(f())}
+							resolver.value = () => res(f());
+						}, interval)
+					})
+				}
+				return function (f, {thisArg = "", args = [], interval = 0} = {}) {
+					const that = thisArg ?? this,
+						  breaker = {value: false},
+						  pauser = {value: false},
+						  resolver = {value: void(0)},
+						  _f = function(){
+							return f.call(that, ...args);
+						  },
+						  _until = (async () => {
+							let lastVal;
+							for await (lastVal of until(_f, interval, breaker, pauser, resolver)){}
+							return lastVal;
+						  })();
+					_until.break = (executeCurrent, lastVal) => {
+						breaker.value = true;
+						if (!executeCurrent) {
+							clearTimeout(_f[_tmo]);
+							_f[_res]?.(lastVal);
+						}
+					};
+					_until.pause = () => {pauser.value = true};
+					_until.resume = () => {pauser.value = false; resolver?.value?.()};
+					return _until;
+				}
+			})(Symbol(), Symbol())
+		},
 		rmIndent: {
 			enumerable: true,
 			configurable: true,
