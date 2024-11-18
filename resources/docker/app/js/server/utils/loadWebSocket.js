@@ -50,6 +50,7 @@ module.exports = async function ({server, express, app, info, files, session, se
             unpenalize(this?.ws);
             this?.ws?.terminate?.();
             return this?.clients?.delete(this?.sessid);
+            //for each channel dispacth channel @namespace to induce garbage collection
         },
         onClose = function(){
             //console.log("Connection is closing", this[wsKey].sessid);

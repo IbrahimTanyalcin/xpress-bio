@@ -5,7 +5,7 @@ module.exports = {
 		
     },
     testMatch: [
-      "**/server/test/*.test.js"
+      ////"**/server/test/*.test.js"
       //"**/server/test/serverFastaBamIndex.test.js"
       //"**/server/test/app.bin.downloadX.sh.test.js"
       //"**/server/test/serverAtomic.test.js"
@@ -17,6 +17,7 @@ module.exports = {
       //"**/server/test/helpers.tryKeys.test.js"
       //"**/server/test/serverBlastn.test.js"
       //"**/server/test/serverStress.test.js"
+      "**/server/test/validateWs.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],
