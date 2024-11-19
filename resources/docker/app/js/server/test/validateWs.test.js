@@ -37,6 +37,29 @@ describe(`testing validateWs`, () => {
         ]).toEqual([false, expectedUint8, expectedUint8Clamped, expectedBuffer]);
     })
     
+    test("some non passing examples", async () => {
+        expect.assertions(1);
+        let 
+            payload = `channel\0event\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noChannel_v1 = `\0event\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noChannel_v2 = `event\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noEvent_v1 = `channel\0\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noEvent_v2 = `channel\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noNamespace_v1 = `channel\0event\0\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            noNamespace_v2 = `channel\0event\u{0}payload`.split("").map(d => d.charCodeAt(0)),
+            empty = [];
+        expect([
+            !!validate(new Uint8Array(payload)),
+            validate(new Uint8Array(noChannel_v1)),
+            validate(new Uint8Array(noChannel_v2)),
+            validate(new Uint8Array(noEvent_v1)),
+            validate(new Uint8Array(noEvent_v2)),
+            validate(new Uint8Array(noNamespace_v1)),
+            validate(new Uint8Array(noNamespace_v2)),
+            validate(new Uint8Array(empty))
+        ]).toEqual([true, false, false, false, false, false, false, false]);
+    });
+
     test("long channel errors", async () => {
         expect.assertions(2);
         //These will FAIL, channel 33 chars
@@ -169,7 +192,7 @@ describe(`testing validateWs`, () => {
     })
     
     test("checking payload integrity", async () => {
-        expect.assertions(1);
+        expect.assertions(4);
         let 
             maxLen = 0x64,
             config = {maxLen},
@@ -178,103 +201,89 @@ describe(`testing validateWs`, () => {
             ).join(""),
             payload = `channel\0event\0namespace\u{0}${payload_payload}`.split("").map(d => d.charCodeAt(0)),
             uint8Payload = new Uint8Array(payload),
-            uint8ClampedPayload = new Uint8ClampedArray(payload),
             bufferPayload = Buffer.from(new Uint8Array(payload));
-       /*  expect([
-            validate(payload, config),
-            validate(uint8Payload, config),
-            validate(uint8ClampedPayload, config),
-            validate(bufferPayload, config)
-        ]).toStrictEqual([false, false, false, false]); */
 
-        /* console.log("uint8", await getHashes(uint8Payload));
-        console.log("buffer", await getHashes(bufferPayload));
-        console.log("buffer", await getHashes(Buffer.from(uint8Payload.buffer.slice(0,-1))));
-        console.log(
-            await getHashes(new Uint8Array([]), uint8Payload, uint8ClampedPayload, bufferPayload)
-        ); */
-        //expect(true).toBe(true);
-
-        console.log(0x64 - 24, payload_payload.length);
-        console.log(payload_payload);
-        console.log(payload_payload.split("").map(d => d.charCodeAt(0).toString(16)));
-        console.log("validation", validate(bufferPayload, config).payload, validate(bufferPayload, config).payload.length);
-        console.log("buffer", Buffer.from(payload_payload, "latin1"), Buffer.from(payload_payload, "latin1").length);
+        /* be careful Buffer.from("string") is by default utf-8 encoded,
+        this means that for chars with charCode > 0x7F, they will be more 
+        than 1 byte in utf-8 but in utf-16, which is what js encodes strings,
+        until charcode is 0xFFFF, utf-16 uses 2 bytes and string length will
+        reflect correctly char length. When Node's buffer encounters an array
+        of number, it takes them as BYTES and leaves them as they are. But if
+        you do Buffer.from("string"), it will encode it in utf-8 unless 
+        instructed otherwise. To make it behave like as if an array of bytes 
+        are passed, use "binary" as optional encoding or its newer alias
+        "latin1".*/
 
         expect(await getHashes(Buffer.from(payload_payload, "latin1")))
         .toEqual(await getHashes(validate(bufferPayload, config).payload))
-    })
-    //test- identity, performance, keys, sequence null bytes
-    /* test("standard usage", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "c", "a");
-        expect(result).toEqual(3);
-    })
 
-    test("test the options object", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "c", "a", {returnKey: 1});
-        expect(result).toEqual("c");
+        expect(await getHashes(Buffer.from(payload_payload, "binary")))
+        .toEqual(await getHashes(validate(bufferPayload, config).payload))
+
+        expect(await getHashes(Buffer.from(payload_payload.split("").map(d => d.charCodeAt(0)))))
+        .toEqual(await getHashes(validate(bufferPayload, config).payload))
+
+        expect(await getHashes(Buffer.from(validate(uint8Payload, config).payload)))
+        .toEqual(await getHashes(validate(bufferPayload, config).payload))
     })
 
-    test("can I pass the keys as array?", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, ["key1", "key2", "c", "a"], {returnKey: 1});
-        expect(result).toEqual("c");
+    test("checking payload identity", async () => {
+        expect.assertions(4);
+        let 
+            maxLen = 0x128,
+            config = {maxLen},
+            payload_payload = [...Array(maxLen - 24)].map(
+                d => String.fromCharCode(Math.random() * 256 | 0)
+            ).join(""),
+            payload = `channel\0event\0namespace\u{0}${payload_payload}`.split("").map(d => d.charCodeAt(0)),
+            uint8Payload = new Uint8Array(payload),
+            bufferPayload = Buffer.from(new Uint8Array(payload));
+
+        //if you pass Uint8Array, you get Uint8Array
+        expect(validate(uint8Payload, config).payload instanceof Uint8Array).toBe(true);
+        //if you pass Buffer you get buffer
+        expect(validate(bufferPayload, config).payload instanceof Buffer).toBe(true);
+        //if pass nodejsDeepCopy, you always get buffer
+        expect(validate(uint8Payload, {...config, nodejsDeepCopy: true}).payload instanceof Buffer).toBe(true);
+        expect(validate(bufferPayload, {...config, nodejsDeepCopy: true}).payload instanceof Buffer).toBe(true);
     })
 
-    test("can I pass everything as an array?", async () => {
+    test("checking the keys", async () => {
         expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, ["key1", "key2", "c", "a", {returnKey: 1}]);
-        expect(result).toEqual("c");
+        let 
+            payload = `channel\0event\0namespace\u{0}payload`.split("").map(d => d.charCodeAt(0));
+        expect(
+            Object.keys(validate(new Uint8Array(payload)))
+        ).toEqual(["channel", "evt", "namespace", "payload"]);
+    });
+
+    test("checking if consecutive null bytes are correctly captured in the payload", async () => {
+        expect.assertions(1);
+        let 
+            payload = `channel\0event\0namespace\u{0}\0\0\0\xAF\x7F\xFFpayload`.split("").map(d => d.charCodeAt(0));
+        expect(
+            validate(new Uint8Array(payload)).payload
+        ).toEqual(new Uint8Array([0x0, 0x0, 0x0, 0xAF, 0x7F, 0xFF, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64]));
+        //                        null null null ¯     \x7F  ÿ     p     a     y     l     o     a     d
+    });
+
+    test("can we handle 500 reasonably sized calls per second?", async () => {
+        expect.assertions(1);
+        let 
+            maxLen = 0x6400, //25 kB
+            config = {maxLen},
+            payload_payload = [...Array(maxLen - 24)].map(
+                d => String.fromCharCode(Math.random() * 256 | 0)
+            ).join(""),
+            payload = `channel\0event\0namespace\u{0}${payload_payload}`.split("").map(d => d.charCodeAt(0)),
+            uint8Payload = new Uint8Array(payload),
+            bufferPayload = Buffer.from(new Uint8Array(payload));
+        const start = performance.now();
+        for (let i = 0; i < 500; ++i) {
+            validate(bufferPayload);
+        }
+        const end = performance.now();
+        console.log(end - start);
+        expect(end - start <= 1000).toBe(true);
     })
-
-    test("can I pass them as irregular arrays?", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, ["key1", "key2"], ["c", "a", {returnKey: 1}]);
-        expect(result).toEqual("c");
-    })
-
-    test("test the coercion", async () => {
-        expect.assertions(1);
-        const result = tryKeys(3, "key1", "valueOf", "c", "a", {returnKey: 0});
-        expect(result).toEqual(Number.prototype.valueOf);
-    })
-
-    test("test the transform", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "c", "a", {returnKey: 1, transform: (x) => x> 2});
-        expect(result).toEqual("c");
-    })
-
-    test("test the transform-2", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "c", "a", {returnKey: 1, transform: (x) => x<= 1});
-        expect(result).toEqual("a");
-    })
-
-    test("test the default value", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "key3");
-        expect(result).toEqual(void(0));
-    })
-
-    test("test the default value with default key", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "key3", {returnKey: 1});
-        expect(result).toEqual(void(0));
-    })
-
-    test("test the default value when specified", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "key3", {default: "defaultValue"});
-        expect(result).toEqual("defaultValue");
-    })
-
-    test("test the default key when specified", async () => {
-        expect.assertions(1);
-        const result = tryKeys({a:1, b:2, c:3}, "key1", "key2", "key3", {defaultKey: "defaultKey", returnKey: 1});
-        expect(result).toEqual("defaultKey");
-    }) */
-
 })
