@@ -1,7 +1,7 @@
 const 
     undef = void(0),
     {md5} = require("./md5.js"),
-    {until} = require("./helpers.js"),
+    {until_v2:until} = require("./helpers.js"),
     {WeakBucket} = require("./weakBucket.js"),
     wk = new WeakMap(),
     wb = new WeakBucket(20);
@@ -19,9 +19,13 @@ exports.Limiter = function(cache, oRoute, {interval} = {interval: 5000}) {
                 step = +oLimit?.step || 1,
                 trigger = function(){
                     cache.incr(key, step);
+                },
+                terminate = function(){
+                    _until?.break();
+                    return _until
                 };
-        let counter = {value: 0, limit, message, trigger};
-        until(function(){
+        let counter = {value: 0, limit, message, trigger, terminate};
+        let _until = until(function(){
             cache.get(key).then(val => {
                 if (val === undef) {cache.set(key, 0, timeout)}
                 counter.value = val ?? 0
@@ -41,4 +45,8 @@ proto.trigger = function(ws) {
         }
         counter.trigger();
     }
+}
+proto.terminate = function() {
+    const _map = wk.get(this);
+    return Promise.all([..._map.values()].map(counter => counter.terminate()))
 }

@@ -17,7 +17,9 @@ module.exports = {
       //"**/server/test/helpers.tryKeys.test.js"
       //"**/server/test/serverBlastn.test.js"
       //"**/server/test/serverStress.test.js"
-      "**/server/test/validateWs.test.js"
+      //"**/server/test/validateWs.test.js"
+      //"**/server/test/weakBucket.test.js"
+      "**/server/test/rateLimiter.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],
