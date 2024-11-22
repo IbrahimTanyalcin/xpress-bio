@@ -12,8 +12,8 @@ function trigger(cb, interval) {
     }, this.value * interval);
     this.accumulTimeout?.break();
     this.accumulTimeout = until(() => {
-        console.log("running!", this.timeout, this.value);
-        if (this.value <= 0.5) {console.log("done!"); return !(this.accumulTimeout = undef)}
+        /* console.log("running!", this.timeout, this.value); */
+        if (this.value <= 0.5) {/* console.log("done!"); */ return !(this.accumulTimeout = undef)}
         this.value = Math.max(0.5, this.value / 2 | 0);
     }, {interval: this.interval})
 }
