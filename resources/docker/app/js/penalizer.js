@@ -38,13 +38,22 @@ exports.penalize = function(obj, {interval = 5000, cb, callback} = {interval: 50
     }
     return counter.value;
 }
+/* 
+    if returns truthy !!(0.5) it unpenalized, if falsey it wasnt penalized anyway
+*/
 exports.unpenalize = function(obj) {
     if (!wk.has(obj)){return}
     const counter = wk.get(obj);
     clearTimeout(counter.timeout);
     counter?.accumulTimeout?.break();
+    return (counter.timeout = undef, counter.value = 0.5);
 }
 exports.isPenalized = function(obj){
     if (!wk.has(obj)){return false}
-    return wk.get(obj).value !== 0.5;
+    return wk.get(obj).timeout !== undef;
+}
+
+exports.isReset = function(obj){
+    if (!wk.has(obj)){return true}
+    return wk.get(obj).value === 0.5;
 }
