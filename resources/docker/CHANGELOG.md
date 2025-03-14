@@ -48,3 +48,14 @@
   - added subscriber v0.0.3 to coordinate event dispatches to blast windows
   - extended fasta deletion from the UI to also silently remove blast queries and databases associated with that reference fasta
   - extended pipeline to build with `blastn`
+- ## v0.2.1
+  ### changes
+  - Added the ability to install certs automatically before docker container start. This is done via mounting a folder/docker volume into `/app/certs`
+  - Added a new safe resource: `"https://drive.usercontent.google.com/u/0/uc?id=11TbI4TJJiD7lP86VFBeWMmiCa2YAEGpN&export=download"` which is the first million bases of human X chromosome
+  - Added `clamp` and `tryKeys` to `helpers.js`
+  - Added 2 new keys `ncpus` and `nproc` that give cpu count
+  - Added new unit tests and added an integration test for `blastn` functionality
+  - Added the ability to use multiple threads for `blastn` for blast searches. The number of cores are automatically determined based on host cpu core count and clamped between 1 and 4
+  ### fixes
+  - Fixed an issue where blast database generation would take longer than 2 minutes and trigger part of the code under `blastn.js` that resulted in a syntax error. The `const` has been switched to `let` declaration. And the default timeout has been clamped between 15 minutes and 0x7FFFFFFF and is configurable via `blastn.makeblastdbTimeout` key in the server configuration.
+  - Updated `codyLogger` component to address a cosmetic issue in the Safari Browser (`display:none` did not transition properly)
