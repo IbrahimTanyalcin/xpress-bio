@@ -44,6 +44,15 @@
 		<!-- borderless theme for sweetalert -->
 		<!-- <link rel="inactive-stylesheet" type="text/css" href="static/css/sweetalert-dark.css"> -->
 		<!--taskq 2.3.7-->
+		<script type="importmap">
+			{
+				"imports": {
+					"wsagent": "/static/js/modules/post-main-ws-agent.js",
+					"simpleChat": "/static/components/@simpleChat/js/simple-chat.0.0.9.fix.js",
+					"pre": "/static/js/modules/pre.js"
+				}
+			}
+		</script>
 		<script src="static/js/taskq.js" data-backsteps="3" data-step-limit="50"></script>
 	</head>
 	<body>
@@ -97,7 +106,7 @@
 						</span>
 						<span>
 							<a href="https://dev.azure.com/DevOps-Vx/_git/dna-nexus-igv" rel="noopener noreferrer nofollow" target="_blank">
-								<i>v0.2.1</i>
+								<i>v0.3.0</i>
 							</a>
 						</span>
 					</div>
@@ -183,6 +192,7 @@
 		<script src="static/js/modules/post-main-samtools-indexing.js" type="module" async></script>
 		<script src="static/js/modules/post-main-visualize-action.js" type="module" async></script>
 		<script src="static/js/modules/post-main-blast.js" type="module" async></script>
+		<script src="static/js/modules/post-main-ws-agent.js" type="module" async></script>
 		<script src="static/js/modules/hexgrid.js" async></script>
 		<script src="static/js/modules/cahir-loader.js" async></script>
 		<script src="static/js/gsk-logo.js" async></script>
@@ -196,5 +206,17 @@
 		<script src="static/js/modules/localStorage.js" async></script>
 		<!-- sweetalert -->
 		<script src="/static/js/sweetalert2@11.4.7.js" async></script>
+		<!--<script type="module" async>
+			import {ws} from "wsagent";
+			!function(){
+				//I guess this works because taskq executes every 17ms and async function resolve in microtask
+				function moduleWsAgent(){
+					console.log(ws);
+				}
+				moduleWsAgent._taskqId = "moduleWsAgent";
+				moduleWsAgent._taskqWaitFor = ["main", "cahirLoader", "postMainWsAgent"];
+				taskq.push(moduleWsAgent);
+			}()
+		</script>-->
 	</body>
 </html>

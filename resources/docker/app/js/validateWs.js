@@ -1,17 +1,5 @@
 const 
-    _TA = new Set([
-        Object.getPrototypeOf(Uint8Array.prototype).constructor, //TypedArray
-        Object.getPrototypeOf(Uint8ClampedArray.prototype).constructor, //TypedArray
-        Uint8Array.prototype.constructor, //Uint8Array
-        Uint8ClampedArray.prototype.constructor, //Uint8ClampedArray
-        Object.getPrototypeOf(Uint16Array.prototype).constructor, //TypedArray
-        Uint16Array.prototype.constructor, //Uint16Array
-        Object.getPrototypeOf(Uint32Array.prototype).constructor, //TypedArray
-        Uint32Array.prototype.constructor, //Uint32Array
-        /* Object.getPrototypeOf(Buffer).constructor -> Gives Function*/
-        Buffer.prototype.constructor
-    ].filter(Boolean)),
-    //_TA = Object.getPrototypeOf(Uint8Array.prototype).constructor,
+    {isTA} = require("./helpers.js"),
     undef = void(0);
 
 /**
@@ -25,9 +13,14 @@ const
  * @returns {{channel: string, evt: string, namespace: string, payload: Buffer|Uint8Array}}} if finder had success, pathstring to executable, else 'undefined'
  */
 exports.validate = function validate(iter, {sep = 0, maxLen = 0x6400000, fieldLen = 32, nodejsDeepCopy = false} = {sep: 0, maxLen: 0x6400000, fieldLen: 32, nodejsDeepCopy: false}) {
-    //if (!(iter instanceof _TA)) {return false}
-    //if (!~_TA.indexOf(iter?.constructor)) {return false}
-    if(!_TA.has(iter?.constructor)){return false}
+    /* 
+        node has a different inherintence of prototpes
+        Buffer is not an instance of Uint8 etc.
+        things like below wont work
+        if (!(iter instanceof _TA)) {return false}
+        if (!~_TA.indexOf(iter?.constructor)) {return false}
+    */
+    if(!isTA(iter)){return false}
     let 
         flag = 1, //1 => channel, 2 => event, 3 => namespace
         len = 0,

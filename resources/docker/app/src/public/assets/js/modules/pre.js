@@ -4,7 +4,8 @@ let keepFirstNElements,
     loadCSSAsyncOnce,
     loadCSSAsyncOnceMulti,
     loadScriptAsyncOnce,
-    loadScriptAsyncOnceMulti;
+    loadScriptAsyncOnceMulti,
+    throttle_v2;
 !function(){
     function pre() {
         var body = document.body,
@@ -606,6 +607,40 @@ let keepFirstNElements,
             );
             return Promise.all(promises);
         };
+        throttle_v2 = function(f, {thisArg = void(0), delay=100, defer=true} = {}){
+            const 
+                that = this,
+                settle = (args) => {
+                    resolver?.(f.apply(thisArg, args));
+                    resolver = prom = null;
+                    tmstmp = performance.now();
+                };
+            let timeout,
+                prom,
+                resolver,
+                tmstmp = performance.now();
+            return /*this.lastOp = */function(...args) {
+                clearTimeout(timeout);
+                thisArg = thisArg ?? that;
+                let elapsed = performance.now() - tmstmp;
+                if (resolver) {
+                    if (defer || (!defer && elapsed < delay)) {
+                        timeout = setTimeout(() => {
+                            settle(args);
+                        }, delay);
+                    } else {
+                        settle(args);
+                    }
+                    return prom;
+                }
+                return prom = new Promise(res => {
+                    resolver = res;
+                    timeout = setTimeout(() => {
+                        settle(args);
+                    }, delay);
+                })
+            }
+        };
         var reusableSelf = {
             "spaceAround": spaceAround,
             "nrDotNr": nrDotNr,
@@ -675,5 +710,6 @@ export {
     loadCSSAsyncOnce, 
     loadCSSAsyncOnceMulti,
     loadScriptAsyncOnce,
-    loadScriptAsyncOnceMulti
+    loadScriptAsyncOnceMulti,
+    throttle_v2
 };

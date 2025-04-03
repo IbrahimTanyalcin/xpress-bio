@@ -1,6 +1,6 @@
 {
   "name": "docker-for-dna-nexus-igv",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "a simple docker container for running igv on dna-nexus",
   "main": "main.js",
   "scripts": {
@@ -24,6 +24,7 @@
   "author": "Ibrahim Tanyalcin",
   "license": "MIT",
   "dependencies": {
+    "@ibowankenobi/subscriber": "^0.0.3",
     "compression": "^1.7.4",
     "connect-memcached": "^2.0.0",
     "cross-env": "^7.0.3",
