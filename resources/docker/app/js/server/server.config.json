@@ -149,7 +149,8 @@
     },
     "web-socket": {
         "conf": {
-            "logEvents": true
+            "logEvents": true,
+            "debug": false
         },
         "mounts": {
             "/ws": {

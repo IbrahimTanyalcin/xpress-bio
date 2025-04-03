@@ -5,22 +5,23 @@ module.exports = {
 		
     },
     testMatch: [
-      ////"**/server/test/*.test.js"
-      //"**/server/test/serverFastaBamIndex.test.js"
-      //"**/server/test/app.bin.downloadX.sh.test.js"
-      //"**/server/test/serverAtomic.test.js"
-      //"**/server/test/strMatchList.test.js"
-      //"**/server/test/serverDwnld.test.js"
-      //"**/server/test/uriWhiteList.test.js"
-      //"**/server/test/uriBlackList.test.js"
-      //"**/server/test/helpers.clamp.test.js"
-      //"**/server/test/helpers.tryKeys.test.js"
-      //"**/server/test/serverBlastn.test.js"
-      //"**/server/test/serverStress.test.js"
-      //"**/server/test/validateWs.test.js",
-      //"**/server/test/weakBucket.test.js",
-      //"**/server/test/rateLimiter.test.js"
-      "**/server/test/penalizer.test.js"
+      "**/server/test/*.test.js"
+      //done//"**/server/test/serverFastaBamIndex.test.js"
+      //done//"**/server/test/app.bin.downloadX.sh.test.js"
+      //done//"**/server/test/serverAtomic.test.js"
+      //done//"**/server/test/strMatchList.test.js"
+      //done//"**/server/test/serverDwnld.test.js"
+      //done//"**/server/test/uriWhiteList.test.js"
+      //done//"**/server/test/uriBlackList.test.js"
+      //done//"**/server/test/helpers.clamp.test.js"
+      //done//"**/server/test/helpers.tryKeys.test.js"
+      //done//"**/server/test/serverBlastn.test.js"
+      //done//"**/server/test/serverStress.test.js"
+      //done//"**/server/test/validateWs.test.js",
+      //done//"**/server/test/weakBucket.test.js",
+      //done//"**/server/test/rateLimiter.test.js",
+      //done//"**/server/test/penalizer.test.js",
+      //done//"**/server/test/wsSend8.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

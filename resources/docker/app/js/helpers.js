@@ -2,6 +2,35 @@
 //https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#caching
 //so no need to return early if obj is found in require.main
 //https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#the-module-wrapper
+const 
+	encode = TextEncoder.prototype.encode.bind(new TextEncoder),
+	_TA = new Set([
+        Object.getPrototypeOf(Uint8Array.prototype).constructor, //TypedArray
+        Object.getPrototypeOf(Uint8ClampedArray.prototype).constructor, //TypedArray
+        Uint8Array.prototype.constructor, //Uint8Array
+        Uint8ClampedArray.prototype.constructor, //Uint8ClampedArray
+        Object.getPrototypeOf(Uint16Array.prototype).constructor, //TypedArray
+        Uint16Array.prototype.constructor, //Uint16Array
+        Object.getPrototypeOf(Uint32Array.prototype).constructor, //TypedArray
+        Uint32Array.prototype.constructor, //Uint32Array
+        /* Object.getPrototypeOf(Buffer).constructor -> Gives Function*/
+        Buffer.prototype.constructor
+    ].filter(Boolean)),
+	_TA8 = new Set([
+		Object.getPrototypeOf(Uint8Array.prototype).constructor,
+		Object.getPrototypeOf(Uint8ClampedArray.prototype).constructor,
+		Uint8Array.prototype.constructor,
+		Uint8ClampedArray.prototype.constructor,
+		Buffer.prototype.constructor
+	]),
+	isTA = (iter) => {
+		if(_TA.has(iter?.constructor)){return true}
+		return false;
+	},
+	isTA8 = (iter) => {
+		if(_TA8.has(iter?.constructor)){return true}
+		return false;
+	};
 Object.defineProperties(
 	exports,
 	{
@@ -95,6 +124,126 @@ Object.defineProperties(
 					default:
 						throw new Error("There was a problem with parsing the payload");
 				}
+			}
+		},
+		isTA: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: isTA
+		},
+		isTA8: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: isTA8
+		},
+		encode: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: encode
+		},
+		/* 
+			not checking if isTA8 or isTA, as these 4 functions below can be
+			run many times at runtime and throw. Checking things will slow it
+		*/
+		uint16to8LE: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (ta16) => {
+				const 
+					len = ta16.length,
+					buff = Buffer.allocUnsafe(len * 2);
+				for (let i =0; i < len; ++i){
+					buff.writeUInt16LE(ta16[i], i * 2);
+				}
+				return buff;
+			}
+		},
+		uint32to8LE: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (ta32) => {
+				const 
+					len = ta32.length,
+					buff = Buffer.allocUnsafe(len * 4);
+				for (let i =0; i < len; ++i){
+					buff.writeUInt32LE(ta32[i], i * 4);
+				}
+				return buff;
+			}
+		},
+		uint8LEto16: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (ta8) => {
+				const 
+					len = ta8.length,
+					uint16 = new Uint16Array(Math.ceil(len / 2));
+				for (let i =0, j = 0; i < len; i += 2, ++j){
+					uint16[j] = ta8[i+1] << 8 | ta8[i]
+				}
+				return uint16
+			}
+		},
+		uint8LEto32: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (ta8) => {
+				const 
+					len = ta8.length,
+					uint32 = new Uint32Array(Math.ceil(len / 4));
+				for (let i =0, j = 0; i < len; i += 4, ++j){
+					uint32[j] = ta8[i+3] << 24 | ta8[i+2] << 16 | ta8[i+1] << 8 | ta8[i]
+				}
+				return uint32
+			}
+		},
+		/* 
+			if you wanna send Uint16 or Uint32 see above 2 functions
+		*/
+		wsSend8 : {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: ({channel, event, namespace, payload, stringify = [null, "\t"]}) => {
+				if (
+					typeof channel !== "string"
+					|| typeof event !== "string"
+					|| typeof namespace !== "string"
+				){
+					throw new Error("channel, event and namespace must be strings");
+				}
+				if (!isTA8(payload)) {
+					switch (typeof payload) {
+						case "string":
+						case "number":
+							payload = Buffer.from(encode(payload))
+							break;
+						case "object":
+							if (isTA(payload)) {
+								throw new Error("Typed arrays other than Buffer and Uint8 are not supported");
+							}
+							payload = Buffer.from(encode(JSON.stringify(payload, ...stringify)))
+							break;
+						default:
+							throw new Error("There was a problem with parsing the payload");
+					}
+				}
+				if (!(payload instanceof Buffer)) {
+					payload = Buffer.from(payload)
+				}
+				let header = Buffer.from(encode(`${channel}\0${event}\0${namespace}\0`)),
+					hlen = header.length,
+					buff = Buffer.allocUnsafe(header.length + payload.length, 0, "binary");
+				header.copy(buff, 0);
+				payload.copy(buff, hlen)
+				return buff
 			}
 		},
 		sanitizeFilename: {
@@ -267,6 +416,45 @@ Object.defineProperties(
 						timeout = setTimeout(() => {
 							res(f.apply(thisArg, args));
 							resolver = prom = null;
+						}, delay);
+					})
+				}
+			}
+		},
+		throttle_v2: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: function(f, {thisArg = void(0), delay=100, defer=true} = {}){
+				const 
+					that = this,
+					settle = (args) => {
+						resolver?.(f.apply(thisArg, args));
+						resolver = prom = null;
+						tmstmp = performance.now();
+					};
+				let timeout,
+					prom,
+					resolver,
+					tmstmp = performance.now();
+				return /*this.lastOp = */function(...args) {
+					clearTimeout(timeout);
+					thisArg = thisArg ?? that;
+					let elapsed = performance.now() - tmstmp;
+					if (resolver) {
+						if (defer || (!defer && elapsed < delay)) {
+							timeout = setTimeout(() => {
+								settle(args);
+							}, delay);
+						} else {
+							settle(args);
+						}
+						return prom;
+					}
+					return prom = new Promise(res => {
+						resolver = res;
+						timeout = setTimeout(() => {
+							settle(args);
 						}, delay);
 					})
 				}

@@ -4,7 +4,7 @@ const
     {findDir} = require("../../findDir.js"),
     {log} = require("../../helpers.js");
 
-module.exports = async function ({express, app, info, files, serverSent}) {
+module.exports = async function ({express, app, info, files, serverSent, ws}) {
     const routeFiles = await Promise.resolve(
         info.serverConf?.routes
         ? getFiles(
@@ -25,6 +25,6 @@ module.exports = async function ({express, app, info, files, serverSent}) {
         )
     );
     log("loading routes:", JSON.stringify(routeFiles));
-    return Promise.all(routeFiles.map(routeFile => require("./" + routeFile)({express, app, info, files, serverSent})))
+    return Promise.all(routeFiles.map(routeFile => require("./" + routeFile)({express, app, info, files, serverSent, ws})))
     .then(() => routeFiles);
 }

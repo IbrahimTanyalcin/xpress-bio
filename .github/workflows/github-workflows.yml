@@ -25,12 +25,12 @@ jobs:
           echo "BLAST_HOME=${HOME}/${{ env.LOC }}/ncbi-blast-${{ env.BLAST_VERSION }}+" >> $GITHUB_ENV
           echo "BLAST_TARBALL=ncbi-blast-${{ env.BLAST_VERSION }}+-${{ env.BLAST_ARCH }}.tar.gz" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: 'Install Node.js'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: '20.x'
 
       - name: 'install ubuntu libs'
         run: >
@@ -42,11 +42,12 @@ jobs:
           && apt-get -y install bc
           && apt-get -y install liblz4-tool
           && apt-get -y install bsdmainutils
+          && apt-get -y install liblzma-dev
           ;"
 
       - name: Cache samtools
         id: cache-samtools
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.HOME_DIR }}/${{ env.LOC }}/samtools-${{ env.SAMTOOLS_VERSION }}
@@ -98,7 +99,7 @@ jobs:
 
       - name: Cache blast
         id: cache-blast
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.BLAST_HOME }}/bin

@@ -52,6 +52,24 @@
                         datum.busy = 0;
                     },
                     busy: 0
+                },
+                {
+                    name: "chat-box", 
+                    cls: ["fa", "fa-comment"],
+                    atr: [["title", "chat anonymously"]],
+                    action: async function(button, datum){
+                        if (datum.busy) {return}
+                        datum.busy = 1;
+                        if(!toolRegister.get("chat-box")){
+                            await Promise.all([
+                                loadScriptAsyncOnce("static/components/@simpleChat/js/simple-chat.0.0.9.fix.js", {type: "module"}),
+                                loadScriptAsyncOnce("static/components/@chatbox/js/init.js", {type: "module"}),
+                            ]);
+                        }
+                        toolRegister.get("chat-box")(button);
+                        datum.busy = 0;
+                    },
+                    busy: 0
                 }
             ]}
             *> ${"div"} |> sappend ${0}
@@ -66,6 +84,7 @@
             addClass ${["animated", "fadeInUp"]}
             *> ${"div"} |> sappend ${0}
             addClass ${"container"}
+            style height ${"auto"}
 
             *> ${"div"} |> sappend ${0}
 
@@ -135,6 +154,19 @@
                 })
             }}
         `
+        
+        const toolsDivContainer = side.querySelector(".animated.fadeInUp div");
+        new ResizeObserver(ch2.throttle(function(entries){
+            for (const entry of entries) {
+                if(entry.target !== this){return}
+                let {marginTop, marginBottom} = getComputedStyle(toolsDivContainer);
+                marginTop = parseInt(marginTop) || 0;
+                marginBottom = parseInt(marginBottom) || 0;
+                const toolsDivHeight = marginTop + marginBottom + Math.ceil(entry.borderBoxSize[0]?.blockSize || 0);
+                side.style.setProperty("--tools-div-height", toolsDivHeight);
+                //console.log("resized toolbox");
+            }
+        }, {delay: 250, thisArg: toolsDivContainer})).observe(toolsDivContainer, {box: "border-box"});
     }
     toolsButton.addEventListener("click", render, false);
     toolsButton.click();
