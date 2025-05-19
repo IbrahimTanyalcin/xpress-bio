@@ -49,7 +49,8 @@ exports.getInfo = async function(ENV, ARGS){
 			PPID: process.ppid,
 			workers: new Set(),
 			ncpus,
-			nproc: ncpus
+			nproc: ncpus,
+			nodeVersion: process.version
 		};
 		require.main._ipvCache = {getInfo: result};
 	} catch (err) {

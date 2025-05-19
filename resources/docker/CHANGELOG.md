@@ -59,3 +59,23 @@
   ### fixes
   - Fixed an issue where blast database generation would take longer than 2 minutes and trigger part of the code under `blastn.js` that resulted in a syntax error. The `const` has been switched to `let` declaration. And the default timeout has been clamped between 15 minutes and 0x7FFFFFFF and is configurable via `blastn.makeblastdbTimeout` key in the server configuration.
   - Updated `codyLogger` component to address a cosmetic issue in the Safari Browser (`display:none` did not transition properly)
+- ## v0.3.0
+  ### changes
+  - Upgraded docker, ci and standalone versions of xpress-bio from node 16 to 20.
+  - Upgraded various packages to accommodate for the new node version.
+  - Added a new `ws` proxy property to the object passed to routes, similar to `serverSent`.
+  - Added a `Web-Socket` server that handles upgrades that pairs with client side web-socket object with `binaryType` set to `arraybuffer`.
+  - Integrated [Subscriber](https://www.npmjs.com/package/@ibowankenobi/subscriber) and [WS](https://www.npmjs.com/package/ws) to the backend. Also included a newer version of [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) other than the one `express` relies on (0.1.10):
+  ```shell
+  $ npm ls path-to-regexp
+  docker/app
+  ├─┬ express@4.21.1
+  │ └── path-to-regexp@0.1.10
+  └── path-to-regexp@8.2.0
+  ```
+  - extended `server.config.json` to include `web-socket` key, where web-socket channels and their paths and limits can be configured. *Warning*, `routes` key uses the the new `path-to-regexp` 8.2.0 dependency above. Overtime, we might  do the same for `serverSent` or reverse if this proves to provide worse DX.
+  - added `utils/loadWebSockets.js` similar to `loadServerSent.js` that handles HTTP upgrades for `ws`.
+  - added `weakBucket.js`, `penalizer.js`, `rateLimiter.js` and `validateWs.js` to provide namespaces and rate-limiting for web-socket connections.
+  - extended `helper.js` to provide functions to determine if payload is `Uint8Array` or `TypedArray`, `isTA` and `isTA8`. Added conversions from `Uint8Array` to `Uint16Array` and `Uint32Array`. The conversions are in little endian. 32 and 16 bit arrays gets converted to buffer in low endian, and these outputs can be converted back to 16 or 32 bits. This makes the conversions independent of the host endianness. Added `wsSend8` to send binary buffer regardless of input type.
+  ### fixes
+  - Due to Node 16 closing sockets more frequently and 20/22 is more eager to accept new connections, it increases the chance to trigger `ECONNRESET` or `ECONNREFUSED` in `serverStress.test.js`. Therefore `cache.end` calls in `loadMemcachedRoutes.js` has been removed, they expire on their own. See the issue [here](https://github.com/nodejs/node/issues/55330), and it seems like this still affects Node 22.

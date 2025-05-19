@@ -22,6 +22,7 @@
     --samtools-index-color: #ccaa70;
     --size: 100px;
     --layout-shift: 4rem;
+    --font-color-chat-box: #1B3B3B;
     color-scheme: light dark; /* both supported */
 }
 
@@ -45,6 +46,7 @@
     --warning-color:#9F4060;
     --error-color: #cf4060;
     --samtools-index-color: #eecc30;
+    --font-color-chat-box: #3BBBBB;
     color-scheme: light dark; /* both supported */
 }
 
@@ -403,7 +405,7 @@ body::after {
     top: 100px;
     left:100%;
     width:40%;
-    height: calc(100vh - 100px);
+    height: max(var(--tools-div-height, 0) * 1px, 100vh - 100px);
     min-height: 450px;
     border-radius: 10px;
     background-color: var(--bg-color-less-transparent);
