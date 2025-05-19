@@ -57,5 +57,7 @@ module.exports = async function ({express, app, info, files}) {
         memsessConf.secret = genHexStr(8, 3, "memsecret_");
     }
     sessConf.store = new MemcachedStore(memsessConf);
-    app.use(session(sessConf));
+    const sessionMiddleware = session(sessConf);
+    app.use(sessionMiddleware);
+    return sessionMiddleware;
 }

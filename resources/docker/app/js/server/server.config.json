@@ -147,6 +147,32 @@
             }
         }
     },
+    "web-socket": {
+        "conf": {
+            "logEvents": true,
+            "debug": false
+        },
+        "mounts": {
+            "/ws": {
+                "routes": {
+                    "/ch1{/*any}": {
+                        "isRegExp": false,
+                        "name": "channel1",
+                        "limits": [
+                            {
+                                "key": "wsLimit",
+                                "global": false,
+                                "timeout": 60,
+                                "limit": "10000",
+                                "message": "You exceeded the websocket requests",
+                                "step": 1
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
     "session": {
         "env-session-secret": "XPRESS_SECRET",
         "env-memcached-secret": "MEMSESS_SECRET",

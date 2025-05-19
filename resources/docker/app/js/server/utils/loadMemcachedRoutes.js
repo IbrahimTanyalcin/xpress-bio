@@ -42,21 +42,15 @@ module.exports = async function ({express, app, info, files, serverSent}) {
                                 "X-RateLimit-Remaining": limit - keyVal
                             });
                             if(keyVal > limit) {
-                                return flow.then(() => {
-                                    cache.end(); 
-                                    res.status(429).send({
-                                        "http-status": 429, 
-                                        message
-                                    });
+                                res.status(429).send({
+                                    "http-status": 429, 
+                                    message
                                 });
                             }
-                            return flow.then(() => cache.incr(key, step))
-                            .then(() => {
-                                cache.end(); 
-                                next()
-                            });
+                            flow.then(() => cache.incr(key, step));
+                            next();
                         })
-                        .catch((err) => {cache.end(); next(err)});
+                        .catch((err) => {next(err)});
                     });
                 });
             });
@@ -64,4 +58,5 @@ module.exports = async function ({express, app, info, files, serverSent}) {
         });
         app.use(mountRouter);
     });
+    return cache;
 }
