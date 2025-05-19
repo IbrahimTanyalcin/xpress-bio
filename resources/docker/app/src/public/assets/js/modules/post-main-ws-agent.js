@@ -202,15 +202,18 @@ let wsSubscriber;
                         );
                     });
                 }
+                ws[init]?.logIfDebug("message received:", "channel=> ", channel, " event=>", event, " namespace=>", namespace, " payload=>", payload);
                 wsSubscriber.dispatch(channel, `${event}`, {channel, event, namespace, payload, ws})
             };
 
             ch.until(() => ws[init]).lastOp
             .then(({delay = 5000}) => {
                 if (pathConfig.reconnect) {
+                    ws[init].logIfDebug("ws[init] available, assigning pathConfig.reconnect");
                     return ws.onclose = pathConfig.reconnect;
                 }
                 ws.onclose = pathConfig.reconnect = ch.throttle((evt) => {
+                    ws[init].logIfDebug("connection closed!");
                     //const delay = ws[init] || 5000;
                     if (dontReconnectStates.has(evt?.code)) {return console.log(dontReconnectStates.get(evt.code), path)}
                     console.log(`websocket connection for ${path} was closed. Retrying once every ${delay}ms`);
@@ -222,9 +225,11 @@ let wsSubscriber;
                 } ,{delay});
             });
             if (pathConfig.reconnect) {
+                ws[init]?.logIfDebug?.("assigning pathConfig.reconnect");
                 ws.onclose = pathConfig.reconnect;
             } else {
                 ws.onclose = ch.throttle((evt) => {
+                    ws[init]?.logIfDebug?.("connection closed!");
                     if (dontReconnectStates.has(evt?.code)) {return console.log(dontReconnectStates.get(evt.code), path)};
                     console.log(`initial websocket connection for ${path} was closed. Retrying once every 5000ms`);
                     that.getAgent(path);

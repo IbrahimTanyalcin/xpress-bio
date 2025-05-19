@@ -77,6 +77,7 @@ import registerContentArea from "../../@table/js/registerContentArea.js";
         });
 
         subscription.on("user-chat-typing", throttle_v2(() => {
+            logIfDebug("someone other than you is typing...");
             chat.showTyping("3000,user")
         }, {delay: 500, defer: false}));
 
