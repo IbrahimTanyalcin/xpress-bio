@@ -53,6 +53,7 @@ module.exports = async function ({server, express, app, info, files, session, se
         rateLimitInterval = 5000,
         wss = new WebSocket.WebSocketServer({noServer: true}),
         wsStates = [ WebSocket.CONNECTING, WebSocket.OPEN, WebSocket.CLOSING, WebSocket.CLOSED ],
+        wsStatesCls = new Set([WebSocket.CLOSING, WebSocket.CLOSED]),
         wsOPEN = WebSocket.OPEN,
         wsClients = {
             responses: {}, //channelName: Map(sessid => ws[wsKey] = {ws:ws, })
@@ -61,17 +62,26 @@ module.exports = async function ({server, express, app, info, files, session, se
         wsKey = genHexStr(8, 3, "ws_"),
         wsSubscriber = new Subscriber(),
         destroy = function(){
+            logIfDebug("ws destroy called.");
             clearTimeout(this?.timeout);
             clearTimeout(this?.ws?.[rateLimitKey]);
             unpenalize(this?.ws);
             this?.ws?.terminate?.();
-            return this?.clients?.delete(this?.sessid);
+            if (this?.clients?.get(this?.sessid) === this && wsStatesCls.has(this?.ws?.readyState)){
+                logIfDebug("removing ws[wsKey] from channel clients.");
+                return this?.clients?.delete(this?.sessid);
+            }
+            logIfDebug("no ws[wsKey] OR keeping new ws[wsKey] from channel clients.");
+            return false;
+            //return this?.clients?.delete(this?.sessid); -> causes a bug where a good new connection from same client is removed via hearbeat cleanup.
             //for each channel dispacth channel @namespace to induce garbage collection ??
         },
         onClose = function(){
+            logIfDebug("ws onClose fired.");
             this[wsKey]?.destroy?.();
         },
         onError = function(err){
+            logIfDebug("ws onError fired.");
             this[wsKey]?.destroy?.();
         },
         fSafeSend = function(payload) {
@@ -157,19 +167,27 @@ module.exports = async function ({server, express, app, info, files, session, se
             ^(?<channel>[\w\-]+),(?<event>[\w\-]*)@?(?<namespace>[\w\-]*),(?<data>.*)$ 
             in BINARY!
         */
-        ws.on('pong', () => ws[isAlive] = 1)
+        ws.on('pong', () => {
+            logIfDebug("PONG received, setting ws[isAlive] = 1");
+            ws[isAlive] = 1;
+        })
         ws.on('message', function(msg){
-            if (isPenalized(ws)){return}
+            if (isPenalized(ws)){
+                return logIfDebug("ws object is penalized, returning early");
+            }
             let temp, structMsg;
             if (!(structMsg = validate(msg))){
+                logIfDebug("validation of ws message failed, pausing + penalizing ws and returning early");
                 ws.pause();
                 return penalize(ws, {interval: penaltyInterval, cb: () => {ws.resume()}});
             }
             if (structMsg.namespace !== namespace){
+                logIfDebug("namespace mismatch, pausing + penalizing ws and returning early");
                 ws.pause();
                 return penalize(ws, {interval: penaltyInterval, cb: () => {ws.resume()}});
             }
             if((temp = oChannel.limiter.trigger(ws)) && !isPenalized(temp)) { //if truthy, temp is a ws object
+                logIfDebug("ratelimiting reached, pausing + penalizing ws and returning early");
                 temp.pause();
                 penalize(temp, {interval: penaltyInterval, cb: ((temp) => () => {temp.resume()})(temp)});
                 return temp[rateLimitKey] = setTimeout(((temp) => () => !isPenalized(temp) && temp.resume())(temp), rateLimitInterval)

@@ -9,6 +9,7 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
     //console.log("ws subscriber is", ws.subscriber);
     const subscription = ws.subscriber().subscribe("channel1");
     subscription.on("user-chat-ready", function(data){
+        ws.logIfDebug("user-chat-ready received", data);
         ws.msg({
             channel: "channel1", 
             sessid:data.sessid,
@@ -43,9 +44,13 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
             payload: data.payload
         }) */
 
-        ws.getAll("channel1")
+        const allClients = ws.getAll("channel1");
+        ws.logIfDebug(`current number of clients: ${allClients.length}`);
+        //ws.getAll("channel1")
+        allClients
         .filter(oWS => oWS.sessid !== data.sessid)
         .forEach(oWS => {
+            ws.logIfDebug("sending user chat to:", oWS.sessid);
             ws.msg({
                 channel: "channel1", 
                 sessid:oWS.sessid,
@@ -57,6 +62,7 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
     })
 
     subscription.on("user-chat-typing", throttle(function(data){
+        ws.logIfDebug("some user is typing...");
         ws.getAll("channel1")
         .filter(oWS => oWS.sessid !== data.sessid)
         .forEach(oWS => {
