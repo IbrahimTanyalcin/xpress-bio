@@ -28,6 +28,7 @@
     "compression": "^1.7.4",
     "connect-memcached": "^2.0.0",
     "cross-env": "^7.0.3",
+    "eventsource-parser": "^3.0.2",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "memcached": "^2.2.2",
