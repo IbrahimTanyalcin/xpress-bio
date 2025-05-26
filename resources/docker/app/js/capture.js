@@ -59,4 +59,81 @@ const
 		});
 	};
 
+const captureSpawn = function (
+	str,
+	{
+		logger = true,
+		pipe = true,
+		ondata = false,
+		onstart = false,
+		onerror = undefined,
+		shell = true, // spawn uses raw binary unless shell is explicitly true
+		...rest
+	} = {}
+) {
+	const [cmd, ...args] = shell ? [str] : str.split(/\s+/); // crude but works if not shell
+
+	switch (((typeof logger === 'function') << 1) + !!logger) {
+		case 3:
+		case 2:
+			logger(str);
+			break;
+		case 1:
+			log('Capturing:', str);
+			break;
+		default:
+	}
+
+	return new Promise((res, rej) => {
+		const proc = spawn(cmd, args, {
+			shell,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			...rest,
+		});
+
+		let stdout = '';
+		let stderr = '';
+
+		if (onstart) {
+			onstart.call(proc, str, rest);
+		}
+
+		if (ondata) {
+			proc.stdout.on('data', function (chunk) {
+				ondata.call(this, chunk, str, rest);
+				stdout += chunk;
+			});
+		} else {
+			proc.stdout.on('data', (chunk) => {
+				stdout += chunk;
+				if (pipe) process.stdout.write(chunk);
+			});
+		}
+
+		proc.stderr.on('data', (chunk) => {
+			stderr += chunk;
+			if (pipe) process.stderr.write(chunk);
+		});
+
+		proc.on('close', (code) => {
+			if (code === 0) {
+				res(stdout);
+			} else {
+				const err = new Error(`Process exited with code ${code}`);
+				err.code = code;
+				err.stderr = stderr;
+				err.stdout = stdout;
+				onerror?.({ err, res, rej });
+				rej(err);
+			}
+		});
+
+		proc.on('error', (err) => {
+			onerror?.({ err, res, rej });
+			rej(err);
+		});
+	});
+};
+
 exports.capture = capture;
+exports.captureSpawn = captureSpawn;

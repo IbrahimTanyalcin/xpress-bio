@@ -525,6 +525,19 @@ Object.defineProperties(
 				}
 				return opts?.returnKey ? defKey : defVal;
 			}
+		},
+		getUuidFromCookie: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: ((_rgx = /(?:^|;)\s*xb_uuid\s*=\s*"?(?<uuid>[a-z0-9_-]{16,256})"?\s*(?=$|;)/gm, _limit = 4000) => function(cookieStr){
+				cookieStr = (cookieStr?.toString?.()?.toLowerCase?.() || "").slice(0, _limit);
+				let uuid;
+				for (const v of cookieStr.matchAll(_rgx)){
+					uuid = v?.groups?.uuid
+				}
+				return uuid;
+			})()
 		}
 	}
 );
