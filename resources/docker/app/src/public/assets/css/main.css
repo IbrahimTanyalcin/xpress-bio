@@ -23,6 +23,8 @@
     --size: 100px;
     --layout-shift: 4rem;
     --font-color-chat-box: #1B3B3B;
+    --font-color-g-nome: #1B3B3B;
+    --bg-color-g-nome: #c9ad9d;
     color-scheme: light dark; /* both supported */
 }
 
@@ -47,6 +49,8 @@
     --error-color: #cf4060;
     --samtools-index-color: #eecc30;
     --font-color-chat-box: #3BBBBB;
+    --font-color-g-nome: #3BBBBB;
+    --bg-color-g-nome: #2e210e;
     color-scheme: light dark; /* both supported */
 }
 
