@@ -26,7 +26,23 @@ fi
 #set -- --npm -foo bar -baz qux -- --env "somevar=somevalstart" --nodemon -pqrs qwyu --ENV "someOtherEnv=someOtherVal" -- anotherArg -- foo barr --baz qux;
 cmdArgs=("$@")
 npmArgs=()
-nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
+# instead of the original args below, ignore list includes secrets
+# so that you can remove them after server restart without nodemon restarting
+# beware that this does not protect you from memory dumps
+#nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
+nodemonArgs=(
+    -e js,mjs,json,txt
+    --ignore 'src/public/assets/\*\*/\*'
+    --ignore 'js/server/token.config.json'
+    --ignore 'js/server/tokens.config.json'
+    --ignore 'js/server/secret.config.json'
+    --ignore 'js/server/secrets.config.json'
+    --ignore 'js/server/apikey.config.json'
+    --ignore 'js/server/apikeys.config.json'
+    --ignore 'js/server/apikeys.config.json'
+    --ignore 'js/server/apiKey.config.json'
+    --ignore 'js/server/apiKeys.config.json'
+)
 nodeArgs=(--no-daemon)
 declare -n currCtx=nodeArgs;
 
