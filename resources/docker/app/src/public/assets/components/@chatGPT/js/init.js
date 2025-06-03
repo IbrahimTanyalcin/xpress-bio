@@ -91,8 +91,11 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                             outline-style: solid;
                             color: var(--primary-color);
                             &:has(.fa-check-circle) {
-                                color: var(--success-color);
+                                color: var(--success-color-light);
                             }
+                        }
+                        &:disabled {
+                            opacity: 0.4;
                         }
                     }
                 }
@@ -204,6 +207,24 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                 font-size: 0.8em;
                 color: var(--bg-color-2);
             }
+            .status {
+                min-height: 3em;
+                & p {
+                    animation: fadein-translate-y 0.4s ease-in-out 0s 1 normal forwards running;
+                    padding: 0.5em;
+                    background: var(--shadow-color);
+                    margin: 5px;
+                    &.success {
+                        color: var(--success-color-light);
+                    }
+                    &.info {
+                        color: var(--info-color-light);
+                    }
+                    &.warning {
+                        color: var(--warning-color-light);
+                    }
+                }
+            }
             .fa-trash:before {
                 content: "\\f1f8";
             }
@@ -223,10 +244,21 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                         <rect transform="rotate(45)" x=".29" y="-.069" width=".32" height=".32" rx=".025" ry=".025"></rect>
                     </g>
                 </mana-orb>`,
+            avatarFixed = ch.dom`
+                <svg viewBox="0 0 1 1" style="width: 100%;aspect-ratio:1;">
+                    <g style="fill: var(--primary-color);">
+                        <rect transform="rotate(45)" x=".64" y="-.069" width=".32" height=".32" rx=".025" ry=".025"></rect>
+                        <rect transform="rotate(45)" x=".64" y="-.42" width=".32" height=".32" rx=".025" ry=".025"></rect>
+                        <rect transform="rotate(45)" x=".29" y="-.069" width=".32" height=".32" rx=".025" ry=".025"></rect>
+                    </g>
+                </svg>`,
+            fixAvatar = window.fixAvatar = (bubble) => {
+                bubble?.querySelector(".msg-img")?.firstElementChild?.replaceWith(avatarFixed.cloneNode(true));
+            },
             parser = ({current, incoming, parent, bubble, chat, component}) => {
                 ch(parent)`+-> ${ch.span} >> textContent ${incoming} style ${[["word-break","break-word"], ["white-space", "pre-wrap"]]} -> ${bubble} +< ${chat}`
             },
-            symbols = {busy: Symbol("busy"), freeze: Symbol("freeze")};
+            symbols = {busy: Symbol("busy"), freeze: Symbol("freeze"), uiBubble: Symbol("uiBubble"), status: Symbol("status")};
         
         /**
          * You can send generic message like below.
@@ -238,7 +270,7 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
             payload: {name: "some-name", key: "val"}
         }) */
 
-        subscription.on(`server-g-nome-ui@${window_id}`, ({channel, event, namespace, payload, ws}) => {
+        subscription.on(`server-g-nome-ui@${window_id}`, ({channel, event, namespace, payload, ws:_ws}) => {
             //subscription.off("server-g-nome-ui@${window_id}"); no need, we might need to have multiple server-g-nome-ui events
             logIfDebug("server-g-nome-ui fired", "payload => ", payload);
             chat.addBubble({
@@ -251,7 +283,10 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                     //trigger resize;
                     setTimeout(() => chat.showTyping().hideTyping(), 500);
                     ch`
-                    0> state:${"password"} 
+                    0> state:${"password"}
+                    0> overlay: ${bubble.getElementsByClassName("overlay")[0]}
+                    0> status: ${bubble.getElementsByClassName("status")[0]}
+                    0> model: ${bubble.querySelector("[name='mode-selector']")}
                     @> ...${[".custom-password button",bubble]} on click ${({values}) => function(){
                         this.previousElementSibling.setAttribute(
                             "type",
@@ -260,7 +295,6 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                             : (values.state = "password")
                         );
                     }} 
-                    0> overlay: ${bubble.getElementsByClassName("overlay")[0]}
                     -> ${bubble} >> ...${({values:v}) => [
                         symbols.busy, 
                         (isBusy) => ch(v.overlay).style([
@@ -272,11 +306,30 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
                         symbols.freeze,
                         () => {
                             v.overlay.remove();
+                            bubble.querySelector(".server-g-nome-ui").classList.remove("active");
                             bubble.querySelectorAll("input, select, button").forEach(el => el.setAttribute("disabled",""));
                             bubble.style.opacity = 0.5;
                         }
                     ]}
+                    >> ...${({values:v}) => [
+                        symbols.status,
+                        ({msg = "", type = "info"}) => {
+                            v.status.replaceChildren();
+                            v.status.appendChild(ch.dom`<p class="${type}">${msg}</p>`);
+                        }
+                    ]}
+                    -> ${({values:v}) => v.model}
+                    on change ${() => function() {
+                        if (!this.value){return}
+                        ws.sendMessage({
+                            path: "/ws/ch1",
+                            event: "user-g-nome-check-token",
+                            payload: {value: this.value, window_id}
+                        })
+                    }}
                     `
+                    chat[symbols.uiBubble] = bubble;
+                    bubble[symbols.busy](true);
                 },
                 parser: chat.defDangerousParser
             });
@@ -290,6 +343,36 @@ import registerSuccess from "../../@table/js/registerSuccess.js";
         subscription.on(`server-g-nome-err@${window_id}`, ({channel, event, namespace, payload, ws}) => {
             modal.issueError({msg: decode(payload), fadeout: 10000});
         });
+
+        subscription.on(`server-g-nome-no-uuid@${window_id}`, async ({channel, event, namespace, payload, ws}) => {
+            console.log("Must fetch some uud!");
+            try {
+                const res = await fetch('/uuid', {method: 'POST'});
+                if (!res.ok) {throw new Error(`Failed to fetch uuid, http status: ${res.status}`)}
+            } catch (err) {
+                modal.issueError({msg: err?.message || err, fadeout: 10000});
+            }
+        })
+
+        subscription.on(`server-g-nome-uuid@${window_id}`, async ({channel, event, namespace, payload, ws}) => {
+            console.log("DO I FIRE???");
+
+            let timeout = setTimeout(() => {
+                    console.log("Timedout!"); checkButton?.break();
+                    modal.issueError({msg: "Could not maintain connection, close this window and try again", fadeout: 10000});
+                }, 5000),
+                checkButton = ch.until(function(){
+                    return chat?.shadowRoot?.querySelector(".server-g-nome-ui.active:last-of-type footer button:has(.fa-check-circle)");
+                }, {interval: 50}).lastOp;
+            checkButton = await checkButton;
+            checkButton?.removeAttribute("disabled");
+            clearTimeout(timeout);
+            if (checkButton) {
+                chat[symbols.uiBubble][symbols.busy](false);
+            }
+            console.log("DONE!");
+        })
+
 
         /*This function gets invoked everytime you click on the send button*/
         chat.onsend(function({files, text}){

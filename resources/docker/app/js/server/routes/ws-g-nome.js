@@ -27,13 +27,42 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
             relayError(err, {data});
             return;
         }
+        const oWS = ws.get("channel1", data.sessid);
+        if (!oWS.xb_uuid){
+            ws.logIfDebug(`
+                no cookies found on client,
+                firing server-g-nome-no-uuid@${decodedPayload.window_id}.
+                oWS.sessid=> `, oWS.sessid
+            );
+            ws.msg({
+                channel: "channel1",
+                sessid: data.sessid,
+                event: `server-g-nome-no-uuid@${decodedPayload.window_id}`,
+                namespace: data.namespace,
+                payload: "empty"
+            })
+        } else {
+            ws.logIfDebug(`
+                found cookies on client,
+                firing server-g-nome-uuid@${decodedPayload.window_id}.
+                oWS.sessid=> `, oWS.sessid
+            );
+            //console.log("TEHRE IS UUID, no need!");
+            ws.msg({
+                channel: "channel1",
+                sessid: data.sessid,
+                event: `server-g-nome-uuid@${decodedPayload.window_id}`,
+                namespace: data.namespace,
+                payload: "empty"
+            })
+        }
         ws.msg({
             channel: "channel1", 
             sessid:data.sessid,
             event: `server-g-nome-ui@${decodedPayload.window_id}`,
             namespace: data.namespace,
             payload: `
-                <div class="server-g-nome-ui">
+                <div class="server-g-nome-ui active">
                     <h3>Disclaimer</h3>
                     <hr>
                     <ul class="disclaimer">
@@ -44,8 +73,8 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
                         <div class="custom-dropdown">
                             <select name="mode-selector">
                                 <option value ="" selected></option>
-                                <option value="ChatGPT 4o">ChatGPT 4-0</option>
-                                <option value="Gemini 2.5 Pro">Gemini 2.5 Pro</option>
+                                <option value="gpt-4o">ChatGPT 4o</option>
+                                <option value="gemini-2.5-pro-preview-05-06">Gemini 2.5 Pro</option>
                             </select>
                             <label class="floating-label">Choose a model</label>
                         </div>
@@ -54,15 +83,31 @@ module.exports = async function({express, app, info, files, serverSent, ws}){
                             <button></button>
                         </div>
                     </div>
+                    <div class="status"></div>
+                    <footer>
+                        <button disabled><i class="fa fa-check-circle"></i></button>
+                        <button disabled><i class="fa fa-trash"></i></button>
+                    </footer>
                     <div class="overlay">
                         <dna-spinner data-strand-color="dimgray" data-node-color="orange" data-size="8"></dna-spinner>
                     </div>
-                    <footer>
-                        <button><i class="fa fa-check-circle"></i></button>
-                        <button><i class="fa fa-trash"></i></button>
-                    </footer>
                 </div>
             `
         });
+    });
+
+    const availableTokens = {
+        "ChatGPT 4o": "gpt-4o",
+        "Gemini 2.5 Pro": "gemini-2.5-pro-preview-05-06"
+    }
+    subscription.on("user-g-nome-check-token", function(data){
+        let decodedPayload
+        try {
+            decodedPayload = JSON.parse(decode(data.payload));
+        } catch (err) {
+            relayError(err, {data});
+            return;
+        }
+        console.log("token check!", decodedPayload);
     });
 }
