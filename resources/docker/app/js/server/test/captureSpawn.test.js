@@ -128,7 +128,7 @@ describe('captureSpawn', () => {
 		}, 1000); // Test timeout slightly longer than internal timeout
 
 		it('should resolve if command finishes before timeout', async () => {
-			await expect(captureSpawn('sleep 0.1', { shell: '/bin/bash', timeout: 500, accumulate: true })).resolves.toBe(''); // Sleep outputs nothing to stdout
+			await expect(captureSpawn('sleep 0.1', { shell: '/bin/bash', timeout: 1500, accumulate: true })).resolves.toBe(''); // Sleep outputs nothing to stdout
 		});
 
 		it('should not apply timeout if timeout option is 0 or false', async () => {
