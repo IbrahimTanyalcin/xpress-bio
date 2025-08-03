@@ -5,7 +5,7 @@ module.exports = {
 		
     },
     testMatch: [
-      //"**/server/test/*.test.js"
+      "**/server/test/*.test.js"
       //done//"**/server/test/serverFastaBamIndex.test.js"
       //done//"**/server/test/app.bin.downloadX.sh.test.js"
       //done//"**/server/test/serverAtomic.test.js"
@@ -22,8 +22,8 @@ module.exports = {
       //done//"**/server/test/rateLimiter.test.js",
       //done//"**/server/test/penalizer.test.js",
       //done//"**/server/test/wsSend8.test.js"
-      "**/server/test/helpers.getUuidFromCookie.test.js",
-      "**/server/test/captureSpawn.test.js"
+      //done//"**/server/test/helpers.getUuidFromCookie.test.js",
+      //done//"**/server/test/captureSpawn.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

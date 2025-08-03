@@ -15,7 +15,8 @@
             "static/js/subscriber.0.0.3.evergreen.es.js": {
                 "type": "module"
             },
-            "static/components/@modal/js/modal.0.0.0.evergreen.umd.min.js": null
+            "static/components/@modal/js/modal.0.0.0.evergreen.umd.min.js": null,
+            "static/js/xb_highlight.js": null
         }).then(srcs => console.log(`script content delivered: ${srcs}`));
     }
     postMainScriptLoad._taskqId = "postMainScriptLoad";

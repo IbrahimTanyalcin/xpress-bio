@@ -343,6 +343,8 @@ module.exports = async function ({server, express, app, info, files, session, se
                         }
                     case "logIfDebug":
                         return logIfDebug
+                    case "wsDebug":
+                        return wsDebug
                 }
             },
         })

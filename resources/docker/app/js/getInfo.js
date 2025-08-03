@@ -35,7 +35,10 @@ exports.getInfo = async function(ENV, ARGS){
 			ipvPath: path.resolve(rootFolder, "node_modules/ibowankenobi-i-pv/i-pv/script/", "SNPtoAA.pl"),
 			nodaemon: ARGS.nodaemon,
 			input: path.resolve(mountPath, inputFileName),
-			isContainer: await capture('grep -isqE -m 1 \'docker|lxc\' /proc/1/cgroup && echo -n 1 || echo -n 0').catch((err) => '-1'),
+			/* wsl2 kernel 2.5.7 decided to nuke cgroup1, below won't be reliable enough
+			see: https://github.com/microsoft/WSL/issues/13030
+			isContainer: await capture('grep -isqE -m 1 \'docker|lxc\' /proc/1/cgroup && echo -n 1 || echo -n 0').catch((err) => '-1'),*/
+			isContainer: await capture('(grep -isqE -m 1 \'docker|lxc\' /proc/1/cgroup || [ -f /.dockerenv ] || mount | grep -q \'^overlay on / \') && echo -n 1 || echo -n 0').catch((err) => '-1'),
 			/* flags 
 				i = case-insensitive
 				s = silent, no messages for inexistent files

@@ -79,3 +79,13 @@
   - extended `helper.js` to provide functions to determine if payload is `Uint8Array` or `TypedArray`, `isTA` and `isTA8`. Added conversions from `Uint8Array` to `Uint16Array` and `Uint32Array`. The conversions are in little endian. 32 and 16 bit arrays gets converted to buffer in low endian, and these outputs can be converted back to 16 or 32 bits. This makes the conversions independent of the host endianness. Added `wsSend8` to send binary buffer regardless of input type.
   ### fixes
   - Due to Node 16 closing sockets more frequently and 20/22 is more eager to accept new connections, it increases the chance to trigger `ECONNRESET` or `ECONNREFUSED` in `serverStress.test.js`. Therefore `cache.end` calls in `loadMemcachedRoutes.js` has been removed, they expire on their own. See the issue [here](https://github.com/nodejs/node/issues/55330), and it seems like this still affects Node 22.
+- ## v0.3.1
+  ### changes
+  - Added `G-NOME`, a context aware LLM agent adaptor. Currently gemini, kong-api and open-ai (responses API) are added, with gemini currently disabled.
+  - All routes have now proper access to `express`, `app`, `info`, `files`, `serverSent`, `memcache`, `ws` instances, meaning they can receive via ws and send/broadCast via serverSent or vice-versa.
+  - `marked.js` is added globally in importmaps. `Prism.js` is loaded via `loadScriptAsyncOnce` and css is dynamically fetched to insert inside native web-components. Same strategy can be used for other features.
+  - Added general purpose `Prompt` constructor with embedded system prompt, prompt adaptors for different APIs and oAUTH2 scheduler under `app/js/`. These can be passed optional token families and available models objects as in `app/js/server/routes/ws-g-nome.js`.
+  - Added MIT License.
+  ### fixes
+  - Due to `wsl 2.57` removing support of cgroup1, `isContainer` is added 2 extra checks in `app/bin/start.sh` and `app/js/getInfo.js` to increase compatibility without breaking older images.
+  - Added `--use-openssl-ca` in `Dockerfile` and `app/bin/start.sh` to enable `fetch` to use system certs.

@@ -7,7 +7,8 @@
     "memcached": {
         "conf": {
             "logEvents": true,
-            "poolSize": 50
+            "poolSize": 50,
+            "maxExpiration": 2592000
         },
         "mounts": {
             "/": {
