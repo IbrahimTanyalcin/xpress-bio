@@ -4,6 +4,7 @@
   - [Motivation](#motivation)
   - [Naming Convention](#naming-convention)
   - [Quickstart](#quickstart)
+  - [Using with LLMs](#using-with-llms)
   - [App structure](#app-structure)
   - [CLI arguments](#cli-arguments)
   - [Node arguments](#node-arguments)
@@ -69,6 +70,43 @@ For all above examples, visit `localhost:3000` from your browser.
 </small>
 
 <br>
+
+## Using with LLMs
+
+`XPRESS-BIO` merges `*.config.json` under `app/js/server` during runtime in memory. You can create one or any of the following:
+
+- `apikeys.config.json`
+- `apikey.config.json`
+- `tokens.config.json`
+- `token.config.json`
+- `secrets.config.json`
+- `secret.config.json`
+
+Overlapping keys will be overwritten in the order above and merged. An example `tokens.config.json` looks like:
+
+```json
+{
+    "tokens": {
+        "openai": {"value": "sk-proj-rest-of-your-token-here", "endpoint": "https://api.openai.com/v1/responses"},
+        "kongapi": {
+            "endpoint": "https://path/to/your/companies/API/endpoint/openai/deployments/gpt-4o/chat/completions?api-version=2025-01-01-preview",
+            "refresh_endpoint": "https://your-company-refresh-endpoint.com/as/token.oauth2",
+            "client_id": "your-client-id",
+            "client_secret": "your-client-secret",
+            "grant_type": "client_credentials",
+            "ttl": 1800000
+        }
+    }
+}
+```
+
+APIs that work with `Bearer` auth scheme need `value` key like openai. Otherwise `value` is dynamically refreshed and appended at runtime for OAuth2 APIs like kongapi.
+
+Above json example will immediately call refresh_endpoint initially and then refresh the token every 30 mins (1800000 ms = 30 min). If you omit a config file like above, you will need to enter your API key on `G-NOME` interface, which will be kept for a month. This can only be done for API endpoints that work with `Bearer` auth. You will need a config file like above for APIs that work with OAuth2 like kongapi.
+
+`XPRESS-BIO` is context aware, for example adding keys like `refresh_endpoint` or `client_secret` to API endpoints that do not use OAuth2, like openai is silently ignored. These are internally defined (ex: `app/js/promptOAuth2.js`)
+
+For developers, `nodemon` ignores changes to `(apikeys|apikey|tokens|token|secrets|secret).config.json` so you can remove these files without triggering a restart in a remote server after server starts. **Beware that this does not protect you from memory dump inspection if your server is compromised.**
 
 ## App structure
 

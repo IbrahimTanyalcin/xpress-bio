@@ -48,6 +48,7 @@
                         if(!toolRegister.get("g-nome")){
                             await Promise.all([
                                 loadScriptAsyncOnce("static/js/localforage.min.js"),
+                                loadScriptAsyncOnce("static/js/prism.1.29.0.js"),
                                 loadScriptAsyncOnce("static/components/@simpleChat/js/simple-chat.0.0.9.fix.js", {type: "module"}),
                                 loadScriptAsyncOnce("static/components/@manaOrb/js/mana-orb.0.0.10.es.fix.js", {type: "module"}),
                                 loadScriptAsyncOnce("static/components/@chatGPT/js/init.js", {type: "module"})

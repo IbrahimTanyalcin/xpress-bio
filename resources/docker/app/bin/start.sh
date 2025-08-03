@@ -42,6 +42,7 @@ nodemonArgs=(
     --ignore 'js/server/apikeys.config.json'
     --ignore 'js/server/apiKey.config.json'
     --ignore 'js/server/apiKeys.config.json'
+    --use-openssl-ca
 )
 nodeArgs=(--no-daemon)
 declare -n currCtx=nodeArgs;
@@ -90,7 +91,10 @@ sed 's/^\s*//' <<EOL
 EOL
 
 set -x
-isContainer=$(grep -isqE -m 1 'docker|lxc' /proc/1/cgroup && echo -n 1 || echo -n 0);
+#starting from wsl2 kernel 2.5.7, cgroup1 is removed. So more checks are needed.
+#see: https://github.com/microsoft/WSL/issues/13030
+#isContainer=$(grep -isqE -m 1 'docker|lxc' /proc/1/cgroup && echo -n 1 || echo -n 0);
+isContainer=$( (grep -isqE -m 1 'docker|lxc' /proc/1/cgroup || [ -f /.dockerenv ] || mount | grep -q '^overlay on / ') && echo -n 1 || echo -n 0 );
 if [[ $isContainer == 1 ]]
 then
     sed 's/^\s*//' <<EOL 
