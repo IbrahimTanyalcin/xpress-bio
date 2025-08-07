@@ -7,7 +7,7 @@ const
     genHexStr = require("../../genHexStr"),
     {validate} = require("../../validateWs.js"),
     {Limiter} = require("../../rateLimiter.js"),
-    {log, until, clamp, encode, wsSend8} = require("../../helpers.js"),
+    {log, until, clamp, encode, wsSend8, getUuidFromCookie} = require("../../helpers.js"),
     {penalize, unpenalize, isPenalized} = require("../../penalizer.js"),
     rateLimitKey = Symbol.for("xpressbio.ratelimit");
     
@@ -141,7 +141,8 @@ module.exports = async function ({server, express, app, info, files, session, se
                 name: channelName,
                 namespace,
                 nMap: oChannel.clients,
-                clients: oChannel.clients
+                clients: oChannel.clients,
+                xb_uuid: getUuidFromCookie(req?.headers?.cookie)
             }
         );
         logIfDebug('connection object added to clients Map', oChannel);
@@ -342,6 +343,8 @@ module.exports = async function ({server, express, app, info, files, session, se
                         }
                     case "logIfDebug":
                         return logIfDebug
+                    case "wsDebug":
+                        return wsDebug
                 }
             },
         })

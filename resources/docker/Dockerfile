@@ -3,7 +3,7 @@ FROM node:20-bullseye
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
 for IGV to visualize .bam files"
-LABEL version="0.3.0"
+LABEL version="0.3.1"
 LABEL website="https://dnanexus.gsk.com"
 LABEL repository="https://dev.azure.com/DevOps-Vx/dna-nexus-igv"
 
@@ -66,4 +66,19 @@ ENTRYPOINT ["/bin/bash", "./bin/start.sh"]
 #--npm for npm args
 #--nodemon for nodemon args
 #-- for node args
-CMD ["--nodemon", "-e", "js,mjs,json,txt" , "--ignore", "src/public/assets/\\*\\*/\\*", "--", "--no-daemon"]
+CMD [
+    "--nodemon",
+    "-e", "js,mjs,json,txt",
+    "--ignore", "src/public/assets/\\*\\*/\\*",
+    "--ignore", "js/server/token.config.json",
+    "--ignore", "js/server/tokens.config.json",
+    "--ignore", "js/server/secret.config.json",
+    "--ignore", "js/server/secrets.config.json",
+    "--ignore", "js/server/apikey.config.json",
+    "--ignore", "js/server/apikeys.config.json",
+    "--ignore", "js/server/apiKey.config.json",
+    "--ignore", "js/server/apiKeys.config.json",
+    "--use-openssl-ca",
+    "--",
+    "--no-daemon"
+]

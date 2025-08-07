@@ -22,6 +22,8 @@ module.exports = {
       //done//"**/server/test/rateLimiter.test.js",
       //done//"**/server/test/penalizer.test.js",
       //done//"**/server/test/wsSend8.test.js"
+      //done//"**/server/test/helpers.getUuidFromCookie.test.js",
+      //done//"**/server/test/captureSpawn.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

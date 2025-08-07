@@ -26,7 +26,23 @@ fi
 #set -- --npm -foo bar -baz qux -- --env "somevar=somevalstart" --nodemon -pqrs qwyu --ENV "someOtherEnv=someOtherVal" -- anotherArg -- foo barr --baz qux;
 cmdArgs=("$@")
 npmArgs=()
-nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
+# instead of the original args below, ignore list includes secrets
+# so that you can remove them after server restart without nodemon restarting
+# beware that this does not protect you from memory dumps
+#nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
+nodemonArgs=(
+    -e js,mjs,json,txt
+    --ignore 'src/public/assets/\*\*/\*'
+    --ignore 'js/server/token.config.json'
+    --ignore 'js/server/tokens.config.json'
+    --ignore 'js/server/secret.config.json'
+    --ignore 'js/server/secrets.config.json'
+    --ignore 'js/server/apikey.config.json'
+    --ignore 'js/server/apikeys.config.json'
+    --ignore 'js/server/apiKey.config.json'
+    --ignore 'js/server/apiKeys.config.json'
+    --use-openssl-ca
+)
 nodeArgs=(--no-daemon)
 declare -n currCtx=nodeArgs;
 
@@ -74,7 +90,10 @@ sed 's/^\s*//' <<EOL
 EOL
 
 set -x
-isContainer=$(grep -isqE -m 1 'docker|lxc' /proc/1/cgroup && echo -n 1 || echo -n 0);
+#starting from wsl2 kernel 2.5.7, cgroup1 is removed. So more checks are needed.
+#see: https://github.com/microsoft/WSL/issues/13030
+#isContainer=$(grep -isqE -m 1 'docker|lxc' /proc/1/cgroup && echo -n 1 || echo -n 0);
+isContainer=$( (grep -isqE -m 1 'docker|lxc' /proc/1/cgroup || [ -f /.dockerenv ] || mount | grep -q '^overlay on / ') && echo -n 1 || echo -n 0 );
 if [[ $isContainer == 1 ]]
 then
     sed 's/^\s*//' <<EOL 
