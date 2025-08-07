@@ -15,14 +15,19 @@
     --heading-color: #404040;
     --transparent-color: #FFFFFF00;
     --info-color: #38f;
+    --info-color-light: #abf;
     --success-color: #395;
+    --success-color-light: #3b8;
     --success-color-transparent: #3a45;
     --warning-color:#9F6000;
+    --warning-color-light: #AFAF00;
     --error-color: #D8000C;
     --samtools-index-color: #ccaa70;
     --size: 100px;
     --layout-shift: 4rem;
     --font-color-chat-box: #1B3B3B;
+    --font-color-g-nome: #1B3B3B;
+    --bg-color-g-nome: #c9ad9d;
     color-scheme: light dark; /* both supported */
 }
 
@@ -41,12 +46,17 @@
     --shadow-color: #9090b044;
     --heading-color: #818cab;
     --info-color: #45b;
+    --info-color-light: #58d;
     --success-color: #257045;
+    --success-color-light: #296;
     --success-color-transparent: #25704588;
     --warning-color:#9F4060;
+    --warning-color-light: #AF7777;
     --error-color: #cf4060;
     --samtools-index-color: #eecc30;
     --font-color-chat-box: #3BBBBB;
+    --font-color-g-nome: #3BBBBB;
+    --bg-color-g-nome: #2e210e;
     color-scheme: light dark; /* both supported */
 }
 

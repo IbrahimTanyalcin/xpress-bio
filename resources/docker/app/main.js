@@ -47,9 +47,15 @@ const { render } = require("./js/server/express.js");
 	// osExecute("/bin/bash -c tail -f /dev/null",{exclude:"^win"})
 	//  .catch(catcher);
 	
+	const redactSet = new Set(["apikeys", "apikey", "tokens", "token", "secrets", "secret"]);
 	log(
 		"Here are your parameters:",
-		JSON.stringify(info,null,"\t")
+		JSON.stringify(info, function(k, v){
+			if (!redactSet.has(k.toLocaleLowerCase())) {return v}
+			return Object.fromEntries(
+				Object.keys(this[k]).map(k => [k, "*******"])
+			);
+		},"\t")
 	);
 	
 	const 

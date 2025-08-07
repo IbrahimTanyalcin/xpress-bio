@@ -39,16 +39,22 @@
                     busy: 0
                 },
                 {
-                    name: "ai-asist", 
+                    name: "g-nome", 
                     cls: ["fa", "fa-magic"],
-                    atr: [["title", "ai-asist"]],
+                    atr: [["title", "g-nome"]],
                     action: async function(button, datum){
                         if (datum.busy) {return}
                         datum.busy = 1;
-                        if(!toolRegister.get("ai-asist")){
-                            await loadScriptAsync("static/components/@chatGPT/js/init.js");
+                        if(!toolRegister.get("g-nome")){
+                            await Promise.all([
+                                loadScriptAsyncOnce("static/js/localforage.min.js"),
+                                loadScriptAsyncOnce("static/js/prism.1.29.0.js"),
+                                loadScriptAsyncOnce("static/components/@simpleChat/js/simple-chat.0.0.9.fix.js", {type: "module"}),
+                                loadScriptAsyncOnce("static/components/@manaOrb/js/mana-orb.0.0.10.es.fix.js", {type: "module"}),
+                                loadScriptAsyncOnce("static/components/@chatGPT/js/init.js", {type: "module"})
+                            ]);
                         }
-                        toolRegister.get("ai-asist")(button);
+                        toolRegister.get("g-nome")(button);
                         datum.busy = 0;
                     },
                     busy: 0
