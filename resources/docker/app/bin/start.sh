@@ -39,7 +39,6 @@ nodemonArgs=(
     --ignore 'js/server/secrets.config.json'
     --ignore 'js/server/apikey.config.json'
     --ignore 'js/server/apikeys.config.json'
-    --ignore 'js/server/apikeys.config.json'
     --ignore 'js/server/apiKey.config.json'
     --ignore 'js/server/apiKeys.config.json'
     --use-openssl-ca
