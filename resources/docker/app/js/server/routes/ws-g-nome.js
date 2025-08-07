@@ -92,7 +92,7 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
                     <hr>
                     <ul class="disclaimer">
                         <li><b>G-NOME</b> is in alpha stage. Unless you use your own API keys, reviewers can see your history.</li>
-                        <li><b>DO NOT</b> run g-nome on sensitive or proprieatary sequences.</li>
+                        <li><b>DO NOT</b> run g-nome on sensitive or proprietary sequences.</li>
                     </ul>
                     <div>
                         <div class="custom-dropdown">
