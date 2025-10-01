@@ -685,7 +685,8 @@ let keepFirstNElements,
              .export(loadCSSAsync, "loadCSSAsync")
              .export(loadCSSAsyncMulti, "loadCSSAsyncMulti")
              .export(loadScriptAsync, "loadScriptAsync")
-             .export(loadScriptAsyncMulti, "loadScriptAsyncMulti");
+             .export(loadScriptAsyncMulti, "loadScriptAsyncMulti")
+             .export(loadScriptAsyncOnceMulti, "loadScriptAsyncOnceMulti");
         taskq._exportPersist = taskq._exportPersist || {
             loadCSSAsync: loadCSSAsync,
             loadCSSAsyncOnce: loadCSSAsyncOnce,
