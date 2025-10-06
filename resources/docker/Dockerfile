@@ -4,8 +4,8 @@ LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
 for IGV to visualize .bam files"
 LABEL version="0.3.1"
-LABEL website="https://dnanexus.gsk.com"
-LABEL repository="https://dev.azure.com/DevOps-Vx/dna-nexus-igv"
+LABEL website="https://github.com/IbrahimTanyalcin/xpress-bio"
+LABEL repository="https://github.com/IbrahimTanyalcin/xpress-bio"
 
 WORKDIR /app
 RUN ["/bin/bash", "-c", "apt-get -y update"]

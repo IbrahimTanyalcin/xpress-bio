@@ -810,7 +810,7 @@ Visit `localhost:3000` from your browser. To stop the server, go back to the ter
 
 ### Accessing DNA-Nexus
 
-[DNA Nexus](https://dnanexus.gsk.com/) is a platform where you can store large genomic sequences, transfer them between clients and run docker containers behind an `nginx` proxy. This makes it easy to move files back and forth between applications and also takes care of user `authentication`, as well as `https`. Some of the features demonstrated requires you to have an [account](https://dnanexus.gsk.com/).
+DNA Nexus is a platform where you can store large genomic sequences, transfer them between clients and run docker containers behind an `nginx` proxy. This makes it easy to move files back and forth between applications and also takes care of user `authentication`, as well as `https`. Some of the features demonstrated requires you to have an account.
 
 ### Usage
 
@@ -830,11 +830,7 @@ Right now the `Reference File` dropdown where it says `Choose a .fa file` is emp
 
 ![app-upload-before](./app/src/public/assets/img/app-upload-before.PNG)
 
-The app only allows [`DNA Nexus` links to be posted](./app/js/server/workers/dl.js). If you have access to `***_research_prod` folder (you can request access from *Ibrahim Tanyalcin*), you will find `starter-packs-igv` folder. Otherwise go to your `DNA Nexus` project folder and generate a download link:
-
-![app-upload-linkgen](./app/src/public/assets/img/app-upload-linkgen.PNG)
-
-To understand what these links are for, take a look at the next section *Creating Starter Packs*. Copy the link and paste it in the input box, click `OK`. This will start a download of the `tarball` and you will see a new hexagon icon as download progresses:
+Paste the resource link in the input box above and click `OK`. This will start a download of the `tarball` and you will see a new hexagon icon as download progresses:
 
 ![app-upload-progress](./app/src/public/assets/img/app-upload-progress.PNG)
 
@@ -881,9 +877,7 @@ if (
 ```
 ### Creating Starter Packs
 
-Provided that the uploaded links are from *DNA Nexus*, the application has the ability to automatically extract `tar.gz`, `lz4` etc. compressed archives, pick the relevant files and place them in right folders and automatically inform/update all users of the app, **live**. Providing archive files instead of regular files allows one to upload many files at once. You can easily create such bundles to make easier to move files into your container. An example of such bundles are the [`starter packs`](***), these packs include an entire bundle of relevant fasta, fai, bam, bai files to populate the drop down menus for you:
-
-![starter-pack](./app/src/public/assets/img/starter-pack.PNG)
+Provided that the uploaded links are from *DNA Nexus*, the application has the ability to automatically extract `tar.gz`, `lz4` etc. compressed archives, pick the relevant files and place them in right folders and automatically inform/update all users of the app, **live**. Providing archive files instead of regular files allows one to upload many files at once. You can easily create such bundles to make easier to move files into your container. An example of such bundles are the `starter packs`, these packs include an entire bundle of relevant fasta, fai, bam, bai files to populate the drop down menus for you.
 
 To create a starter pack:
 
