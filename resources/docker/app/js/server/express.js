@@ -46,7 +46,8 @@ async function render (info) {
         {
             base: info.rootFolder, 
             dryRun: false, 
-            log: true
+            log: true,
+            recursive: true
         }
     ).then(arrOfFolders => {
         log(
