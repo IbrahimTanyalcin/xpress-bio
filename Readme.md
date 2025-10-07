@@ -42,6 +42,36 @@ If you need external access, handle authentication through a reverse proxy (e.g.
 - Navigate into [`resources/docker/app/`](./resources/docker/app/) where `package.json` is located. Run `npm install`.
 - You can now run [`resources/docker/app/bin/start.sh`](./resources/docker/app/bin/start.sh) to start the app.
 
+## Getting Files Inside the App
+### Using URLs
+- Make sure the server hosting the file supports HTTP `HEAD` requests (e.g. Google Cloud, Amazon S3, gist.github.com, etc.).
+- In the app, go to **Analyze → Upload**, paste the URL, and click **OK**.
+
+If you provide a link to a `*.tar.gz` or any other compressed file, its contents are automatically unzipped and allocated to the corresponding folders.
+
+### Direct transfer
+The app automatically creates the following folders if do not exist:
+
+- `bam/`: BAM files (`.bam`)
+- `bai/`: BAM indexes (`.bai`)
+- `fa/`: FASTA files (`.fa`, `.fas`, `.fasta`)
+- `fai/`: FASTA indexes (`.fai`)
+- `bgz/`: BGZIP files created from GFF (`.bgz`)
+- `tbi/`: BGZIP index (`.tbi`)
+- `csi/`: BGZIP index (`.csi`)
+- `gff/`: GFF files (`.gff`)
+
+If the app is **running**, use the `mv` command to atomically perform the operation. If you prefer to use `cp`, stop the app first, copy the files, and then start it again to prevent incomplete indexes.
+
+The app automatically indexes:
+- `fasta` → `fai`
+- `bam` → `bai`
+- `gff` → `bgz`
+- `bgz` → `csi` / `tbi`
+
+**Example:**  
+If `myfasta.fa` is inside the `fa/` folder but there is no `myfasta.fai` inside `fai/`, it will be created automatically.
+
 ## Configuration
 
 You can configure Xpress-Bio by layering `*.config.json` under [`resources/docker/js/server/`](./resources/docker/app/js/server/). Do not modify the default config `server.config.json`, instead layer other `*.config.json` under the same location. These will be alphabetically sorted and then recursively deep merged at runtime (overlapping keys will overwrite each other). To add your keys/bearer tokens for LLMs, refer to the internal readme's [`Using with LLMs`](./resources/docker/README.md#using-with-llms) section.

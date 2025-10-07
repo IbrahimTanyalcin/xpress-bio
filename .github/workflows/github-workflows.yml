@@ -148,7 +148,7 @@ jobs:
           git clone --no-checkout --filter=blob:none https://IbrahimTanyalcin:${{ secrets.GH_PAT }}@github.com/IbrahimTanyalcin/sijill.git temp_repo
           cd temp_repo
           git sparse-checkout init --no-cone
-          git sparse-checkout set '/*' '!/papers/'
+          git sparse-checkout set '/*' '!/papers/' '!/static/img/'
           git checkout -B master origin/master
           mkdir -p ${{ env.TARGET_DIR }}
           cp -r "${{ env.TEST_ARTIFACT }}" "${{ env.TARGET_DIR }}"/
