@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-run-probe:
+  build-run-healthcheck:
     # skip draft PRs
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
@@ -23,6 +23,7 @@ jobs:
       IMAGE: xpress-bio:commit-${{ github.sha }}
       NAME: xpressbio
       PORT: 3000
+      SLEEP_INTERVAL: 3
 
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +51,8 @@ jobs:
               echo "Healthy."
               exit 0
             fi
-            sleep 3
+            echo "Server unresponsive $(( (i - 1) * ${SLEEP_INTERVAL} )) seconds after start; retrying..."
+            sleep ${SLEEP_INTERVAL}
           done
           echo "Timed out waiting for /healthcheck"
           docker logs "$NAME" || true
