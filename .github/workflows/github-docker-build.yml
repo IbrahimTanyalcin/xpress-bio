@@ -1,0 +1,61 @@
+name: docker build and healthcheck
+
+permissions:
+  contents: read
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'resources/docker/**'
+      - '.github/workflows/github-docker-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-run-probe:
+    # skip draft PRs
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: docker-build-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      IMAGE: xpress-bio:commit-${{ github.sha }}
+      NAME: xpressbio
+      PORT: 3000
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Is docker installed?
+        run: docker --version && docker info
+
+      - name: Build image (no cache)
+        run: |
+          docker build --no-cache \
+            -t "$IMAGE" \
+            -f resources/docker/Dockerfile \
+            resources/docker/
+
+      - name: Run container
+        run: |
+          docker rm -f "$NAME" >/dev/null 2>&1 || true
+          docker run -d --name "$NAME" -p ${PORT}:${PORT} "$IMAGE"
+
+      - name: Wait for /healthcheck
+        run: |
+          set -e
+          for i in {1..5}; do
+            if curl -fsS "http://127.0.0.1:${PORT}/healthcheck"; then
+              echo "Healthy."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Timed out waiting for /healthcheck"
+          docker logs "$NAME" || true
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f "$NAME" || true
