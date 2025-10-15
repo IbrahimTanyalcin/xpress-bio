@@ -1,4 +1,4 @@
-# XPRESS-BIO: lightweight + versatile Bioinformatics framework
+# <img width=48 height=48 style="vertical-align:middle;" src="./resources/docker/app/src/public/assets/img/xpress-bio-logo.svg"> XPRESS-BIO: lightweight + versatile Bioinformatics framework
 
 [![xpress-bio CI](https://github.com/IbrahimTanyalcin/xpress-bio/actions/workflows/github-workflows.yml/badge.svg)](https://github.com/IbrahimTanyalcin/xpress-bio/actions/workflows/github-workflows.yml)
 [![unit-tests](https://img.shields.io/badge/unit-tests-55A860)](https://ibrahimtanyalcin.github.io/sijill/#pipeline%20artifacts/xpress-bio.coverage.js)

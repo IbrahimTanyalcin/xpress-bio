@@ -605,7 +605,7 @@ const diff = (d1, d2) => {
                 meta = {data: metaData}
             }
             bytesSent += text?.length ?? 0;
-            if (bytesSent / bytesToTokens >= 40000) {
+            if (bytesSent / bytesToTokens >= 120000) {
                 chat.enable();
                 return modal.issueError({msg: "Reduce your token size by closing igv applets or blast windows", fadeout: 10000});
             }
