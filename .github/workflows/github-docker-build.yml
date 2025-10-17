@@ -43,6 +43,18 @@ jobs:
           docker rm -f "$NAME" >/dev/null 2>&1 || true
           docker run -d --name "$NAME" -p ${PORT}:${PORT} "$IMAGE"
 
+      - name: Wait for "Container mode is detected" banner
+        run: |
+          set -euo pipefail
+          start=$(docker inspect -f '{{.State.StartedAt}}' "$NAME")
+          if timeout 30s grep -F --line-buffered -m1 'Container mode is detected' < <(docker logs -f --since "$start" "$NAME" 2>&1); then
+            echo "OK: Container mode is detected."
+          else
+            echo "FAIL: Container mode was NOT detected — dumping logs:" >&2
+            docker logs --since "$start" "$NAME" || true
+            exit 1
+          fi
+
       - name: Wait for /healthcheck
         run: |
           set -e
