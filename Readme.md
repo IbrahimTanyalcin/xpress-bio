@@ -5,7 +5,7 @@
 [![paper-pdf](https://img.shields.io/badge/paper-pdf-ffd580)](https://ibrahimtanyalcin.github.io/sijill/#papers/JOSS/xpress-bio.joss.pdf.js)
 
 
-![app-upload-progress](./resources/docker/app/src/public/assets/img/app-upload-progress.PNG)
+![Xpress-Bio screenshot](https://ibrahimtanyalcin.github.io/sijill/static/img/xpress-bio/gnome.png)
 
 ## Motivation
 

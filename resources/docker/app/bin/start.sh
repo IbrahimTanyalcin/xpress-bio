@@ -1,5 +1,8 @@
 #!/bin/bash
 
+scriptFolder="$( dirname ${BASH_SOURCE[0]} )";
+scriptName="$( basename ${BASH_SOURCE[0]} )";
+
 if [[ "$(service --status-all 2>&1 | grep 'memcached' | sed -r 's/^\s*\[\s*([-+?])\s*\].*$/\1/i')" != "+" ]]
 then
     sed 's/^\s*//' <<EOL 
@@ -8,8 +11,6 @@ then
                 > starting memcached.
                 > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 EOL
-    scriptFolder="$( dirname ${BASH_SOURCE[0]} )";
-    scriptName="$( basename ${BASH_SOURCE[0]} )";
     source "${scriptFolder}/repTillEx0.sh";
     service memcached start;
     repTillEx0 "pidof" "memcached" "--reflect" "0.25" "20";
@@ -45,10 +46,14 @@ nodemonArgs=(
 )
 nodeArgs=(--no-daemon)
 declare -n currCtx=nodeArgs;
+ignoreContainer=0
 
 for (( i=0; i<"${#cmdArgs[@]}"; ++i )) 
 do
     case "${cmdArgs[$i],,}" in
+        --ignore-container)
+            ignoreContainer=1
+        ;;
         --npm)
             declare -n currCtx=npmArgs
         ;;
@@ -94,6 +99,9 @@ set -x
 #see: https://github.com/microsoft/WSL/issues/13030
 #isContainer=$(grep -isqE -m 1 'docker|lxc' /proc/1/cgroup && echo -n 1 || echo -n 0);
 isContainer=$( (grep -isqE -m 1 'docker|lxc' /proc/1/cgroup || [ -f /.dockerenv ] || mount | grep -q '^overlay on / ') && echo -n 1 || echo -n 0 );
+if [[ "$ignoreContainer" -eq 1 ]]; then
+    isContainer=0
+fi
 if [[ $isContainer == 1 ]]
 then
     sed 's/^\s*//' <<EOL 
