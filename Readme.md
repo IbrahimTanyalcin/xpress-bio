@@ -7,6 +7,16 @@
 
 ![Xpress-Bio screenshot](https://ibrahimtanyalcin.github.io/sijill/static/img/xpress-bio/gnome.png)
 
+## Installation
+
+- Clone the repository
+- Run `app/bin/initial-setup.sh` to install dependencies. 
+- Run `app/bin/start.sh` to start the app
+
+### Tutorial 👇
+
+[![youtube-tutorial](https://img.shields.io/badge/you-tube-cc181e)](https://www.youtube.com/watch?v=iR6cswUTXwM)
+
 ## Motivation
 
 The aim of this package is to reduce development time for webapps deployable via Express.js or Docker. It provides:
