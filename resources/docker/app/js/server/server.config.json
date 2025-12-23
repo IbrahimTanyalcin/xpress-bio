@@ -4,6 +4,9 @@
     "index": "static.html",
     "port": "whateva",
     "routes": "js/server/routes",
+    "protocols": {
+        "curl": "ftp,sftp,ftps,http,https"
+    },
     "memcached": {
         "conf": {
             "logEvents": true,

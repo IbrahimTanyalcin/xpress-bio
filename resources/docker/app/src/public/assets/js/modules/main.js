@@ -88,7 +88,7 @@ let es6exports = {};
             deleteButtons = new Map(Array.from(document.querySelectorAll(".delete-icon")).map(node =>
                 [document.getElementById(node.dataset.for), node]
             ));
-        const dlMap = new Map(); //download Map
+        const dlMap = es6exports.dlMap = new Map(); //download Map
         
         rafx.async().then(function(){
             setTimeout(function(){notify("Just a sec..")},0);
@@ -128,27 +128,6 @@ let es6exports = {};
                     toggleClass(side,"expanded",true);
                 }
                /*  zoomPanel(); //uncomment for enabling shrinking*/
-            },false);
-            uploadButton.addEventListener("click",function(e){
-                Swal.fire({
-                    input: 'url',
-                    inputLabel: 'Enter URL below',
-                    inputPlaceholder: 'https://...'
-                })
-                .then(url => {
-                    if (!url.isConfirmed) {
-                        return;
-                    }
-                    const parsed = parseFilename(url.value);
-                    if (dlMap.has(parsed.base + parsed.ext)){
-                        return Swal.fire("Duplicate filename already in progress");
-                    }
-                    return fetch('/dl/nexus', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({payload: url.value})
-                      });
-                });
             },false);
             themeButton.addEventListener("change", function(e){
                 if (this._disabled){return}
@@ -311,9 +290,6 @@ let es6exports = {};
             evtSource.addEventListener("worker-bad-link", function(e){
                 Swal.fire(e.data);
             });
-            evtSource.addEventListener("worker-bad-extension", function(e){
-                Swal.fire(e.data);
-            });
             evtSource.addEventListener("worker-dl-start", function(e){
                 const filename = e.data,
                       hexDiv = document.createElement("div"),
@@ -386,7 +362,8 @@ let es6exports = {};
              .export(firstHexGrid, "firstHexGrid")
              .export(actionButton, "actionButton")
              .export(selectedPanel, "selectedPanel") //panels[0] is for IGV by default
-             .export(dropdown, "dropdown"); //orignally used for bam files
+             .export(dropdown, "dropdown") //orignally used for bam files
+             .export(uploadButton, "uploadButton"); //moving dl/nexus to a dedicated module
         taskq._exportPersist.helpButton = helpButton;
         taskq._exportPersist.expandButton = expandButton;
         taskq._exportPersist.toolsButton = toolsButton;

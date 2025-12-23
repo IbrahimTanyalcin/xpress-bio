@@ -238,6 +238,12 @@ exports.promptAdaptors = (wk, {sysPrompt = `Default System Prompt`, separator = 
             end: end1,
             send:send1
         },
+        "gpt-5": {
+            start: start1,
+            body: body1,
+            end: end1,
+            send:send1
+        },
         "gemini-2.5-pro-preview-05-06": {
     
         },

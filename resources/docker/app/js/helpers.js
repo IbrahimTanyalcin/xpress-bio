@@ -3,6 +3,7 @@
 //so no need to return early if obj is found in require.main
 //https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#the-module-wrapper
 const 
+	path = require('path'),
 	encode = TextEncoder.prototype.encode.bind(new TextEncoder),
 	_TA = new Set([
         Object.getPrototypeOf(Uint8Array.prototype).constructor, //TypedArray
@@ -253,6 +254,55 @@ Object.defineProperties(
 			value: (() => {
 				const illegalChars = /[\x00-\x1f\\/<>:"`|?*%]/gi;
 				return fileName => fileName.replace(illegalChars,"");
+			})()
+		},
+		sanitizeFilename_v2: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const illegalChars = /[\x00-\x1f\\/<>:"`|?*%\[\]{};&$!'\^#]/gi;
+				return fileName => fileName.replace(illegalChars,"");
+			})()
+		},
+		sanitizeFilename_v3: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const 
+					whiteSpace = /\s+/g,
+					paddingJunk = /^[.\-~\s]+|[.\-~\s]+$/g,
+					failed = ["", false, null, ".", ".."];
+				let truncateUtf8Safe,
+					stripIllegalChars,
+					removeDiacritics,
+					removePathTraversal,
+					prefixWindowsReservedKeywords;
+				return (str) => {
+					if (!truncateUtf8Safe) {
+						({
+						truncateUtf8Safe,
+						sanitizeFilename_v2: stripIllegalChars,
+						removeDiacritics,
+						removePathTraversal,
+						prefixWindowsReservedKeywords
+					 	} = exports);
+					}
+					if (!str) {return ""}
+					//console.log(sanitizeV2.toString());
+					//str = removeDiacritics(stripIllegalChars(truncateUtf8Safe(str)));
+					str = truncateUtf8Safe(str, 1024);
+					str = removePathTraversal(path.normalize(str));
+					str = path.basename(str);
+					str =  removeDiacritics(stripIllegalChars(str));
+					str = str.replace(whiteSpace, "_");
+					str = str.replace(paddingJunk, "");
+					str = prefixWindowsReservedKeywords(str);
+					if (failed.includes(str)) {return ""}
+					if (str.length > 255) {return str.slice(0, 255)}
+					return str;
+				}
 			})()
 		},
 		nTimes: {
@@ -538,6 +588,49 @@ Object.defineProperties(
 				}
 				return uuid;
 			})()
-		}
+		},
+		removeDiacritics: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const 
+					utfMark = /\p{M}+/gu,
+					nonAscii = /[^\x00-\x7F]/g;
+				return str => String(str).normalize('NFKD').replace(utfMark, '').replace(nonAscii, '');
+			})()
+		},
+		prefixWindowsReservedKeywords: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const winReserved = /^(con|prn|aux|nul|com[1-9]|lpt[1-9]|conin\$|conout\$|clock\$)(?:\..*)?$/i;
+				return (str, prefix = "_") => {
+					str += "";
+					if(winReserved.test(str)) {return prefix + str}
+					return str;
+				};
+			})()
+		},
+		removePathTraversal: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const traversal = /(\.\.[\/\\])+/g;
+				return str => String(str).replace(traversal, '');
+			})()
+		},
+		truncateUtf8Safe: {
+			enumerable: true,
+			configurable: true,
+			writable: true,
+			value: (() => {
+				const replacementCharRgx = /\uFFFD+$/;
+				return (str, len = 255) => Buffer.from(String(str), "utf8")
+					.subarray(0, len).toString("utf8").replace(replacementCharRgx, "");
+			})()
+		},
 	}
 );
