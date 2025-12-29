@@ -17,7 +17,8 @@ module.exports = function({express, app, info, files, serverSent}){
                 staticFolder: info.serverConf.static,
                 bin: info.dockerBinaries,
                 uriWhiteList: info.serverConf?.uriWhiteList ?? [],
-                uriBlackList: info.serverConf?.uriBlackList ?? []
+                uriBlackList: info.serverConf?.uriBlackList ?? [],
+                protocols: info.serverConf?.protocols?.curl || info.serverConf?.curl?.protocols || []
             }
         }
     );
@@ -38,6 +39,7 @@ module.exports = function({express, app, info, files, serverSent}){
                 case "worker-bad-link":
                 case "worker-bad-extension":
                 case "worker-connection-timedout":
+                case "worker-url-not-parsable":
                     serverSent
                         .msg("streamOne", sessid, {directive: "event", payload: type})
                         .msg("streamOne", sessid, {payload});
@@ -87,6 +89,11 @@ module.exports = function({express, app, info, files, serverSent}){
                 case "worker-file-delete-fail":
                     serverSent
                         .msg("streamOne", sessid, {directive: "event", payload: "file-delete-fail"})
+                        .msg("streamOne", sessid, {payload});
+                    break;
+                case "worker-dl-bad-custom-filename":
+                    serverSent
+                        .msg("streamOne", sessid, {directive: "event", payload: type})
                         .msg("streamOne", sessid, {payload});
                     break;
             }

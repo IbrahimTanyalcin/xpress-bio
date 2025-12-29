@@ -1,7 +1,7 @@
 const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
       {relocFilesBasedOnExt} = require("../../relocFilesBasedOnExt.js"),
       {workerData, parentPort} = require("node:worker_threads"),
-      {log, until, rmIndent, sanitizeFilename} = require("../../helpers.js"),
+      {log, until, rmIndent, sanitizeFilename, sanitizeFilename_v3, truncateUtf8Safe} = require("../../helpers.js"),
       {safeResources} = require("../../safeResources.js"),
       {capture} = require("../../capture.js"),
       path = require("path");
@@ -59,15 +59,19 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
           extArr = Object.keys(extMap),
           isCompressed = ((...exts) => ext => !!~exts.indexOf(ext))(".tar", ".gz", ".z", ".tgz", ".taz", ".lz4"),
           rgxHttpStats = /^\s*HTTP[^\s]*\s+(?<status>[0-5]{3})\s*(?<statusText>[A-Z]+)?\s*$/gim,
-          rgxHttpFilename = /^content-disposition\s*:\s*attachment\s*;\s*filename\s*=\s*"?(?<filename>[^"\r\n]+)"?\s*$/gim;
+          rgxHttpFilename = /^content-disposition\s*:\s*attachment\s*;\s*filename\s*=\s*"?(?<filename>[^"\r\n]+)"?\s*$/gim,
+          allowedProtocols = ((workerData?.protocols ?? "") + "").replace(/\s+/g, "") || "ftp,sftp,ftps,http,https",
+          _strProtoInlcudes = String.prototype.includes.call.bind(String.prototype.includes);
     let dlPool = 0,
         dlBlock = 0,
         dlPoolMax = 10,
         dlBlockMax = 3,
         decr = () => {--dlPool;--dlBlock;};
+    const MAX_URL_LENGTH = 256 * 1024,
+          MAX_URL_REPLY_LENGTH = 4 * 1024;
     port.on("message", async function(message){
         if (dlPool >= dlPoolMax) {
-            port.postMessage({type: "worker-pool-full", payload: "Maximum download queue reached, wait until others are finished", sessid});
+            port.postMessage({type: "worker-pool-full", payload: "Maximum download queue reached, wait until others are finished", sessid: message.sessid});
             return
         }
         ++dlPool;
@@ -78,7 +82,33 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
             return false;
         },{interval: 1000});
         //payload is URI
-        const {payload, sessid} = message;
+        const {payload:raw_payload, sessid} = message;
+        const payload = truncateUtf8Safe(raw_payload, MAX_URL_LENGTH),
+              reply_payload = truncateUtf8Safe(payload, MAX_URL_REPLY_LENGTH);
+        const has_custom_filename = Object.hasOwn(message, "custom_filename");
+        let {custom_filename} = message;
+        custom_filename &&= sanitizeFilename_v3(custom_filename);
+        if (!URL.canParse(payload)) {
+            port.postMessage({
+                type: "worker-url-not-parsable",
+                payload: Object.assign({
+                    message:"URL cannot be parsed. Use well formed links.",
+                    url: reply_payload,
+                }, has_custom_filename ? {custom_filename}: {}),
+                sessid
+            });
+            return decr();
+        }
+        
+        if (has_custom_filename && (!custom_filename || !_strProtoInlcudes(custom_filename, "."))) {
+            port.postMessage({type: "worker-dl-bad-custom-filename", payload: {
+                message: "Filename cannot be used. Try again with a simpler name.",
+                url: reply_payload,
+                custom_filename
+            }, sessid});
+            return decr();
+        }
+
         if (
             workerData.uriWhiteList.length
             && !uriWhiteList.match(payload)
@@ -90,8 +120,10 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
             port.postMessage({type: "worker-bad-host", payload: "URI is in the blacklist", sessid});
             return decr();
         }
-        const {status, statusText, filename = "", timedout = ""} = await capture(
-                `curl -fsSL -I --connect-timeout 20 ${payload}`, 
+        const {status, statusText, filename:raw_filename = "", timedout = ""} = await capture(
+                custom_filename
+                ? `printf 'HTTP/1.1 200 OK\\ncontent-disposition: attachment; filename="${custom_filename}"\\n'`
+                : `curl -fsSL -I --connect-timeout 20 --proto ='${allowedProtocols}' --proto-redir ='${allowedProtocols}' '${payload}'`, 
                 {logger: false, pipe: false, onerror: oErr => oErr.rej(oErr.err)}
             )
             .then((val = "") => {
@@ -104,8 +136,7 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
                     return {timedout: true}
                 }
                 return {};
-            }),
-            extName = path.extname(filename);
+            });
         if (timedout) {
             port.postMessage({
                 type: "worker-connection-timedout", 
@@ -114,7 +145,8 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
             });
             return decr();
         }
-        //filename = sanitizeFilename(filename);
+        const filename = sanitizeFilename_v3(raw_filename),
+              extName = path.extname(filename);
         if (!filename) {
             port.postMessage({type: "worker-bad-filename", payload: "Filename empty or broken link", sessid});
             return decr();
@@ -131,7 +163,17 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
             return decr();
         }
         if (!~extArr.indexOf(extName)) {
-            port.postMessage({type: "worker-bad-extension", payload: `You can only download ${extArr} files`, sessid});
+            port.postMessage({
+                type: "worker-bad-extension", 
+                payload: has_custom_filename 
+                    ? {
+                        message: `You can only download ${extArr} files`,
+                        url: reply_payload,
+                        custom_filename
+                    }
+                    :`You can only download ${extArr} files`,
+                sessid
+            });
             return decr();
         }
         const filepath = path.resolve(extMap[extName], filename),
@@ -140,7 +182,8 @@ const {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
         await capture(
             `/bin/bash '${path.resolve(workerData.bin,"downloadX.sh")}' `
             + `'${payload}' '${filepath}' `
-            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : `--atomic '${tempFolder}'`),
+            + (fileIsCompressed ? `--rm 1 ${Object.values(fileTypes).flat(Infinity).map(d => `'${d}'`).join(" ")}` : `--atomic '${tempFolder}'`)
+            + ` -- --proto ='${allowedProtocols}' --proto-redir ='${allowedProtocols}'`,
             {logger: false, pipe: false, ondata: function(data = ""){
                 data.match(rgxPrcnt)?.forEach(d => port.postMessage({type: "worker-dl-progress", payload: filename, percentage: d}));
             }}

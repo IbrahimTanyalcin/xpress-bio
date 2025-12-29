@@ -99,6 +99,7 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
                             <select disabled name="model-selector">
                                 <option value ="" selected></option>
                                 <option value="ChatGPT 4o">ChatGPT 4o</option>
+                                <option value="ChatGPT 5">ChatGPT 5</option>
                                 <option disabled value="Gemini 2.5 Pro">Gemini 2.5 Pro - Coming Soon!</option>
                                 <option value="Kong API - ChatGPT 4o">Kong API - 4o</option>
                             </select>
@@ -124,7 +125,7 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
 
     const 
         tokenFamilies = {
-            "openai": ["openai", "open-ai", "chatgpt", "chat-gpt", "gpt-4", "gpt4","gpt-4.5", "gpt4.5"],
+            "openai": ["openai", "open-ai", "chatgpt", "chat-gpt", "gpt-4", "gpt4","gpt-4.5", "gpt4.5", "gpt-5", "gpt5"],
             "gemini": ["gemini", "gemini-pro", "gemini2.5", "gemini-2.5"],
             "kong-api": ["kong-api", "kongApi", "kongapi", "kong_Api", "kong_api"]
         },
@@ -153,6 +154,11 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
         availableModels = Object.assign(Object.create(null), {
             "ChatGPT 4o": {
                 name: "gpt-4o",
+                family: tokenFamilies.openai,
+                config: {}
+            },
+            "ChatGPT 5": {
+                name: "gpt-5",
                 family: tokenFamilies.openai,
                 config: {}
             },
