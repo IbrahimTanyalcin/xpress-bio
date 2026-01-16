@@ -98,6 +98,8 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
                         <div class="custom-dropdown">
                             <select disabled name="model-selector">
                                 <option value ="" selected></option>
+                                <option value="Claude Opus 4.5">Claude Opus 4.5</option>
+                                <option value="Claude Sonnet 4.5">Claude Sonnet 4.5</option>
                                 <option value="ChatGPT 4o">ChatGPT 4o</option>
                                 <option value="ChatGPT 5">ChatGPT 5</option>
                                 <option disabled value="Gemini 2.5 Pro">Gemini 2.5 Pro - Coming Soon!</option>
@@ -126,6 +128,7 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
     const 
         tokenFamilies = {
             "openai": ["openai", "open-ai", "chatgpt", "chat-gpt", "gpt-4", "gpt4","gpt-4.5", "gpt4.5", "gpt-5", "gpt5"],
+            "anthropic": ["anthropic", "claude", "sonnet", "opus", "anthropic-claude", "sonnet-4.5", "sonnet-4", "opus-4.1", "opus-4.5"],
             "gemini": ["gemini", "gemini-pro", "gemini2.5", "gemini-2.5"],
             "kong-api": ["kong-api", "kongApi", "kongapi", "kong_Api", "kong_api"]
         },
@@ -170,6 +173,16 @@ module.exports = async function({express, app, info, files, serverSent, ws, memc
             "Kong API - ChatGPT 4o": {
                 name: "kong-api-gpt-4o",
                 family: tokenFamilies["kong-api"],
+                config: {}
+            },
+            "Claude Opus 4.5": {
+                name: "claude-opus-4-5-20251101",
+                family: tokenFamilies["anthropic"],
+                config: {}
+            },
+            "Claude Sonnet 4.5": {
+                name: "claude-sonnet-4-5-20250929",
+                family: tokenFamilies["anthropic"],
                 config: {}
             }
         }),

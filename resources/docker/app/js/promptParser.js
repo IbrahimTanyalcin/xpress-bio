@@ -238,3 +238,172 @@ exports.promptParser2 = ({instance, adaptorsModelBody : extender, ws, oWS, windo
     }
     return parser;
 }
+
+exports.promptParser3 = ({instance, adaptorsModelBody : extender, ws, oWS, window_id, decode = true, log = false}) => {
+    let accum = "",
+        accumThinking = {signature: void(0), type: "thinking", thinking: ""},
+        content_block_start_initiated = 0;
+    const 
+    seen = new Set([]),
+    decoder = new TextDecoder(),
+    logger = (() => {
+        switch (((typeof log === "function") << 1) + !!log) {
+            case 3:
+            case 2:
+                return log;
+            case 1:
+                return (event) => {
+                    console.log('Received event!')
+                    console.log('id: %s', event.id || '<none>')
+                    console.log('name: %s', event.name || '<none>')
+                    console.log('data: %s', event.data)
+                }
+            default:
+                return false
+        }
+    })(),
+    parser = new eventSourceParser({
+        onEvent(event) {
+            logger & logger(event);
+            const data = JSON.parse(event.data);
+            ws.msg({
+                channel: oWS.name,
+                sessid: oWS.sessid,
+                event: `server-g-nome-promptsts${window_id ? `@${window_id}` : ""}`,
+                namespace: oWS.namespace,
+                payload: `${data.type}`
+            })
+            OUTER:
+            switch (data.type) {
+                case "content_block_start":
+                    INNER:
+                    switch (data?.content_block?.type) {
+                        case "thinking":
+                            //..extend with <details>
+                            ws.msg({
+                                channel: oWS.name,
+                                sessid: oWS.sessid,
+                                event: `server-g-nome-promptext${window_id ? `@${window_id}` : ""}`,
+                                namespace: oWS.namespace,
+                                payload: `<details open><summary>Thinking</summary><div><p><i style="opacity: 0.8">`
+                            });
+                            break INNER;
+                        case "tool_use":
+                        case "server_tool_use":
+                        case "web_search_tool_result":
+                            break INNER;
+                        case "text":
+                            if (!content_block_start_initiated){
+                                seen.add(+data.index);
+                                content_block_start_initiated = 1;
+                            }
+                            if (seen.has(+data.index)) { return }
+                            ws.msg({
+                                channel: oWS.name,
+                                sessid: oWS.sessid,
+                                event: `server-g-nome-promptbgn${window_id ? `@${window_id}` : ""}`,
+                                namespace: oWS.namespace,
+                                payload: `New prompt content part started`
+                            });
+                            seen.add(+data.index);
+                            break INNER;
+                        default:
+                            break INNER;
+                    }
+                    //any common stuff that needs to be done
+                    break;
+                case "content_block_delta":
+                    INNER:
+                    switch (data?.delta?.type) {
+                        case "text_delta":
+                            ws.msg({
+                                channel: oWS.name,
+                                sessid: oWS.sessid,
+                                event: `server-g-nome-promptext${window_id ? `@${window_id}` : ""}`,
+                                namespace: oWS.namespace,
+                                payload: data.delta.text
+                            });
+                            accum += data.delta.text;
+                            break INNER;
+                        case "thinking_delta":
+                            ws.msg({
+                                channel: oWS.name,
+                                sessid: oWS.sessid,
+                                event: `server-g-nome-promptext${window_id ? `@${window_id}` : ""}`,
+                                namespace: oWS.namespace,
+                                payload: data?.delta?.thinking ?? ""
+                            });
+                            accumThinking.thinking += data?.delta?.thinking;
+                            break INNER;
+                        case "signature_delta":
+                            accumThinking.signature = data?.delta?.signature;
+                            //close the closing details tag.
+                            ws.msg({
+                                channel: oWS.name,
+                                sessid: oWS.sessid,
+                                event: `server-g-nome-promptext${window_id ? `@${window_id}` : ""}`,
+                                namespace: oWS.namespace,
+                                payload: `</i></p></div></details>\n\n`
+                            });
+                            break INNER;
+                        default:
+                            break INNER;
+                    }
+                    //any common stuff that needs to be done
+                    break;
+                case "message_stop":
+                    if (accumThinking.signature) {
+                        instance.body = extender(
+                            instance.body,
+                            {role: "assistant", content: [accumThinking, {type: "text", text: accum}]}
+                        );
+                    } else {
+                        instance.body = extender(
+                            instance.body,
+                            {role: "assistant", content: accum}
+                        );
+                    }
+                    break;
+                case "error":
+                    ws.msg({
+                        channel: oWS.name,
+                        sessid: oWS.sessid,
+                        event: `server-g-nome-err${window_id ? `@${window_id}` : ""}`,
+                        namespace: oWS.namespace,
+                        payload: `Error: ${data?.error?.message || data?.error?.type || "sse.remote.server.error"}`
+                    });
+                    break;
+                case "message_start":
+                case "content_block_stop":
+                case "message_delta":
+                case "ping":
+                    break;
+            }
+        },
+        onError(error) {
+            /*console.error('Error parsing event:', error)
+            if (error.type === 'invalid-field') {
+                console.error('Field name:', error.field)
+                console.error('Field value:', error.value)
+                console.error('Line:', error.line)
+            } else if (error.type === 'invalid-retry') {
+                console.error('Invalid retry interval:', error.value)
+            }*/
+            ws.msg({
+                channel: oWS.name,
+                sessid: oWS.sessid,
+                event: `server-g-nome-err${window_id ? `@${window_id}` : ""}`,
+                namespace: oWS.namespace,
+                payload: `Error parsing event: ${error.type || "sse.parser.error"}`
+            });
+        }
+    });
+    if (decode) {
+        parser.feed = ((orig_feed) => {
+            return (newChunk) => {
+                return orig_feed.call(parser, decoder.decode(newChunk, {stream: true}));
+            }
+        })(parser.feed)
+    }
+    return parser;
+}
