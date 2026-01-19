@@ -89,3 +89,18 @@
   ### fixes
   - Due to `wsl 2.57` removing support of cgroup1, `isContainer` is added 2 extra checks in `app/bin/start.sh` and `app/js/getInfo.js` to increase compatibility without breaking older images.
   - Added `--use-openssl-ca` in `Dockerfile` and `app/bin/start.sh` to enable `fetch` to use system certs.
+- ## v0.3.2
+  > *Diff range: `682cea4..`*
+  ### changes
+  - Added support for **Anthropic Claude** models (Sonnet 4.5 and Opus 4.5) to G-NOME. Implemented `promptParser3` for Anthropic SSE streaming format and extended `promptAdaptors.js` with `start3`/`send3` functions for the Anthropic Messages API.
+  - Added support for **GPT-5** model in G-NOME using the existing OpenAI Responses API adaptor (`promptParser1`).
+  - Extended download worker (`worker-dl.js`) to allow custom filenames and restricted default `curl` protocols.
+  - Added `--ignore-container` flag to `app/bin/start.sh` allowing the server to run in standalone mode even inside a container.
+  - Added `/healthcheck` endpoint under `app/js/server/routes/healthcheck.js`.
+  - Added **GitHub Actions workflow** (`.github/workflows/github-docker-build.yml`) for automated Docker build and healthcheck on PRs affecting `resources/docker/**`.
+  - Increased G-NOME token limit to accommodate larger payloads.
+  - Updated workflow to create docker images on dockerhub for successfully merged PRs.
+  - Pinned `ubuntu-latest` to `ubuntu-24.04` for workflows.
+  ### fixes
+  - Fixed Dockerfile `CMD` instruction to use single-line format for compatibility with Docker v28 parser.
+  - Fixed `sanitizeFilename` edge cases and added corresponding unit tests.
