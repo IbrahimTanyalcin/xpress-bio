@@ -26,6 +26,8 @@ jobs:
       NAME: xpressbio
       PORT: 3000
       SLEEP_INTERVAL: 3
+      # Check at job level since secrets context isn't available in step-level if: expressions
+      HAS_DOCKERHUB_CREDS: ${{ vars.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -83,20 +85,14 @@ jobs:
           exit 1
 
       - name: Login to DockerHub
-        if: |
-          github.event.pull_request.merged == true &&
-          vars.DOCKERHUB_USERNAME != '' &&
-          secrets.DOCKERHUB_TOKEN != ''
+        if: github.event.pull_request.merged == true && env.HAS_DOCKERHUB_CREDS == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Tag and Push to DockerHub
-        if: |
-          github.event.pull_request.merged == true &&
-          vars.DOCKERHUB_USERNAME != '' &&
-          secrets.DOCKERHUB_TOKEN != ''
+        if: github.event.pull_request.merged == true && env.HAS_DOCKERHUB_CREDS == 'true'
         run: |
           DOCKERHUB_IMAGE="${{ vars.DOCKERHUB_USERNAME }}/xpress-bio"
           VERSION="${{ steps.package_json.outputs.version }}"
