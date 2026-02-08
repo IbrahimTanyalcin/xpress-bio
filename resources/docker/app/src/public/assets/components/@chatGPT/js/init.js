@@ -126,7 +126,7 @@ const diff = (d1, d2) => {
 
 !async function({toolRegister, genHexStr}){
     toolRegister.set("g-nome", async function(button){
-        const modal = Modal({sty:[["background", "var(--bg-color)"],["opacity", 0.95]], cls: "modal-g-nome"});
+        const modal = Modal({sty:[["background", "var(--bg-color-g-nome, var(--bg-color))"],["opacity", 0.95]], cls: "modal-g-nome"});
         const {rndID: contentAreaID, node: contentArea} = registerContentArea(modal);
         generateStyle(Modal.className);
         registerError(modal);

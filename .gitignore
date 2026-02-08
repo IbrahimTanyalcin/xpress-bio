@@ -125,3 +125,7 @@ resources/docker/app/js/server/*.config.json
 
 # But do not ignore server.config.json
 !resources/docker/app/js/server/server.config.json
+
+#ignore the scratchpad folder
+/scratch-pad
+
