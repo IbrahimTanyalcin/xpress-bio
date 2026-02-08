@@ -1,0 +1,93 @@
+name: bare-metal install and healthcheck
+
+permissions:
+  contents: read
+
+on:
+  # pull_request:
+  #  types: [opened, synchronize, reopened, ready_for_review]
+  #  paths:
+  #    - 'resources/docker/app/bin/**'
+  #    - '.github/workflows/github-verify-installer.yml'
+  workflow_dispatch:
+
+jobs:
+  install-and-healthcheck:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      PORT: 3000
+      TEST_USER: xpressbio
+      REPO_DIR: /home/xpressbio/xpress-bio
+      APP_DIR: /home/xpressbio/xpress-bio/resources/docker/app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Create non-privileged user
+        run: |
+          useradd -m -s /bin/bash $TEST_USER
+          echo "$TEST_USER ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/$TEST_USER
+
+      - name: Copy repo to user home
+        run: |
+          cp -r $GITHUB_WORKSPACE ${{ env.REPO_DIR }}
+          chown -R $TEST_USER:$TEST_USER ${{ env.REPO_DIR }}
+
+      - name: Run initial-setup.sh (non-interactive)
+        run: |
+          cd ${{ env.APP_DIR }}/bin
+          SELECTIONS="samtools,blast" NO_GUM=true AUTO_PATH=true TARGET_USER=$TEST_USER ./initial-setup.sh
+
+      - name: Ensure memcached is running
+        run: |
+          service memcached status || service memcached start
+
+      - name: Verify tools installed
+        run: |
+          su -l $TEST_USER << 'EOF'
+          samtools --version | head -1
+          blastn -version | head -1
+          EOF
+
+      - name: Install npm dependencies
+        run: |
+          su -l $TEST_USER << EOF
+          cd ${{ env.APP_DIR }}
+          npm install
+          EOF
+
+      - name: Start server (background)
+        run: |
+          su -l $TEST_USER << EOF
+          cd ${{ env.APP_DIR }}
+          nohup /bin/bash bin/start.sh > /tmp/server.log 2>&1 &
+          echo \$! > /tmp/server.pid
+          sleep 2
+          EOF
+
+      - name: Wait for /healthcheck
+        run: |
+          for i in {1..20}; do
+            if curl -fsS "http://127.0.0.1:${{ env.PORT }}/healthcheck"; then
+              echo "Healthy!"
+              exit 0
+            fi
+            echo "Attempt $i: waiting 3s..."
+            sleep 3
+          done
+          echo "=== Server logs ==="
+          cat /tmp/server.log || true
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        run: |
+          pkill -u $TEST_USER node || true
+          pkill -u $TEST_USER nodemon || true
