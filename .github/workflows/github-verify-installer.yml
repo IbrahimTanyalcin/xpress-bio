@@ -32,40 +32,40 @@ jobs:
 
       - name: Create non-privileged user
         run: |
-          useradd -m -s /bin/bash $TEST_USER
-          echo "$TEST_USER ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/$TEST_USER
+          sudo useradd -m -s /bin/bash $TEST_USER
+          echo "$TEST_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$TEST_USER
 
       - name: Copy repo to user home
         run: |
-          cp -r $GITHUB_WORKSPACE ${{ env.REPO_DIR }}
-          chown -R $TEST_USER:$TEST_USER ${{ env.REPO_DIR }}
+          sudo cp -r $GITHUB_WORKSPACE ${{ env.REPO_DIR }}
+          sudo chown -R $TEST_USER:$TEST_USER ${{ env.REPO_DIR }}
 
       - name: Run initial-setup.sh (non-interactive)
         run: |
           cd ${{ env.APP_DIR }}/bin
-          SELECTIONS="samtools,blast" NO_GUM=true AUTO_PATH=true TARGET_USER=$TEST_USER ./initial-setup.sh
+          sudo SELECTIONS="samtools,blast" NO_GUM=true AUTO_PATH=true TARGET_USER=$TEST_USER ./initial-setup.sh
 
       - name: Ensure memcached is running
         run: |
-          service memcached status || service memcached start
+          sudo service memcached status || sudo service memcached start
 
       - name: Verify tools installed
         run: |
-          su -l $TEST_USER << 'EOF'
+          sudo su -l $TEST_USER << 'EOF'
           samtools --version | head -1
           blastn -version | head -1
           EOF
 
       - name: Install npm dependencies
         run: |
-          su -l $TEST_USER << EOF
+          sudo su -l $TEST_USER << EOF
           cd ${{ env.APP_DIR }}
           npm install
           EOF
 
       - name: Start server (background)
         run: |
-          su -l $TEST_USER << EOF
+          sudo su -l $TEST_USER << EOF
           cd ${{ env.APP_DIR }}
           nohup /bin/bash bin/start.sh > /tmp/server.log 2>&1 &
           echo \$! > /tmp/server.pid
@@ -89,5 +89,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          pkill -u $TEST_USER node || true
-          pkill -u $TEST_USER nodemon || true
+          sudo pkill -u $TEST_USER node || true
+          sudo pkill -u $TEST_USER nodemon || true
