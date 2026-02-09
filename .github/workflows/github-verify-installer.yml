@@ -43,7 +43,7 @@ jobs:
       - name: Run initial-setup.sh (non-interactive)
         run: |
           cd ${{ env.APP_DIR }}/bin
-          sudo SELECTIONS="samtools,blast" NO_GUM=true AUTO_PATH=true TARGET_USER=$TEST_USER ./initial-setup.sh
+          sudo SELECTIONS="samtools,blast" NO_GUM=true AUTO_PATH=true TARGET_USER=$TEST_USER /bin/bash ./initial-setup.sh
 
       - name: Ensure memcached is running
         run: |
