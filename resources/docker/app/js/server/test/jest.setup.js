@@ -10,6 +10,7 @@ Object.assign(
     global,
     {
         simulClient: require("./fixtures/simulClient.js"),
+        simulWsClient: require("./fixtures/simulWsClient.js"),
         reqDwnld: require("./fixtures/reqDwnld.js"),
         validateSSE: require("./fixtures/validateSSE.js"),
         compareHashes: require("./fixtures/compareHashes.js"),

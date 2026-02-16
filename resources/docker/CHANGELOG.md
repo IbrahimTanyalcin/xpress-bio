@@ -104,3 +104,7 @@
   ### fixes
   - Fixed Dockerfile `CMD` instruction to use single-line format for compatibility with Docker v28 parser.
   - Fixed `sanitizeFilename` edge cases and added corresponding unit tests.
+- ## v0.3.3
+  ### changes
+  - Added optional "origin" key to `server.config.json` which allows filtering web-socket connections outside those origins.
+  - Added new web-socket test suite and fixtures to validate functionality and origin check.

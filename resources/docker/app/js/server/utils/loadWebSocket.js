@@ -9,6 +9,7 @@ const
     {Limiter} = require("../../rateLimiter.js"),
     {log, until, clamp, encode, wsSend8, getUuidFromCookie} = require("../../helpers.js"),
     {penalize, unpenalize, isPenalized} = require("../../penalizer.js"),
+    {transpileStrMatchList} = require("../../transpileStrMatchList.js"),
     rateLimitKey = Symbol.for("xpressbio.ratelimit");
     
 module.exports = async function ({server, express, app, info, files, session, serverSent, memcache}) {
@@ -97,12 +98,14 @@ module.exports = async function ({server, express, app, info, files, session, se
                 if(!name){
                     throw new Error("Each web socket channel must have a name parameter");
                 }
-                const nMap = wsClients.responses[name] = new Map();
+                const nMap = wsClients.responses[name] = new Map(),
+                      originMatcher = oRoute.origin ? transpileStrMatchList(oRoute.origin) : null;
                 channelMatchers.push({
                     matcher, 
                     info: oRoute, 
                     clients: nMap,
-                    limiter: new Limiter(memcache, oRoute, {interval: rateLimitInterval})
+                    limiter: new Limiter(memcache, oRoute, {interval: rateLimitInterval}),
+                    originMatcher
                 });
             })
         })
@@ -208,22 +211,42 @@ module.exports = async function ({server, express, app, info, files, session, se
             socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
             return socket.destroy();
         }
-        session(req, {}, function(){
-            if (req.session) {
-                logIfDebug("ws session middleware found session object.", req.url, channelMatchers);
-                let oChannel = channelMatchers.find(({matcher, channel}) => matcher(pathname)),
-                    channel = oChannel?.info?.name;
-                if (channel) {
-                    return wss.handleUpgrade(req, socket, head, function(ws){
-                        logIfDebug("channel matched, about to fire emit connection event.");
-                        wss.emit('connection', ws, req, /* oChannel?.info */ oChannel);
-                    })
-                }
-            }
-            logIfDebug("no channels could be matched or no session object on the upgrade request!");
-            socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
-            socket.destroy();
-        })
+        let oChannel = channelMatchers.find(({matcher, channel}) => matcher(pathname)),
+            channel = oChannel?.info?.name,
+            originMatcher = oChannel?.originMatcher;
+        switch (true) {
+            case !channel:
+                logIfDebug("no channels could be matched or no channel name!");
+                socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+                socket.destroy();
+                break;
+            case originMatcher && !req?.headers?.origin:
+            case originMatcher && !originMatcher.match(req?.headers?.origin + ""):
+                logIfDebug("origin matching is required, origin header cannot be empty or should match.");
+                socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+                socket.destroy();
+                break;
+            case !originMatcher:
+            case originMatcher.match(req?.headers?.origin + ""):
+                session(req, {}, function(){
+                    if (req.session) {
+                        logIfDebug("ws session middleware found session object.", req.url, channelMatchers);
+                        return wss.handleUpgrade(req, socket, head, function(ws){
+                            logIfDebug("channel matched, about to fire emit connection event.");
+                            wss.emit('connection', ws, req, /* oChannel?.info */ oChannel);
+                        })
+                    }
+                    logIfDebug("no channels could be matched or no session object on the upgrade request!");
+                    socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+                    socket.destroy();
+                });
+                break;
+            default:
+                logIfDebug("no case statement matched on upgrade request");
+                socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+                socket.destroy();
+                break;
+        }
     })
 
     /* 
