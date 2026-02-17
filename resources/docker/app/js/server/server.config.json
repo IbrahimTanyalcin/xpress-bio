@@ -171,7 +171,17 @@
                                 "message": "You exceeded the websocket requests",
                                 "step": 1
                             }
-                        ]
+                        ],
+                        "origin": {
+                                "value": [
+                                    "^https?:\\/\\/127\\.0\\.0\\.1",
+                                    "^https?:\\/\\/localhost",
+                                    "https?:\\/\\/[^.]*\\.dnanexus\\.cloud",
+                                    "https?:\\/\\/[^.]*\\.dnanexus\\.com"
+                                ],
+                                "isRegExp": true,
+                                "RegExpFlags": "i"
+                        }
                     }
                 }
             }

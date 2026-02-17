@@ -54,7 +54,7 @@ If you need external access, handle authentication through a reverse proxy (e.g.
 
 ## Getting Files Inside the App
 ### Using URLs
-- Make sure the server hosting the file supports HTTP `HEAD` requests (e.g. Google Cloud, Amazon S3, gist.github.com, etc.).
+- ~~Make sure the server hosting the file supports HTTP `HEAD` requests (e.g. Google Cloud, Amazon S3, gist.github.com, etc.).~~
 - In the app, go to **Analyze → Upload**, paste the URL, and click **OK**.
 
 If you provide a link to a `*.tar.gz` or any other compressed file, its contents are automatically unzipped and allocated to the corresponding folders.
