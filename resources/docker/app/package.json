@@ -2,6 +2,9 @@
   "name": "docker-for-dna-nexus-igv",
   "version": "0.3.3",
   "description": "a simple docker container for running igv on dna-nexus",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "main.js",
   "scripts": {
     "test-server": "jest --runInBand --config ./js/server/test/jest.config.js",

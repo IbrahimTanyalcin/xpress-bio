@@ -1,4 +1,4 @@
-FROM node:20-bullseye
+FROM node:24-bullseye
 
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
