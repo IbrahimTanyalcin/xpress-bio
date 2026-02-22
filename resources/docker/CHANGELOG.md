@@ -108,3 +108,9 @@
   ### changes
   - Added optional "origin" key to `server.config.json` which allows filtering web-socket connections outside those origins.
   - Added new web-socket test suite and fixtures to validate functionality and origin check.
+- ## v0.3.4
+  ### changes
+  - Upgraded Node.js runtime from 20 to 24 (`node:20-bullseye` → `node:24-bullseye` in Dockerfile). CI workflows updated accordingly.
+  - Added `branches: - '**'` filter to the `on: push` trigger in `github-workflows.yml` to prevent CI from running on tag-only pushes.
+  - Upgraded `connect-memcached` from v2 to v3. Added `"default-memcached-secret-prefix"` key under `session` in `server.config.json` to satisfy kruptein v3's stricter secret complexity requirements. `loadSession.js` reads this key at startup with a built-in fallback.
+  - Upgraded `nodemon` to v3.1.14 which bumps its internal `minimatch` dependency to v10.2.2, resolving [GHSA-3ppc-4f35-3m26](https://github.com/advisories/GHSA-3ppc-4f35-3m26).

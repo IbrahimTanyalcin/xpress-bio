@@ -190,6 +190,7 @@
     "session": {
         "env-session-secret": "XPRESS_SECRET",
         "env-memcached-secret": "MEMSESS_SECRET",
+        "default-memcached-secret-prefix": "2xUP,2xLOW,2xNUM,MIN8,2x!@#$%^&*()_+-=[]{};':\"\\|,.<>/?,",
         "session": {
             "resave": false,
             "saveUninitialized": false,

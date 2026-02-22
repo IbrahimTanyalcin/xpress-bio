@@ -3,7 +3,7 @@ FROM node:24-bullseye
 LABEL maintainer="Ibrahim Tanyalcin"
 LABEL description="Spins up a express server \ 
 for IGV to visualize .bam files"
-LABEL version="0.3.3"
+LABEL version="0.3.4"
 LABEL website="https://github.com/IbrahimTanyalcin/xpress-bio"
 LABEL repository="https://github.com/IbrahimTanyalcin/xpress-bio"
 
