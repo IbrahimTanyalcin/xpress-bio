@@ -54,7 +54,12 @@ module.exports = async function ({express, app, info, files}) {
         memsessConf.secret = memsessSecret;
     } else {
         log("No connect-memcached secrets were given. Generating random hex string.");
-        memsessConf.secret = genHexStr(8, 3, "memsecret_");
+        memsessConf.secret = genHexStr(
+            8,
+            3,
+            info?.serverConf?.session?.["default-memcached-secret-prefix"]
+            ?? "2xUP,2xLOW,2xNUM,MIN8,2x!@#$%^&*()_+-=[]{};':\"\\|,.<>/?,"
+        );
     }
     sessConf.store = new MemcachedStore(memsessConf);
     const sessionMiddleware = session(sessConf);

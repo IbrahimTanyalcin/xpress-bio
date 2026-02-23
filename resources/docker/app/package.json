@@ -1,7 +1,10 @@
 {
   "name": "docker-for-dna-nexus-igv",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "a simple docker container for running igv on dna-nexus",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "main": "main.js",
   "scripts": {
     "test-server": "jest --runInBand --config ./js/server/test/jest.config.js",
@@ -26,13 +29,13 @@
   "dependencies": {
     "@ibowankenobi/subscriber": "^0.0.3",
     "compression": "^1.7.4",
-    "connect-memcached": "^2.0.0",
+    "connect-memcached": "^3.0.0",
     "cross-env": "^7.0.3",
     "eventsource-parser": "^3.0.2",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "memcached": "^2.2.2",
-    "nodemon": "^3.1.7",
+    "nodemon": "^3.1.14",
     "path-to-regexp": "^8.2.0",
     "rafx": "^0.0.20",
     "tree-kill": "^1.2.2",
