@@ -114,3 +114,6 @@
   - Added `branches: - '**'` filter to the `on: push` trigger in `github-workflows.yml` to prevent CI from running on tag-only pushes.
   - Upgraded `connect-memcached` from v2 to v3. Added `"default-memcached-secret-prefix"` key under `session` in `server.config.json` to satisfy kruptein v3's stricter secret complexity requirements. `loadSession.js` reads this key at startup with a built-in fallback.
   - Upgraded `nodemon` to v3.1.14 which bumps its internal `minimatch` dependency to v10.2.2, resolving [GHSA-3ppc-4f35-3m26](https://github.com/advisories/GHSA-3ppc-4f35-3m26).
+- ## v0.3.5
+  ### changes
+  - Upgrades dev dependency Jest from `^29.7.0` to `^30.2.0`
