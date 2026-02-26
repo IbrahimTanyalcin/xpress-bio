@@ -1,6 +1,6 @@
 {
   "name": "docker-for-dna-nexus-igv",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "a simple docker container for running igv on dna-nexus",
   "engines": {
     "node": ">=20.0.0"
@@ -42,7 +42,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^30.2.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
