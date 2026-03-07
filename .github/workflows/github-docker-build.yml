@@ -85,6 +85,41 @@ jobs:
           docker logs "$NAME" || true
           exit 1
 
+      - name: Nodemon ignore test (assets dir should not trigger restart)
+        run: |
+          set -euo pipefail
+          
+          # 1) Mark current time, then create a file in the ignored assets directory
+          mark=$(date +%s)
+          docker exec "$NAME" sh -c 'echo test > /app/src/public/assets/js/ci_ignore_test.txt'
+          
+          # 2) Wait 5s — if nodemon restarts, "restarting due to changes" will appear in logs
+          sleep 5
+          
+          # 3) Check logs since mark for the restart pattern
+          if docker logs --since "$mark" "$NAME" 2>&1 | grep -qF '[nodemon] restarting due to changes'; then
+            echo "FAIL: nodemon restarted after writing to assets dir (ignore glob is broken)" >&2
+            docker logs --since "$mark" "$NAME" 2>&1 | tail -30
+            exit 1
+          fi
+          echo "OK: no restart after writing to ignored directory."
+          
+          # 4) Mark again, then touch restart.txt — nodemon SHOULD restart
+          mark=$(date +%s)
+          docker exec "$NAME" touch /app/js/server/restart.txt
+          
+          # 5) Wait for the restart message
+          if timeout 15s grep -F --line-buffered -m1 '[nodemon] restarting due to changes' < <(docker logs -f --since "$mark" "$NAME" 2>&1); then
+            echo "OK: nodemon restarted after touching restart.txt."
+          else
+            echo "FAIL: nodemon did NOT restart after touching restart.txt" >&2
+            docker logs --since "$mark" "$NAME" 2>&1 | tail -30
+            exit 1
+          fi
+          
+          # 6) Cleanup the test file
+          docker exec "$NAME" rm -f /app/src/public/assets/js/ci_ignore_test.txt
+
       - name: Login to DockerHub
         if: github.event.pull_request.merged == true && env.HAS_DOCKERHUB_CREDS == 'true'
         uses: docker/login-action@v3

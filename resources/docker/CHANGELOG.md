@@ -117,3 +117,15 @@
 - ## v0.3.5
   ### changes
   - Upgrades dev dependency Jest from `^29.7.0` to `^30.2.0`
+- ## v0.3.6
+  ### changes
+  - Removed `cross-env` production dependency. The `npm start` script now invokes `nodemon ./main.js` directly, eliminating one shell layer and simplifying the glob escaping chain in Docker.
+  - Simplified the `sed` expression in `start.sh` for Docker container mode to match the reduced escaping requirements after `cross-env` removal.
+  - Added `dryRun` option to `cleanUpFiles` test fixture for safer test development.
+  - Added `cleanUpFiles_v2` test fixture with variadic arguments, options-object detection, `dryRun` support, and `safeGuard` pattern matching (strings via `includes`, RegExp via `test` with `lastIndex` reset).
+  - Added `nodemonIgnore.test.js` integration test that verifies: (1) writing to the ignored assets directory does not trigger a nodemon restart, and (2) touching `js/server/restart.txt` does trigger a restart.
+  - Added a Docker-level nodemon ignore test step to `github-docker-build.yml` CI workflow, using `date +%s` timestamps with `docker logs --since` for isolated log window checks.
+  ### fixes
+  - Fixed nodemon `--ignore` glob pattern (`src/public/assets/**/*`) escaping in `start.sh` and Dockerfile `CMD`. The previous double-escaped `\*\*/\*` pattern was silently failing, causing nodemon to restart on every file change in the assets directory.
+  - `cross-spawn`, `isexe`, `path-key`, `shebang-command`, `shebang-regex`, and `which` moved from production to dev-only in `package-lock.json` (they were only needed transitively by `cross-env`).
+

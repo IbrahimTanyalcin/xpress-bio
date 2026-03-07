@@ -26,6 +26,7 @@ module.exports = {
       //done//"**/server/test/captureSpawn.test.js",
       //done//"**/server/test/helpers.sanitizeFilename_v3.test.js"
       //done//"**/server/test/wsClient.test.js"
+      //done//"**/server/test/nodemonIgnore.test.js"
     ],
     verbose: true,
   setupFilesAfterEnv: ["./jest.setup.js"],

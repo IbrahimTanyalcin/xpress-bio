@@ -33,7 +33,7 @@ npmArgs=()
 #nodemonArgs=(-e js,mjs,json,txt --ignore 'src/public/assets/\*\*/\*')
 nodemonArgs=(
     -e js,mjs,json,txt
-    --ignore 'src/public/assets/\*\*/\*'
+    --ignore 'src/public/assets/**/*'
     --ignore 'js/server/token.config.json'
     --ignore 'js/server/tokens.config.json'
     --ignore 'js/server/secret.config.json'
@@ -111,7 +111,9 @@ then
 EOL
     source "${scriptFolder}/funcs.sh";
     installCerts
-    su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\\\*/\\\\\*/g')"
+    #since removal of cross-env, there is ones less shell layer
+    #su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\\\*/\\\\\*/g')"
+    su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\*/\\\*/g')"
 else 
     cd "$(readlink -f -- "$(dirname -- "$(readlink -f -- "$0")")/..")"
     npm start "${allArgs[@]}"
