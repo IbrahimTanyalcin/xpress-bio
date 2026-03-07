@@ -111,10 +111,8 @@ then
 EOL
     source "${scriptFolder}/funcs.sh";
     installCerts
-    #the version below was necessary when cross-env was in use, sed no longer needed,
-    #since without cross-env, there is ones less shell layer
+    #since removal of cross-env, there is ones less shell layer
     #su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\\\*/\\\\\*/g')"
-    #su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}")"
     su IPV -s /bin/bash -c "cd /app && npm start $(echo "${allArgs[*]}" | sed 's/\*/\\\*/g')"
 else 
     cd "$(readlink -f -- "$(dirname -- "$(readlink -f -- "$0")")/..")"
